@@ -105,7 +105,7 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
       <div v-else class="grid gap-3 md:hidden">
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
-            <div><button class="min-h-11 font-mono text-base font-bold text-[#2F64A8]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
+            <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 font-mono text-base font-bold text-[#2F64A8]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
             <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">{{ candidate.qualityScore }}</span>
           </div>
           <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ candidate.roePercent }}%</dd></div><div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold">{{ candidate.peRatio }}x</dd></div><div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold">{{ candidate.freeCashFlowYieldPercent }}%</dd></div></dl>
@@ -137,8 +137,9 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
             >
               <td class="py-3.5 pr-4 font-bold text-slate-900">#{{ candidate.rank }}</td>
                <th scope="row" class="py-3.5 pr-4 font-bold text-[#407EC9]">
-                <button 
-                  @click="store.openCandidateModal(candidate.symbol)"
+                 <button
+                   :data-testid="`candidate-${candidate.symbol}`"
+                   @click="store.openCandidateModal(candidate.symbol)"
                   class="hover:underline cursor-pointer"
                 >
                   {{ candidate.symbol }}

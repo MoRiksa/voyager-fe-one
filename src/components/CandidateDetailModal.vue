@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs"
     @click.self="handleClose"
   >
-    <div ref="dialogRef" role="dialog" aria-modal="true" aria-labelledby="candidate-dialog-title" tabindex="-1" class="bg-white w-full max-w-4xl h-[94dvh] sm:h-auto sm:max-h-[90dvh] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden outline-none">
+    <div ref="dialogRef" data-testid="candidate-dialog" role="dialog" aria-modal="true" aria-labelledby="candidate-dialog-title" tabindex="-1" class="bg-white w-full max-w-4xl h-[94dvh] sm:h-auto sm:max-h-[90dvh] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden outline-none">
       <!-- Modal Header -->
       <div class="p-6 border-b border-slate-200/80 bg-slate-50/70 flex items-start justify-between gap-4">
         <div class="flex items-start gap-4">

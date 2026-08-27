@@ -44,13 +44,14 @@ const submit = async () => {
       <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">Berikan konteks yang cukup agar ruang lingkup, kriteria, dan kedalaman riset sesuai dengan pertanyaan Anda.</p>
     </header>
 
-    <form class="mt-8 grid gap-6 lg:grid-cols-[1fr_19rem]" @submit.prevent="submit">
+    <form data-testid="research-form" class="mt-8 grid gap-6 lg:grid-cols-[1fr_19rem]" @submit.prevent="submit">
       <div class="space-y-6">
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
           <label for="research-objective" class="text-sm font-bold text-slate-900">Apa yang ingin Anda teliti?</label>
           <p id="objective-help" class="mt-1 text-xs leading-5 text-slate-500">Jelaskan karakteristik perusahaan, sektor, atau keputusan riset yang ingin dibantu.</p>
           <textarea
             id="research-objective"
+            data-testid="research-objective"
             v-model="objective"
             rows="5"
             aria-describedby="objective-help objective-error"
@@ -58,7 +59,7 @@ const submit = async () => {
             class="mt-4 w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#407EC9] focus:ring-4 focus:ring-[#407EC9]/10"
             placeholder="Contoh: Temukan lima perusahaan consumer Indonesia dengan pertumbuhan laba konsisten, neraca sehat, dan valuasi di bawah median sektornya."
           ></textarea>
-          <p v-if="error" id="objective-error" role="alert" class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
+          <p v-if="error" id="objective-error" data-testid="objective-error" role="alert" class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
         </section>
 
         <section aria-labelledby="template-title">

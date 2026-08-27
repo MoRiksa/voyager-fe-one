@@ -48,7 +48,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
     <!-- Comparative Table -->
     <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm overflow-hidden">
       <div class="mb-6 grid gap-5 border-b border-slate-100 pb-5 lg:grid-cols-[1fr_auto]">
-        <fieldset><legend class="text-sm font-bold text-slate-900">Pilih kandidat</legend><div class="mt-3 flex flex-wrap gap-2"><label v-for="candidate in store.candidates" :key="candidate.symbol" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-xs font-bold" :class="selectedTickers.includes(candidate.symbol) ? 'border-[#407EC9] bg-[#407EC9]/5 text-[#2F64A8]' : 'border-slate-200 text-slate-600'"><input type="checkbox" class="sr-only" :checked="selectedTickers.includes(candidate.symbol)" @change="toggleCandidate(candidate.symbol)" />{{ candidate.symbol }}</label></div><p class="mt-2 text-xs text-slate-500">Pilih 2 sampai 5 perusahaan.</p></fieldset>
+        <fieldset><legend class="text-sm font-bold text-slate-900">Pilih kandidat</legend><div class="mt-3 flex flex-wrap gap-2"><label v-for="candidate in store.candidates" :key="candidate.symbol" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-xs font-bold" :class="selectedTickers.includes(candidate.symbol) ? 'border-[#407EC9] bg-[#407EC9]/5 text-[#2F64A8]' : 'border-slate-200 text-slate-600'"><input type="checkbox" :data-testid="`peer-${candidate.symbol}`" class="sr-only" :checked="selectedTickers.includes(candidate.symbol)" @change="toggleCandidate(candidate.symbol)" />{{ candidate.symbol }}</label></div><p class="mt-2 text-xs text-slate-500">Pilih 2 sampai 5 perusahaan.</p></fieldset>
         <label class="text-xs font-bold text-slate-700">Kelompok metrik<select v-model="metricGroup" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm lg:w-48"><option value="quality">Kualitas</option><option value="valuation">Valuasi</option><option value="growth">Pertumbuhan</option></select></label>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -61,7 +61,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         </div>
       </div>
 
-      <div v-if="selectedCandidates.length < 2" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+      <div v-if="selectedCandidates.length < 2" data-testid="peers-empty" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
         <h3 class="text-base font-bold text-slate-900">Pilih sedikitnya dua kandidat</h3>
         <p class="mt-2 text-sm leading-6 text-slate-600">Perbandingan membutuhkan minimal dua perusahaan agar perbedaan metrik dapat dibaca dengan bermakna.</p>
       </div>
