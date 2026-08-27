@@ -66,9 +66,11 @@ ${store.report.limitations.map(l => `- ${l}`).join('\n')}
     await navigator.clipboard.writeText(summaryText)
     copyError.value = ''
     copySuccess.value = true
+    store.notify('Ringkasan riset disalin ke clipboard.', 'success')
     setTimeout(() => { copySuccess.value = false }, 2000)
   } catch {
     copyError.value = 'Ringkasan tidak dapat disalin. Periksa izin clipboard browser Anda.'
+    store.notify(copyError.value, 'error')
   }
 }
 
@@ -136,6 +138,7 @@ ${store.report.disclaimer}
   link.setAttribute('download', `VoyagerOne-ExecutiveReport-${store.report.sessionId}.md`)
   link.click()
   URL.revokeObjectURL(url)
+  store.notify('Laporan Markdown berhasil diunduh.', 'success')
 }
 
 const handleExportJson = () => {
@@ -147,6 +150,7 @@ const handleExportJson = () => {
   link.setAttribute('download', `VoyagerOne-Report-${store.report.sessionId}.json`)
   link.click()
   URL.revokeObjectURL(url)
+  store.notify('Data laporan JSON berhasil diunduh.', 'success')
 }
 </script>
 

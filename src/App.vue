@@ -8,6 +8,7 @@ import MobileNav from './components/MobileNav.vue'
 import CandidateDetailModal from './components/CandidateDetailModal.vue'
 import MethodologyModal from './components/MethodologyModal.vue'
 import { useResearchStore } from './stores/researchStore'
+import { AlertCircle, CheckCircle2, Info, X } from '@lucide/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -53,5 +54,14 @@ watch(() => route.params.id, id => {
     <MobileNav />
     <CandidateDetailModal />
     <MethodologyModal />
+    <div v-if="store.toast" class="fixed inset-x-4 bottom-20 z-[60] flex justify-center md:bottom-6" :role="store.toast.tone === 'error' ? 'alert' : 'status'" :aria-live="store.toast.tone === 'error' ? 'assertive' : 'polite'">
+      <div class="flex w-full max-w-md items-start gap-3 rounded-2xl border bg-white p-4 shadow-2xl" :class="store.toast.tone === 'error' ? 'border-rose-200' : store.toast.tone === 'success' ? 'border-emerald-200' : 'border-blue-200'">
+        <CheckCircle2 v-if="store.toast.tone === 'success'" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+        <AlertCircle v-else-if="store.toast.tone === 'error'" class="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
+        <Info v-else class="mt-0.5 h-5 w-5 shrink-0 text-[#407EC9]" />
+        <p class="flex-1 text-sm font-medium leading-5 text-slate-800">{{ store.toast.message }}</p>
+        <button type="button" class="icon-button -m-2 shrink-0" aria-label="Tutup notifikasi" @click="store.dismissToast"><X class="h-4 w-4" /></button>
+      </div>
+    </div>
   </div>
 </template>

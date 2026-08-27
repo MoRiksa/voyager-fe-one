@@ -68,35 +68,35 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     },
     rank: 1,
     confidenceLevel: 'HIGH',
-    whySelected: 'Industry benchmark in Indonesian banking. Dominates low-cost current and savings account (CASA) deposit base (>80%), generating industry-highest ROE of 21.8% alongside exceptional loan quality (gross NPL under 1.8%).',
+    whySelected: 'Menjadi acuan kualitas perbankan Indonesia. Basis dana murah CASA di atas 80% mendukung ROE 21.8% dan kualitas kredit yang kuat dengan gross NPL di bawah 1.8%.',
     keyStrengths: [
-      'Market-leading CASA deposit franchise (81.4% ratio) driving ultra-low funding costs',
-      'Consistent return on equity (>21%) sustained across multi-decade interest rate cycles',
-      'Pristine credit underwriting with non-performing loan ratio substantially below peer median',
-      'High digital banking ecosystem stickiness generating sticky non-interest fee income'
+      'Rasio CASA 81.4% menekan biaya dana',
+      'ROE di atas 21% tetap konsisten melalui berbagai siklus suku bunga',
+      'Rasio kredit bermasalah berada di bawah median perusahaan sejenis',
+      'Ekosistem digital mendukung pendapatan berbasis biaya'
     ],
     potentialConcerns: [
-      'Premium valuation multiple (P/BV 4.6x) trades at high premium relative to regional banking peers',
-      'Net interest margin compression risk in a rapidly descending interest rate environment'
+      'P/BV 4.6x mencerminkan valuasi premium terhadap bank pembanding',
+      'Penurunan suku bunga dapat menekan net interest margin'
     ],
     evidenceCitations: [
       {
         source: 'Sectors API: /companies/BBCA/financials',
         metric: 'Return on Equity (ROE)',
         value: '21.8%',
-        context: 'Ranked #1 among Tier-1 Indonesian commercial banks (Sector median: 14.2%)'
+        context: 'Peringkat pertama di antara bank komersial besar; median sektor 14.2%'
       },
       {
         source: 'Sectors API: /companies/BBCA/ratios',
         metric: 'Net Interest Margin (NIM)',
         value: '5.8%',
-        context: 'Supported by CASA ratio exceeding 81%'
+        context: 'Didukung rasio CASA di atas 81%'
       },
       {
         source: 'Intelligence Engine: /scoring/dupont',
         metric: '3-Stage DuPont ROE',
         value: '21.8%',
-        context: 'Net Margin (36.4%) x Asset Turnover (0.058x) x Financial Leverage (10.3x)'
+        context: 'Net margin 36.4% x asset turnover 0.058x x leverage 10.3x'
       }
     ],
     dupontAnalysis: {
@@ -105,7 +105,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
       equityMultiplier: 10.32,
       calculatedRoe: 21.8
     },
-    peerRankInMemory: '#1 of 4 Big Banks'
+    peerRankInMemory: '#1 dari 4 bank besar'
   },
   {
     symbol: 'BMRI',
@@ -135,29 +135,29 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     },
     rank: 2,
     confidenceLevel: 'HIGH',
-    whySelected: 'Largest asset base in Indonesia with stellar corporate wholesale leadership and rapidly expanding digital retail Livin ecosystem. Delivers superior net profit CAGR of 21.5% with attractive 5.4% dividend yield.',
+    whySelected: 'Memiliki basis aset terbesar di Indonesia, posisi kuat pada wholesale banking, dan ekosistem Livin yang berkembang. CAGR laba bersih 21.5% disertai dividend yield 5.4%.',
     keyStrengths: [
-      'Dominant corporate banking book capturing major government and state enterprise transactions',
-      'Robust digital retail expansion with Livin by Mandiri achieving over 25 million registered users',
-      'Strong dividend payout commitment (60% historical payout ratio) yielding >5.4%',
-      'Significant credit cost reduction and restructuring recoveries post-2020 cycle'
+      'Portofolio corporate banking kuat pada transaksi pemerintah dan BUMN',
+      'Livin by Mandiri memiliki lebih dari 25 juta pengguna terdaftar',
+      'Payout ratio historis sekitar 60% mendukung dividend yield di atas 5.4%',
+      'Biaya kredit menurun setelah siklus restrukturisasi 2020'
     ],
     potentialConcerns: [
-      'Higher exposure to state-mandated infrastructure financing compared to private competitors',
-      'Corporate loan yield sensitivity during wholesale credit repricing periods'
+      'Eksposur pembiayaan infrastruktur pemerintah lebih tinggi dibanding bank swasta',
+      'Yield kredit korporasi sensitif terhadap repricing wholesale'
     ],
     evidenceCitations: [
       {
         source: 'Sectors API: /companies/BMRI/financials',
         metric: '3-Year Net Income CAGR',
         value: '+21.5%',
-        context: 'Outperformed state-owned banking peer average of 15.8%'
+        context: 'Di atas rata-rata bank BUMN pembanding sebesar 15.8%'
       },
       {
         source: 'Sectors API: /companies/BMRI/valuation',
         metric: 'P/E Ratio vs PBV',
         value: '11.8x / 2.2x',
-        context: 'Compelling risk-reward relative to historical 5-year average of 13.5x'
+        context: 'Di bawah rata-rata historis lima tahun sebesar 13.5x'
       }
     ],
     dupontAnalysis: {
@@ -166,7 +166,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
       equityMultiplier: 12.22,
       calculatedRoe: 20.4
     },
-    peerRankInMemory: '#2 of 4 Big Banks'
+    peerRankInMemory: '#2 dari 4 bank besar'
   },
   {
     symbol: 'ICBP',
@@ -196,29 +196,29 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     },
     rank: 3,
     confidenceLevel: 'HIGH',
-    whySelected: 'Global instant noodle powerhouse (Indomie) with unassailable domestic market share (>70%) and expanding global presence across Middle East and Africa. Strong pricing power cushions raw material cost fluctuations.',
+    whySelected: 'Indomie memiliki pangsa pasar domestik di atas 70% dan jangkauan yang berkembang di Timur Tengah serta Afrika. Pricing power membantu meredam fluktuasi biaya bahan baku.',
     keyStrengths: [
-      'Immense brand equity and distribution network spanning 100,000+ retail touchpoints across Indonesia',
-      'Resilient gross profit margin maintained above 35% despite wheat and packaging price volatility',
-      'High cash conversion cycle with strong organic free cash flow generating 7.4% yield',
-      'Steady geographic diversification through Pinehill international export operations'
+      'Ekuitas merek dan jaringan distribusi mencakup lebih dari 100 ribu titik ritel',
+      'Gross margin bertahan di atas 35% meski harga gandum dan kemasan berfluktuasi',
+      'Arus kas bebas organik menghasilkan yield 7.4%',
+      'Operasi Pinehill memperluas diversifikasi geografis'
     ],
     potentialConcerns: [
-      'Foreign currency debt exposure related to the Pinehill acquisition remains sensitive to USD/IDR shifts',
-      'Intensifying competition in premium and healthy noodle segments'
+      'Utang valuta asing terkait akuisisi Pinehill sensitif terhadap USD/IDR',
+      'Persaingan meningkat pada segmen mi premium dan sehat'
     ],
     evidenceCitations: [
       {
         source: 'Sectors API: /companies/ICBP/financials',
         metric: 'Gross Profit Margin',
         value: '36.8%',
-        context: 'Highest in Indonesian processed foods peer universe'
+        context: 'Tertinggi di antara perusahaan makanan olahan pembanding'
       },
       {
         source: 'Intelligence Engine: /scoring/cashflow',
         metric: 'Free Cash Flow Yield',
         value: '7.4%',
-        context: 'Annual FCF exceeds IDR 9.8 Trillion'
+        context: 'FCF tahunan melebihi IDR 9.8 triliun'
       }
     ],
     dupontAnalysis: {
@@ -227,7 +227,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
       equityMultiplier: 2.45,
       calculatedRoe: 19.6
     },
-    peerRankInMemory: '#1 in Consumer Staples'
+    peerRankInMemory: '#1 pada consumer staples'
   },
   {
     symbol: 'UNTR',
@@ -257,29 +257,29 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     },
     rank: 4,
     confidenceLevel: 'HIGH',
-    whySelected: 'Pristine net cash balance sheet and dominant heavy machinery distributorship (Komatsu, 53% market share). High free cash flow yield (12.8%) with proactive green mineral diversification into gold and nickel.',
+    whySelected: 'Neraca kas bersih dan posisi dominan pada distribusi alat berat Komatsu dengan pangsa pasar 53%. FCF yield 12.8% disertai diversifikasi ke emas dan nikel.',
     keyStrengths: [
-      'Formidable net cash position with virtually negligible long-term interest-bearing debt',
-      'Substantial dividend distribution track record averaging >8% annual dividend yield',
-      'Strategic revenue diversification away from thermal coal into gold mining (Martabe) and nickel smelting',
-      'Integrated business model combining equipment sales, maintenance, and mining contracting (PAMA)'
+      'Posisi kas bersih dengan utang berbunga jangka panjang yang rendah',
+      'Rekam jejak dividend yield tahunan rata-rata di atas 8%',
+      'Diversifikasi dari batu bara termal menuju emas Martabe dan smelter nikel',
+      'Model terintegrasi mencakup penjualan alat, perawatan, dan kontraktor tambang PAMA'
     ],
     potentialConcerns: [
-      'Earnings sensitivity to global commodity cycles and mining contractor volume renegotiations',
-      'Environmental, social, and governance (ESG) transition headwinds regarding thermal coal exposure'
+      'Laba sensitif terhadap siklus komoditas dan renegosiasi volume kontraktor tambang',
+      'Eksposur batu bara termal menimbulkan risiko transisi ESG'
     ],
     evidenceCitations: [
       {
         source: 'Sectors API: /companies/UNTR/ratios',
         metric: 'P/E Multiple',
         value: '5.2x',
-        context: 'Significant valuation discount relative to 10-year historical median (7.8x)'
+        context: 'Diskon terhadap median historis sepuluh tahun sebesar 7.8x'
       },
       {
         source: 'Sectors API: /companies/UNTR/dividends',
         metric: 'Dividend Yield',
         value: '8.6%',
-        context: 'Top decile dividend yield among IDX30 constituents'
+        context: 'Termasuk kelompok dividend yield tertinggi dalam IDX30'
       }
     ],
     dupontAnalysis: {
@@ -288,7 +288,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
       equityMultiplier: 1.60,
       calculatedRoe: 21.2
     },
-    peerRankInMemory: '#1 in Heavy Equipment'
+    peerRankInMemory: '#1 pada alat berat'
   },
   {
     symbol: 'AMRT',
@@ -318,29 +318,29 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     },
     rank: 5,
     confidenceLevel: 'HIGH',
-    whySelected: 'Indispensable neighborhood convenience store footprint (Alfamart) exceeding 19,000 stores nationwide. Achieves incredible asset turnover and capital efficiency with ROE of 24.8% and steady same-store-sales growth (SSSG).',
+    whySelected: 'Jaringan Alfamart memiliki lebih dari 19 ribu gerai nasional. Perputaran aset yang tinggi mendukung efisiensi modal, ROE 24.8%, dan pertumbuhan penjualan gerai yang stabil.',
     keyStrengths: [
-      'Dense neighborhood store saturation creating high barrier to entry and last-mile logistics advantages',
-      'High asset velocity with inventory turnover averaging 14x per annum',
-      'Growing fee-based service revenue from financial utility payments, parcel pickup, and top-ups',
-      'Consistent double-digit net profit expansion over consecutive 8 quarters'
+      'Kepadatan jaringan gerai menciptakan hambatan masuk dan keunggulan logistik last-mile',
+      'Perputaran persediaan rata-rata 14x per tahun',
+      'Pendapatan berbasis biaya tumbuh dari pembayaran, pengambilan paket, dan top-up',
+      'Laba bersih tumbuh dua digit selama delapan kuartal berturut-turut'
     ],
     potentialConcerns: [
-      'Elevated price-to-earnings ratio (32.4x) leaves limited safety margin for retail sales slowdowns',
-      'Minimum wage inflation across tier-2 and tier-3 Indonesian cities affecting operating expense margins'
+      'P/E 32.4x memberi margin of safety terbatas jika penjualan ritel melambat',
+      'Kenaikan upah minimum dapat menekan margin biaya operasional'
     ],
     evidenceCitations: [
       {
         source: 'Sectors API: /companies/AMRT/financials',
         metric: 'Return on Equity (ROE)',
         value: '24.8%',
-        context: 'Highest capital return among Indonesian retail sector operators'
+        context: 'Pengembalian modal tertinggi di antara operator ritel pembanding'
       },
       {
         source: 'Sectors API: /companies/AMRT/ratios',
         metric: 'Asset Turnover',
         value: '2.84x',
-        context: 'Underpins superior DuPont ROE model efficiency'
+        context: 'Menjadi penggerak utama efisiensi ROE DuPont'
       }
     ],
     dupontAnalysis: {
@@ -349,7 +349,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
       equityMultiplier: 2.30,
       calculatedRoe: 24.8
     },
-    peerRankInMemory: '#1 in Retail Convenience'
+    peerRankInMemory: '#1 pada ritel convenience'
   },
   {
     symbol: 'BBRI',

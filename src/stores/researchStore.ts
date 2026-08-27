@@ -30,6 +30,8 @@ export const useResearchStore = defineStore('research', () => {
   const isDetailModalOpen = ref<boolean>(false)
   const isMethodologyModalOpen = ref<boolean>(false)
   const sessions = ref<ResearchSession[]>([])
+  const toast = ref<{ message: string; tone: 'success' | 'error' | 'info' } | null>(null)
+  let toastTimer: ReturnType<typeof setTimeout> | undefined
 
   // 5 Pillars State
   const pillars = ref<PillarStep[]>([
@@ -449,6 +451,17 @@ export const useResearchStore = defineStore('research', () => {
     return true
   }
 
+  const dismissToast = () => {
+    toast.value = null
+    if (toastTimer) clearTimeout(toastTimer)
+  }
+
+  const notify = (message: string, tone: 'success' | 'error' | 'info' = 'info') => {
+    dismissToast()
+    toast.value = { message, tone }
+    toastTimer = setTimeout(dismissToast, 4000)
+  }
+
   // Autonomous Execution Simulation (Live Agent Loop)
   const runAutonomousResearch = async () => {
     if (isExecuting.value) return
@@ -563,6 +576,7 @@ export const useResearchStore = defineStore('research', () => {
     report,
     sessions,
     recentSessions,
+    toast,
     presets: OBJECTIVE_PRESETS,
     companyUniverse: ALL_COMPANIES_DATABASE,
     
@@ -578,6 +592,8 @@ export const useResearchStore = defineStore('research', () => {
     createSession,
     addFollowUp,
     deleteSession,
+    notify,
+    dismissToast,
     saveCurrentSession,
     runAutonomousResearch
   }

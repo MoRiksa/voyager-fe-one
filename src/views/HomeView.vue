@@ -17,6 +17,11 @@ const startDraft = () => {
   if (draftObjective.value.trim()) store.setObjective(draftObjective.value.trim())
   router.push('/research/new')
 }
+
+const removeSession = (id: string) => {
+  if (store.deleteSession(id)) store.notify('Sesi riset dihapus dari perangkat ini.', 'success')
+  pendingDeleteId.value = null
+}
 </script>
 
 <template>
@@ -148,7 +153,7 @@ const startDraft = () => {
           </router-link>
           <span class="hidden shrink-0 rounded-md px-2 py-1 text-xs font-bold sm:inline" :class="session.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : session.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'">{{ session.status === 'COMPLETED' ? 'Selesai' : session.status === 'PARTIAL' ? 'Parsial' : 'Berjalan' }}</span>
           <div v-if="pendingDeleteId === session.id" class="flex shrink-0 items-center gap-1">
-            <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="store.deleteSession(session.id); pendingDeleteId = null">Hapus</button>
+            <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="removeSession(session.id)">Hapus</button>
             <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600 hover:bg-slate-100" @click="pendingDeleteId = null">Batal</button>
           </div>
           <button v-else type="button" class="icon-button shrink-0 disabled:cursor-not-allowed disabled:opacity-35" :disabled="store.recentSessions.length <= 1" :aria-label="store.recentSessions.length <= 1 ? 'Sesi terakhir tidak dapat dihapus' : `Hapus sesi ${session.id}`" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>

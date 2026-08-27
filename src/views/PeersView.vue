@@ -12,7 +12,13 @@ const selectedTickers = ref(store.candidates.slice(0, 3).map(candidate => candid
 const metricGroup = ref<'quality' | 'valuation' | 'growth'>('quality')
 const selectedCandidates = computed(() => store.candidates.filter(candidate => selectedTickers.value.includes(candidate.symbol)))
 const toggleCandidate = (symbol: string) => {
-  selectedTickers.value = selectedTickers.value.includes(symbol) ? selectedTickers.value.filter(item => item !== symbol) : selectedTickers.value.length < 5 ? [...selectedTickers.value, symbol] : selectedTickers.value
+  if (selectedTickers.value.includes(symbol)) {
+    selectedTickers.value = selectedTickers.value.filter(item => item !== symbol)
+  } else if (selectedTickers.value.length < 5) {
+    selectedTickers.value = [...selectedTickers.value, symbol]
+  } else {
+    store.notify('Maksimal lima kandidat dapat dibandingkan sekaligus.', 'info')
+  }
 }
 const groupColumns = computed(() => metricGroup.value === 'valuation'
   ? [{ key: 'peRatio', label: 'P/E', suffix: 'x' }, { key: 'pbvRatio', label: 'P/BV', suffix: 'x' }, { key: 'evToEbitda', label: 'EV/EBITDA', suffix: 'x' }, { key: 'freeCashFlowYieldPercent', label: 'FCF yield', suffix: '%' }]
@@ -55,19 +61,24 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         </div>
       </div>
 
-      <div class="md:hidden">
+      <div v-if="selectedCandidates.length < 2" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <h3 class="text-base font-bold text-slate-900">Pilih sedikitnya dua kandidat</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Perbandingan membutuhkan minimal dua perusahaan agar perbedaan metrik dapat dibaca dengan bermakna.</p>
+      </div>
+
+      <div v-else class="md:hidden">
         <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
         <div class="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200">
           <div v-for="metric in groupColumns" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
         </div>
       </div>
 
-      <div class="hidden overflow-x-auto md:block">
+      <div v-if="selectedCandidates.length >= 2" class="hidden overflow-x-auto md:block">
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Perbandingan metrik kandidat terpilih</caption>
           <thead>
             <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
-               <th scope="col" class="pb-3 pr-4">Candidate</th>
+               <th scope="col" class="pb-3 pr-4">Kandidat</th>
               <th v-for="column in groupColumns" :key="column.key" scope="col" class="pb-3 pr-4 text-right">{{ column.label }}</th>
             </tr>
           </thead>
@@ -102,7 +113,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
     </div>
 
     <!-- Comparative Synthesis Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-if="selectedCandidates.length >= 2" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
           Pengembalian modal tertinggi
@@ -127,7 +138,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
           Skor kualitas tertinggi
         </h4>
-        <div class="text-xl font-bold font-mono text-slate-900">BBCA (94/100 Score)</div>
+        <div class="text-xl font-bold font-mono text-slate-900">BBCA (skor 94/100)</div>
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
           Basis dana murah CASA 81.4% mendukung ROE 21.8% dan kualitas kredit yang kuat.
         </p>

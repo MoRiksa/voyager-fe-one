@@ -80,52 +80,57 @@ const store = useResearchStore()
 
       <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20 font-mono text-xs text-slate-800 space-y-2">
         <div class="font-bold text-[#407EC9] text-sm">
-          Quality Score = (0.25 × P) + (0.25 × G) + (0.20 × S) + (0.20 × V) + (0.10 × C)
+          Skor Kualitas = (0.25 × P) + (0.25 × G) + (0.20 × S) + (0.20 × V) + (0.10 × C)
         </div>
         <div class="text-[11px] text-slate-600 pt-2 border-t border-[#407EC9]/20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-sans">
           <div>
-            <strong class="text-slate-900 block">Profitability (25%)</strong>
-            ROE, ROA, Gross & Operating Margins vs Sector.
+            <strong class="text-slate-900 block">Profitabilitas (25%)</strong>
+            ROE, ROA, serta margin dibanding sektor.
           </div>
           <div>
-            <strong class="text-slate-900 block">Growth (25%)</strong>
-            3Y Revenue CAGR & 3Y Net Income expansion.
+            <strong class="text-slate-900 block">Pertumbuhan (25%)</strong>
+            CAGR pendapatan dan laba bersih tiga tahun.
           </div>
           <div>
-            <strong class="text-slate-900 block">Solvency (20%)</strong>
-            Debt/Equity, Current Ratio & Cash runway.
+            <strong class="text-slate-900 block">Solvabilitas (20%)</strong>
+            Debt/Equity, current ratio, dan posisi kas.
           </div>
           <div>
-            <strong class="text-slate-900 block">Valuation (20%)</strong>
-            P/E, P/BV & EV/EBITDA relative discount.
+            <strong class="text-slate-900 block">Valuasi (20%)</strong>
+            P/E, P/BV, dan EV/EBITDA relatif terhadap pembanding.
           </div>
           <div>
-            <strong class="text-slate-900 block">Consistency (10%)</strong>
-            Consecutive positive earnings & dividend stability.
+            <strong class="text-slate-900 block">Konsistensi (10%)</strong>
+            Stabilitas laba dan dividen dalam beberapa periode.
           </div>
         </div>
       </div>
+
+      <div class="grid gap-3 sm:grid-cols-4" aria-label="Interpretasi skor">
+        <div v-for="band in [{ range: '90-100', label: 'Sangat kuat', text: 'Profil menonjol dalam ruang lingkup yang dievaluasi.' }, { range: '80-89', label: 'Kuat', text: 'Fundamental baik dengan tradeoff yang perlu diperiksa.' }, { range: '70-79', label: 'Campuran', text: 'Memerlukan analisis tambahan sebelum diprioritaskan.' }, { range: '<70', label: 'Tidak diprioritaskan', text: 'Tidak memenuhi kombinasi kriteria sesi saat ini.' }]" :key="band.range" class="rounded-xl border border-slate-200 p-4"><span class="font-mono text-sm font-bold text-[#2F64A8]">{{ band.range }}</span><h3 class="mt-2 text-sm font-bold text-slate-900">{{ band.label }}</h3><p class="mt-1 text-xs leading-5 text-slate-500">{{ band.text }}</p></div>
+      </div>
+      <p class="rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-950">Skor digunakan untuk memprioritaskan riset, bukan untuk memprediksi return. Bank dan perusahaan non-finansial juga memerlukan metrik sektoral yang berbeda.</p>
     </div>
 
     <!-- DuPont Model Deconstruction -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-4">
-      <h2 class="text-lg font-bold text-slate-900">3. 3-Stage DuPont ROE Decomposition</h2>
+      <h2 class="text-lg font-bold text-slate-900">3. Dekomposisi ROE DuPont tiga tahap</h2>
       <p class="text-xs text-slate-600 leading-relaxed">
-        To isolate whether a company's high Return on Equity is driven by high pricing power, asset velocity, or financial leverage:
+        Analisis ini membantu melihat apakah ROE tinggi terutama berasal dari margin, perputaran aset, atau leverage finansial.
       </p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">1. Operating Profit Margin</h4>
-          <p class="text-xs text-slate-500 mt-1">Net Income ÷ Revenue. Measures pricing power and cost efficiency.</p>
+          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">1. Net profit margin</h4>
+          <p class="text-xs text-slate-500 mt-1">Laba bersih ÷ pendapatan. Menggambarkan profitabilitas dan efisiensi biaya.</p>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">2. Asset Turnover Ratio</h4>
-          <p class="text-xs text-slate-500 mt-1">Revenue ÷ Total Assets. Measures operational speed and inventory turnover.</p>
+          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">2. Asset turnover</h4>
+          <p class="text-xs text-slate-500 mt-1">Pendapatan ÷ total aset. Menggambarkan efisiensi penggunaan aset.</p>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">3. Financial Leverage</h4>
-          <p class="text-xs text-slate-500 mt-1">Total Assets ÷ Shareholder Equity. Identifies reliance on debt vs equity capital.</p>
+          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">3. Leverage finansial</h4>
+          <p class="text-xs text-slate-500 mt-1">Total aset ÷ ekuitas. Menggambarkan seberapa besar aset didukung oleh modal sendiri.</p>
         </div>
       </div>
     </div>
