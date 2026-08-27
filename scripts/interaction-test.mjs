@@ -168,13 +168,20 @@ try {
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=session-next]"))'), 'Session next action did not render')
   await evaluate(`document.querySelector('[data-testid="session-next"]').click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/screener'`), 'Session did not guide to screener')
+  const sidebarSession = await evaluate(`({
+    href: document.querySelector('[data-testid="sidebar-active-session"]')?.getAttribute('href'),
+    relatedLinks: Array.from(document.querySelectorAll('nav[aria-label="Navigasi sesi aktif"] a')).map(link => link.getAttribute('href'))
+  })`)
+  if (sidebarSession.href !== `/research/${sessionResult.id}` || !sidebarSession.relatedLinks.includes(`/research/${sessionResult.id}/report`)) {
+    throw new Error(`Sidebar session navigation is not scoped to the active session: ${JSON.stringify(sidebarSession)}`)
+  }
   await waitFor(() => evaluate('document.querySelector("[data-testid=screener-metric-guide]")?.textContent.includes("Skor 80/100 adalah ambang")'), 'Screener did not explain financial metrics')
   const desktopNavigation = await evaluate(`({
     summaryHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Ringkasan')?.getAttribute('href'),
-    activeLabel: document.querySelector('nav a[aria-current="page"]')?.textContent.trim(),
-    hasSessionGroup: Array.from(document.querySelectorAll('nav')).some(nav => nav.textContent.includes('SESI AKTIF'))
+    activeLabel: Array.from(document.querySelectorAll('nav[aria-label="Navigasi sesi aktif"] a')).find(link => link.classList.contains('bg-[#2F64A8]'))?.textContent.trim(),
+    hasSessionPanel: Boolean(document.querySelector('[data-testid="sidebar-active-session"]'))
   })`)
-  if (desktopNavigation.summaryHref !== `/research/${sessionResult.id}` || desktopNavigation.activeLabel !== 'Cara kandidat dipilih' || !desktopNavigation.hasSessionGroup) {
+  if (desktopNavigation.summaryHref !== `/research/${sessionResult.id}` || desktopNavigation.activeLabel !== 'Seleksi' || !desktopNavigation.hasSessionPanel) {
     throw new Error(`Session navigation hierarchy failed: ${JSON.stringify(desktopNavigation)}`)
   }
   const persistedSymbols = await evaluate(`JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}').candidates.map(company => company.symbol)`)
@@ -214,7 +221,10 @@ try {
   await evaluate(`document.querySelector('[data-testid="peers-primary-next"]').click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/report'`), 'Comparison did not guide to report')
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
+  await evaluate(`document.querySelector('#report-tab-ranking').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=report-metric-guide]")?.textContent.includes("ROE = laba terhadap modal")'), 'Report did not explain financial metrics')
+  if (await evaluate('Boolean(document.querySelector("#report-panel-summary"))')) throw new Error('Report rendered more than the selected section')
+  await evaluate(`document.querySelector('#report-tab-candidates').click()`)
   if (!await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report omitted consistency score factor')
   await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)
   await waitFor(() => evaluate('location.pathname === "/research"'), 'Report did not return to research library')

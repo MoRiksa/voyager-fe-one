@@ -34,15 +34,6 @@ const navItems = computed(() => [
     ]
   },
   {
-    group: 'SESI AKTIF',
-    items: [
-      { names: ['research-session'], label: 'Ringkasan', path: `/research/${store.report.sessionId}`, icon: Layers },
-      { names: ['research-screener', 'research-company'], label: 'Cara kandidat dipilih', path: `/research/${store.report.sessionId}/screener`, icon: Filter },
-      { names: ['research-peers'], label: 'Bandingkan kandidat', path: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
-      { names: ['research-report'], label: 'Laporan', path: `/research/${store.report.sessionId}/report`, icon: FileSpreadsheet },
-    ]
-  },
-  {
     group: 'INFORMASI',
     items: [
       { names: ['methodology'], label: 'Cara penilaian', path: '/methodology', icon: BookOpen },
@@ -51,12 +42,19 @@ const navItems = computed(() => [
     ]
   }
 ])
+
+const sessionNavItems = computed(() => [
+  { names: ['research-session'], label: 'Ringkasan', path: `/research/${store.report.sessionId}`, icon: Layers },
+  { names: ['research-screener', 'research-company'], label: 'Seleksi', path: `/research/${store.report.sessionId}/screener`, icon: Filter },
+  { names: ['research-peers'], label: 'Perbandingan', path: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
+  { names: ['research-report'], label: 'Laporan', path: `/research/${store.report.sessionId}/report`, icon: FileSpreadsheet }
+])
 </script>
 
 <template>
-  <aside class="w-64 shrink-0 bg-white border-r border-slate-200/90 flex flex-col justify-between h-screen sticky top-0 z-30 select-none">
+  <aside class="w-64 shrink-0 bg-white border-r border-slate-200/90 flex flex-col h-screen sticky top-0 z-30 select-none">
     <!-- Top Brand & Header -->
-    <div>
+    <div class="min-h-0 flex-1 overflow-y-auto">
       <div class="p-6 border-b border-slate-100">
         <router-link to="/" class="flex items-center gap-3 group">
           <div class="w-10 h-10 rounded-xl bg-[#407EC9] flex items-center justify-center text-white shadow-sm shadow-[#407EC9]/30 transition-transform group-hover:scale-105">
@@ -70,11 +68,6 @@ const navItems = computed(() => [
           </div>
         </router-link>
 
-        <div class="mt-4 rounded-xl border border-[#407EC9]/20 bg-[#407EC9]/5 p-3">
-          <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
-          <p class="mt-2 line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
-          <p class="mt-1 text-[11px] text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
-        </div>
       </div>
 
       <!-- Navigation Groups -->
@@ -101,10 +94,21 @@ const navItems = computed(() => [
       </nav>
     </div>
 
-    <div class="border-t border-slate-100 bg-slate-50/50 p-4">
-      <div class="rounded-xl border border-slate-200 bg-white p-3 text-[11px] leading-5 text-slate-500">
-        <strong class="block text-xs text-slate-800">Mode demonstrasi</strong>
-        Data contoh untuk mencoba seluruh alur riset.
+    <div class="shrink-0 border-t border-slate-200 bg-slate-50/80 p-3">
+      <div class="mb-2 flex items-center gap-2 px-1 text-[10px] font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
+      <router-link data-testid="sidebar-active-session" :to="`/research/${store.report.sessionId}`" class="block rounded-xl border border-[#407EC9]/20 bg-white p-3 transition-colors hover:border-[#407EC9]/50 hover:bg-blue-50" :aria-current="currentRouteName === 'research-session' ? 'page' : undefined">
+        <p class="line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
+        <p class="mt-1 text-[11px] text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
+        <p class="mt-2 font-mono text-[10px] font-semibold text-[#2F64A8]">{{ store.report.sessionId }}</p>
+      </router-link>
+      <nav class="mt-2 grid grid-cols-2 gap-1" aria-label="Navigasi sesi aktif">
+        <router-link v-for="item in sessionNavItems" :key="item.path" :to="item.path" class="flex min-h-9 items-center gap-2 rounded-lg px-2 text-[11px] font-semibold transition-colors" :class="item.names.includes(currentRouteName) ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-white hover:text-slate-950'">
+          <component :is="item.icon" class="h-3.5 w-3.5 shrink-0" />
+          <span>{{ item.label }}</span>
+        </router-link>
+      </nav>
+      <div class="mt-2 px-1 text-[10px] leading-4 text-slate-500">
+        Mode demonstrasi · data contoh
       </div>
     </div>
   </aside>

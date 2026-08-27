@@ -30,6 +30,7 @@ const router = useRouter()
 
 // View Mode: 'interactive' (Rich Dossier) or 'document' (Formal Printable Document)
 const viewMode = ref<'interactive' | 'document'>('interactive')
+const activeSection = ref('summary')
 const selectedTicker = ref<string>(store.candidates[0]?.symbol || '')
 const copySuccess = ref(false)
 const copyError = ref('')
@@ -40,13 +41,19 @@ const reportSections = [
   { id: 'risks', label: 'Risiko' }
 ]
 
-const goToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
 const activeCandidate = computed(() => {
   return store.candidates.find(c => c.symbol === selectedTicker.value) || store.candidates[0]
 })
 const analyticalHighlights = computed(() => store.candidates.slice(0, 3))
-watch(() => store.report.sessionId, () => { selectedTicker.value = store.candidates[0]?.symbol || '' })
+watch(() => store.report.sessionId, () => {
+  selectedTicker.value = store.candidates[0]?.symbol || ''
+  activeSection.value = 'summary'
+})
+
+const inspectCandidate = (symbol: string) => {
+  selectedTicker.value = symbol
+  activeSection.value = 'candidates'
+}
 
 const handlePrint = () => {
   window.print()
@@ -273,11 +280,11 @@ const useAsTemplate = async () => {
       <p v-if="copyError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError }}</p>
     </div>
 
-    <nav v-if="viewMode === 'interactive'" class="sticky top-16 z-10 hidden items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur-md sm:flex print:hidden" aria-label="Bagian laporan">
-      <button v-for="section in reportSections" :key="section.id" type="button" class="min-h-10 rounded-lg px-4 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-950" @click="goToSection(section.id)">{{ section.label }}</button>
+    <nav v-if="viewMode === 'interactive'" class="sticky top-16 z-10 hidden items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur-md sm:flex print:hidden" aria-label="Bagian laporan" role="tablist">
+      <button v-for="section in reportSections" :id="`report-tab-${section.id}`" :key="section.id" type="button" role="tab" :aria-selected="activeSection === section.id" :aria-controls="`report-panel-${section.id}`" class="min-h-10 rounded-lg px-4 text-xs font-bold transition-colors" :class="activeSection === section.id ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'" @click="activeSection = section.id">{{ section.label }}</button>
     </nav>
-    <label v-if="viewMode === 'interactive'" class="block text-xs font-bold text-slate-700 sm:hidden print:hidden">Lompat ke bagian
-      <select class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm" @change="goToSection(($event.target as HTMLSelectElement).value)">
+    <label v-if="viewMode === 'interactive'" class="block text-xs font-bold text-slate-700 sm:hidden print:hidden">Tampilkan bagian
+      <select v-model="activeSection" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm">
         <option v-for="section in reportSections" :key="section.id" :value="section.id">{{ section.label }}</option>
       </select>
     </label>
@@ -287,7 +294,7 @@ const useAsTemplate = async () => {
     <!-- ========================================================================= -->
     <div v-if="viewMode === 'interactive'" class="space-y-8">
       <!-- 1. Executive Summary & Objective Card -->
-      <div id="summary" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+      <div v-if="activeSection === 'summary'" id="report-panel-summary" role="tabpanel" aria-labelledby="report-tab-summary" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
             <div class="inline-flex items-center gap-1.5 text-xs font-bold font-mono uppercase tracking-wider text-[#407EC9] mb-1.5">
@@ -344,7 +351,7 @@ const useAsTemplate = async () => {
       </div>
 
       <!-- 2. Master Comparison Matrix Table (Institutional Bloomberg Style) -->
-      <div id="ranking" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+      <div v-if="activeSection === 'ranking'" id="report-panel-ranking" role="tabpanel" aria-labelledby="report-tab-ranking" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
@@ -407,7 +414,7 @@ const useAsTemplate = async () => {
                 <td class="py-3.5 px-4 text-center font-sans">
                    <button
                      type="button"
-                     @click="selectedTicker = c.symbol"
+                     @click="inspectCandidate(c.symbol)"
                      :aria-pressed="selectedTicker === c.symbol"
                      class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#407EC9] hover:bg-[#407EC9] hover:text-white transition-colors cursor-pointer"
                   >
@@ -421,7 +428,7 @@ const useAsTemplate = async () => {
       </div>
 
       <!-- 3. Interactive Deep-Dive Dossier Tab Section -->
-      <div v-if="activeCandidate" id="candidates" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+      <div v-if="activeSection === 'candidates' && activeCandidate" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-[#407EC9] font-mono">
@@ -630,10 +637,10 @@ const useAsTemplate = async () => {
           </div>
         </div>
       </div>
-      <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.</p></div>
+      <div v-else-if="activeSection === 'candidates'" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.</p></div>
 
       <!-- 4. Macro & Comparative Peer Notes -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
+      <div v-if="activeSection === 'risks'" id="report-panel-risks" role="tabpanel" aria-labelledby="report-tab-risks" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
           Ringkasan lintas sektor
         </h3>
@@ -643,7 +650,7 @@ const useAsTemplate = async () => {
       </div>
 
       <!-- 5. Limitations & Regulatory Disclaimer -->
-      <div id="risks" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
+      <div v-if="activeSection === 'risks'" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
           Keterbatasan dan pemberitahuan penggunaan
         </h3>
