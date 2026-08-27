@@ -2,18 +2,15 @@
 import { computed, ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
-  Coins, 
-  Clock, 
   ChevronDown,
   ChevronUp
 } from '@lucide/vue'
 
 const store = useResearchStore()
-const expandedLogId = ref<string | null>('tool-01')
-const totalCredits = computed(() => store.toolCalls.reduce((sum, call) => sum + call.creditCost, 0))
-const averageLatency = computed(() => Math.round(store.toolCalls.reduce((sum, call) => sum + call.durationMs, 0) / Math.max(store.toolCalls.length, 1)))
+const expandedLogId = ref<string | null>(store.toolCalls[0]?.id || null)
 const successRate = computed(() => Math.round((store.toolCalls.filter(call => call.status !== 'ERROR').length / Math.max(store.toolCalls.length, 1)) * 100))
 const errorCount = computed(() => store.toolCalls.filter(call => call.status === 'ERROR').length)
+const inputCount = computed(() => store.screeningFunnel[0]?.count || 0)
 
 const toggleExpand = (id: string) => {
   expandedLogId.value = expandedLogId.value === id ? null : id
@@ -31,31 +28,31 @@ const toggleExpand = (id: string) => {
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-         Payload dan metadata operasi
+         Keputusan dan provenance penyaringan
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Periksa nama operasi, durasi, kredit, input, dan ringkasan hasil untuk kebutuhan audit atau debugging.
+         Periksa sumber dataset, simbol input, kriteria, dan hasil setiap tahap untuk kebutuhan audit atau debugging.
       </p>
     </div>
 
     <!-- Metrics Cards Strip -->
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-500 font-semibold uppercase">Total operasi</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Total event</span>
         <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ store.toolCalls.length }}</div>
-        <span class="text-xs text-emerald-600 font-medium">{{ successRate }}% berhasil</span>
+        <span class="text-xs text-emerald-600 font-medium">{{ successRate }}% tercatat</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-500 font-semibold uppercase">Kredit terpakai</span>
-        <div class="text-2xl font-mono font-bold text-[#407EC9] mt-1">{{ totalCredits }}</div>
-        <span class="text-xs text-slate-500 font-mono">Kredit sesi</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Sumber data</span>
+        <div class="text-lg font-mono font-bold text-[#407EC9] mt-2">Fixture v1</div>
+        <span class="text-xs text-slate-500 font-mono">Prototype lokal</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-500 font-semibold uppercase">Rata-rata durasi</span>
-        <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ averageLatency }}ms</div>
-        <span class="text-xs text-slate-500 font-medium">Per operasi</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Input awal</span>
+        <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ inputCount }}</div>
+        <span class="text-xs text-slate-500 font-medium">Perusahaan fixture</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -92,14 +89,11 @@ const toggleExpand = (id: string) => {
             class="w-full p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left cursor-pointer"
           >
             <div class="flex items-start gap-3">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+               <span class="w-2 h-2 rounded-full mt-2 shrink-0" :class="call.status === 'ERROR' ? 'bg-rose-500' : 'bg-emerald-500'"></span>
               <div>
                  <div class="flex flex-wrap items-center gap-2">
                    <span class="text-sm font-bold text-slate-900">{{ call.outputSummary }}</span>
-                  <span 
-                    class="text-[10px] font-semibold px-2 py-0.5 rounded border"
-                    :class="call.category === 'Sectors API' ? 'bg-[#407EC9]/10 text-[#407EC9] border-[#407EC9]/20' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                  >
+                  <span class="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
                     {{ call.category }}
                   </span>
                   <span class="text-[11px] font-mono text-slate-400">{{ call.timestamp }}</span>
@@ -109,14 +103,7 @@ const toggleExpand = (id: string) => {
             </div>
 
             <div class="flex items-center gap-4 text-xs font-mono text-slate-500 self-end sm:self-center shrink-0">
-              <span class="flex items-center gap-1">
-                <Clock class="w-3.5 h-3.5 text-slate-400" />
-                {{ call.durationMs }}ms
-              </span>
-              <span v-if="call.creditCost > 0" class="flex items-center gap-1 text-[#407EC9] font-bold">
-                <Coins class="w-3.5 h-3.5" />
-                -{{ call.creditCost }} credits
-              </span>
+              <span>{{ call.sourceKind === 'prototype-fixture' ? 'prototype-fixture-v1' : 'user-input' }}</span>
               <component :is="expandedLogId === call.id ? ChevronUp : ChevronDown" class="w-4 h-4 text-slate-400" />
             </div>
           </button>
@@ -128,7 +115,7 @@ const toggleExpand = (id: string) => {
             class="p-4 bg-slate-900 text-slate-100 font-mono text-xs border-t border-slate-200/80 rounded-b-xl overflow-x-auto space-y-3"
           >
             <div>
-              <div class="text-slate-400 text-[11px] mb-1 uppercase font-bold tracking-wider">// Tool Input Payload:</div>
+               <div class="text-slate-400 text-[11px] mb-1 uppercase font-bold tracking-wider">// Input dan provenance:</div>
               <pre class="text-[#9CC5EF] bg-slate-950 p-3 rounded-lg overflow-x-auto">{{ JSON.stringify(call.input, null, 2) }}</pre>
             </div>
             <div>

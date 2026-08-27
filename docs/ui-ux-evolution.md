@@ -14,6 +14,8 @@ This document defines the next evolution of Voyager One from a polished dashboar
 
 The current prototype now persists the actual symbol membership of every screening stage. Counts, retained companies, excluded companies, final candidates, peer comparison, and report output share that session-scoped result. Local filtering evaluates only fields present in the eight-company fixture dataset; production-scale coverage and unsupported metrics remain explicit limitations until the backend screening API supplies them.
 
+Session activity and technical trace use the same result provenance. Prototype runs emit neutral fixture audit events with stage inputs, criteria, and retained symbols; they do not claim API requests, measured latency, or credit usage. JSON exports include the report, funnel membership, audit events, and dataset identity as one reviewable package.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

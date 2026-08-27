@@ -81,7 +81,8 @@ const handleExportMarkdown = () => {
 **ID sesi:** ${store.report.sessionId}
 **Dibuat pada:** ${store.report.timestamp}
 **Ruang lingkup:** ${store.report.universeSummary}
-**Tingkat keyakinan:** Tinggi
+**Sumber data:** Prototype fixture v1 (${store.screeningFunnel[0]?.retainedSymbols.join(', ') || 'tidak ada'})
+**Status:** ${store.status === 'COMPLETED' ? 'Selesai' : 'Hasil parsial'}
 
 ---
 
@@ -144,7 +145,16 @@ ${store.report.disclaimer}
 }
 
 const handleExportJson = () => {
-  const content = JSON.stringify(store.report, null, 2)
+  const content = JSON.stringify({
+    report: store.report,
+    screeningFunnel: store.screeningFunnel,
+    auditEvents: store.toolCalls,
+    provenance: {
+      sourceKind: 'prototype-fixture',
+      datasetId: 'prototype-fixture-v1',
+      inputSymbols: store.screeningFunnel[0]?.retainedSymbols || []
+    }
+  }, null, 2)
   const blob = new Blob([content], { type: 'application/json;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -169,7 +179,7 @@ const handleExportJson = () => {
           <div class="flex items-center gap-2">
              <h1 class="text-base font-bold text-slate-900 font-mono">Laporan riset</h1>
             <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-               SIAP DITINJAU
+               {{ store.status === 'COMPLETED' ? 'SIAP DITINJAU' : 'HASIL PARSIAL' }}
             </span>
           </div>
           <p class="text-xs text-slate-500 font-mono">
@@ -280,13 +290,13 @@ const handleExportJson = () => {
             </div>
             <span class="text-slate-300">•</span>
             <div>
-              <span class="text-xs text-slate-500 font-mono uppercase block">Keyakinan</span>
-              <strong class="text-emerald-600 font-mono">Tinggi</strong>
+              <span class="text-xs text-slate-500 font-mono uppercase block">Sumber</span>
+              <strong class="text-[#407EC9] font-mono">Fixture v1</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
                <span class="text-[10px] text-slate-500 font-mono uppercase block">Status</span>
-               <strong class="text-[#407EC9] font-mono">Selesai</strong>
+               <strong class="text-[#407EC9] font-mono">{{ store.status === 'COMPLETED' ? 'Selesai' : 'Parsial' }}</strong>
             </div>
           </div>
         </div>

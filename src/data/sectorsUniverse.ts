@@ -81,19 +81,19 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     ],
     evidenceCitations: [
       {
-        source: 'Sectors API: /companies/BBCA/financials',
+        source: 'Prototype fixture: /companies/BBCA/financials',
         metric: 'Return on Equity (ROE)',
         value: '21.8%',
         context: 'Peringkat pertama di antara bank komersial besar; median sektor 14.2%'
       },
       {
-        source: 'Sectors API: /companies/BBCA/ratios',
+        source: 'Prototype fixture: /companies/BBCA/ratios',
         metric: 'Net Interest Margin (NIM)',
         value: '5.8%',
         context: 'Didukung rasio CASA di atas 81%'
       },
       {
-        source: 'Intelligence Engine: /scoring/dupont',
+        source: 'Derived fixture: /scoring/dupont',
         metric: '3-Stage DuPont ROE',
         value: '21.8%',
         context: 'Net margin 36.4% x asset turnover 0.058x x leverage 10.3x'
@@ -148,13 +148,13 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     ],
     evidenceCitations: [
       {
-        source: 'Sectors API: /companies/BMRI/financials',
+        source: 'Prototype fixture: /companies/BMRI/financials',
         metric: '3-Year Net Income CAGR',
         value: '+21.5%',
         context: 'Di atas rata-rata bank BUMN pembanding sebesar 15.8%'
       },
       {
-        source: 'Sectors API: /companies/BMRI/valuation',
+        source: 'Prototype fixture: /companies/BMRI/valuation',
         metric: 'P/E Ratio vs PBV',
         value: '11.8x / 2.2x',
         context: 'Di bawah rata-rata historis lima tahun sebesar 13.5x'
@@ -209,13 +209,13 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     ],
     evidenceCitations: [
       {
-        source: 'Sectors API: /companies/ICBP/financials',
+        source: 'Prototype fixture: /companies/ICBP/financials',
         metric: 'Gross Profit Margin',
         value: '36.8%',
         context: 'Tertinggi di antara perusahaan makanan olahan pembanding'
       },
       {
-        source: 'Intelligence Engine: /scoring/cashflow',
+        source: 'Derived fixture: /scoring/cashflow',
         metric: 'Free Cash Flow Yield',
         value: '7.4%',
         context: 'FCF tahunan melebihi IDR 9.8 triliun'
@@ -270,13 +270,13 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     ],
     evidenceCitations: [
       {
-        source: 'Sectors API: /companies/UNTR/ratios',
+        source: 'Prototype fixture: /companies/UNTR/ratios',
         metric: 'P/E Multiple',
         value: '5.2x',
         context: 'Diskon terhadap median historis sepuluh tahun sebesar 7.8x'
       },
       {
-        source: 'Sectors API: /companies/UNTR/dividends',
+        source: 'Prototype fixture: /companies/UNTR/dividends',
         metric: 'Dividend Yield',
         value: '8.6%',
         context: 'Termasuk kelompok dividend yield tertinggi dalam IDX30'
@@ -331,13 +331,13 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     ],
     evidenceCitations: [
       {
-        source: 'Sectors API: /companies/AMRT/financials',
+        source: 'Prototype fixture: /companies/AMRT/financials',
         metric: 'Return on Equity (ROE)',
         value: '24.8%',
         context: 'Pengembalian modal tertinggi di antara operator ritel pembanding'
       },
       {
-        source: 'Sectors API: /companies/AMRT/ratios',
+        source: 'Prototype fixture: /companies/AMRT/ratios',
         metric: 'Asset Turnover',
         value: '2.84x',
         context: 'Menjadi penggerak utama efisiensi ROE DuPont'
@@ -382,7 +382,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'World-leading microfinance powerhouse with nationwide AgenBRILink agent network. High yield assets generate substantial net interest margins.',
     keyStrengths: ['Unrivaled micro & ultra-micro lending moat', 'High dividend yield >6.8%', 'AgenBRILink ecosystem driving low-cost liquidity'],
     potentialConcerns: ['Micro loan asset quality sensitivity to grassroots purchasing power'],
-    evidenceCitations: [{ source: 'Sectors API: /companies/BBRI/financials', metric: 'Dividend Yield', value: '6.8%', context: 'Top tier among global banking peers' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/BBRI/financials', metric: 'Dividend Yield', value: '6.8%', context: 'Top tier among global banking peers' }],
     dupontAnalysis: { netProfitMargin: 28.5, assetTurnover: 0.055, equityMultiplier: 12.63, calculatedRoe: 19.8 },
     peerRankInMemory: '#3 of 4 Big Banks'
   },
@@ -417,7 +417,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'Dominant national digital telecom infrastructure backbone with Telkomsel and expanding Hyperscale Data Center business.',
     keyStrengths: ['Comprehensive fiber optic coverage', 'Telkomsel market leadership', 'Strong FCF yield >9%'],
     potentialConcerns: ['Legacy voice/SMS revenue runoff and fixed broadband price competition'],
-    evidenceCitations: [{ source: 'Sectors API: /companies/TLKM/financials', metric: 'FCF Yield', value: '9.1%', context: 'Defensive utility-like cash generation' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/TLKM/financials', metric: 'FCF Yield', value: '9.1%', context: 'Defensive utility-like cash generation' }],
     dupontAnalysis: { netProfitMargin: 16.4, assetTurnover: 0.52, equityMultiplier: 1.93, calculatedRoe: 16.5 },
     peerRankInMemory: '#1 in Telecommunications'
   },
@@ -452,7 +452,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'Indonesia premier conglomerate with dominant market share in 4W (54%) and 2W (78%), backed by heavy equipment and financial services.',
     keyStrengths: ['Unrivaled automotive sales and distribution network', 'P/E multiple below 6.5x', 'High dividend payout'],
     potentialConcerns: ['EV adoption pace and foreign Chinese automaker entry competition'],
-    evidenceCitations: [{ source: 'Sectors API: /companies/ASII/valuation', metric: 'P/E Multiple', value: '6.4x', context: '10-year discount trough' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/ASII/valuation', metric: 'P/E Multiple', value: '6.4x', context: '10-year discount trough' }],
     dupontAnalysis: { netProfitMargin: 9.8, assetTurnover: 0.74, equityMultiplier: 2.23, calculatedRoe: 16.2 },
     peerRankInMemory: '#1 Conglomerate'
   }

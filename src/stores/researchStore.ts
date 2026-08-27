@@ -42,8 +42,7 @@ export const useResearchStore = defineStore('research', () => {
       name: 'Research Planner',
       subtitle: 'Formulates structured hypothesis & execution graph',
       status: 'completed',
-      metricsSummary: '4 Criteria • 8 Execution Steps',
-      durationMs: 420
+      metricsSummary: 'Menunggu konteks sesi'
     },
     {
       id: 'screener',
@@ -51,8 +50,7 @@ export const useResearchStore = defineStore('research', () => {
       name: 'Autonomous Screener',
       subtitle: 'Dynamic multi-stage universe narrowing',
       status: 'completed',
-      metricsSummary: '914 → 18 Qualified Shortlist',
-      durationMs: 1250
+      metricsSummary: 'Menunggu hasil penyaringan'
     },
     {
       id: 'engine',
@@ -60,8 +58,7 @@ export const useResearchStore = defineStore('research', () => {
       name: 'Deep Research Engine',
       subtitle: 'Fundamental, DuPont & balance sheet audit',
       status: 'completed',
-      metricsSummary: '5 Candidates Deep Researched',
-      durationMs: 1840
+      metricsSummary: 'Menunggu kandidat'
     },
     {
       id: 'state',
@@ -69,8 +66,7 @@ export const useResearchStore = defineStore('research', () => {
       name: 'State & Observability',
       subtitle: 'State persistence & tool call audit trail',
       status: 'completed',
-      metricsSummary: '14 Tool Calls • 0 Fabrications',
-      durationMs: 310
+      metricsSummary: 'Menunggu event audit'
     },
     {
       id: 'report',
@@ -78,226 +74,30 @@ export const useResearchStore = defineStore('research', () => {
       name: 'Synthesis & Final Report',
       subtitle: 'Evidence-backed report & peer comparison',
       status: 'completed',
-      metricsSummary: '5 Top Candidates Ranked',
-      durationMs: 650
+      metricsSummary: 'Menunggu hasil akhir'
     }
   ])
 
   // Active Research Plan
   const activePlan = ref<ResearchPlan>({
     objective: OBJECTIVE_PRESETS[2].objective,
-    universe: 'Indonesian Listed Companies (IDX / BEI)',
-    criteria: [
-      'High Return on Equity (ROE > 15%) & healthy capital efficiency',
-      'Robust balance sheet with Debt-to-Equity < 1.0x (except prudential financials)',
-      'Consistent 3-year revenue and net earnings CAGR (> 10%)',
-      'Defensive free cash flow generation with reasonable P/E and EV/EBITDA multiples'
-    ],
-    steps: [
-      { order: 1, action: 'Load Indonesian Stock Universe', tool: 'sectors_search_companies', description: 'Query 900+ active tickers from Sectors registry' },
-      { order: 2, action: 'Filter Financial & Solvency Metrics', tool: 'sectors_financial_metrics', description: 'Retrieve ROE, Debt/Equity, Current Ratio & FCF' },
-      { order: 3, action: 'Execute Derived Intelligence Scoring', tool: 'derived_scoring_engine', description: 'Apply 5-factor deterministic model (0-100 score)' },
-      { order: 4, action: 'Rank & Shortlist Top Candidates', tool: 'derived_screener_rank', description: 'Select top 18 candidates for deep analysis' },
-      { order: 5, action: 'Deep Financial Statement & DuPont Audit', tool: 'sectors_financial_statements', description: 'Deconstruct Net Margin, Asset Turnover, Leverage' },
-      { order: 6, action: 'Conduct Dynamic Peer Group Benchmarking', tool: 'sectors_peer_comparison', description: 'Compare valuation & operational moats against peers' },
-      { order: 7, action: 'Validate Findings & Check Missing Data', tool: 'agent_validator', description: 'Flag anomalies, missing values, and certainty scores' },
-      { order: 8, action: 'Synthesize Evidence-Backed Final Report', tool: 'agent_report_synthesizer', description: 'Compile explainable thesis and risk disclosures' }
-    ],
-    hypothesis: 'Indonesian market compounders will be concentrated in financial leaders with deposit moats, consumer staples with pricing power, and cash-rich heavy industrial operators.',
-    requiredDataPoints: ['ROE', 'ROA', 'Debt-to-Equity', 'Current Ratio', 'P/E', 'P/BV', 'FCF Yield', 'Revenue 3Y CAGR', 'Net Profit Margin'],
+    universe: 'Dataset prototype belum dipilih',
+    criteria: [],
+    steps: [],
+    hypothesis: 'Menunggu tujuan dan ruang lingkup sesi.',
+    requiredDataPoints: [],
     estimatedDurationSeconds: 4.5,
     estimatedCredits: 120
   })
 
   // Tool Calls Log (Trace & Audit)
-  const toolCalls = ref<ToolCallLog[]>([
-    {
-      id: 'tool-01',
-      timestamp: '20:30:12.102',
-      pillar: 'planner',
-      toolName: 'sectors_search_companies',
-      category: 'Sectors API',
-      input: { market: 'IDX', status: 'ACTIVE', min_market_cap_idr: 1000000000000 },
-      outputSummary: 'Loaded 914 active Indonesian listed tickers with market cap > IDR 1T.',
-      durationMs: 380,
-      status: 'SUCCESS',
-      creditCost: 10
-    },
-    {
-      id: 'tool-02',
-      timestamp: '20:30:12.490',
-      pillar: 'screener',
-      toolName: 'sectors_financial_metrics_batch',
-      category: 'Sectors API',
-      input: { tickers_count: 914, metrics: ['roe', 'debt_to_equity', 'pe_ratio', 'revenue_growth_3y'] },
-      outputSummary: 'Retrieved fundamental dataset for 914 companies. 284 passed basic liquidity checks.',
-      durationMs: 520,
-      status: 'SUCCESS',
-      creditCost: 40
-    },
-    {
-      id: 'tool-03',
-      timestamp: '20:30:13.015',
-      pillar: 'screener',
-      toolName: 'derived_scoring_engine',
-      category: 'Derived Intelligence',
-      input: { weights: { profitability: 0.25, growth: 0.25, solvency: 0.20, valuation: 0.20, consistency: 0.10 } },
-      outputSummary: 'Computed 5-factor proprietary Quality Score. Top candidate score: 94 (BBCA).',
-      durationMs: 140,
-      status: 'SUCCESS',
-      creditCost: 0
-    },
-    {
-      id: 'tool-04',
-      timestamp: '20:30:13.160',
-      pillar: 'screener',
-      toolName: 'derived_screener_rank',
-      category: 'Derived Intelligence',
-      input: { min_score: 80, limit: 18 },
-      outputSummary: 'Shortlisted 18 companies scoring above 80/100 threshold for deep research.',
-      durationMs: 95,
-      status: 'SUCCESS',
-      creditCost: 0
-    },
-    {
-      id: 'tool-05',
-      timestamp: '20:30:13.260',
-      pillar: 'engine',
-      toolName: 'sectors_financial_statements',
-      category: 'Sectors API',
-      input: { symbol: 'BBCA', period: 'FY2021-FY2025', statement: 'all' },
-      outputSummary: 'Parsed 5-year balance sheet & income statement. Net margin steady at 36.4%.',
-      durationMs: 290,
-      status: 'SUCCESS',
-      creditCost: 15
-    },
-    {
-      id: 'tool-06',
-      timestamp: '20:30:13.560',
-      pillar: 'engine',
-      toolName: 'sectors_financial_statements',
-      category: 'Sectors API',
-      input: { symbol: 'BMRI', period: 'FY2021-FY2025', statement: 'all' },
-      outputSummary: 'Parsed 5-year statements. 3Y Net income CAGR validated at +21.5%.',
-      durationMs: 310,
-      status: 'SUCCESS',
-      creditCost: 15
-    },
-    {
-      id: 'tool-07',
-      timestamp: '20:30:13.880',
-      pillar: 'engine',
-      toolName: 'sectors_financial_statements',
-      category: 'Sectors API',
-      input: { symbol: 'ICBP', period: 'FY2021-FY2025', statement: 'all' },
-      outputSummary: 'Gross margins confirmed at 36.8%, FCF generation strong at IDR 9.8T.',
-      durationMs: 275,
-      status: 'SUCCESS',
-      creditCost: 15
-    },
-    {
-      id: 'tool-08',
-      timestamp: '20:30:14.160',
-      pillar: 'engine',
-      toolName: 'sectors_financial_statements',
-      category: 'Sectors API',
-      input: { symbol: 'UNTR', period: 'FY2021-FY2025', statement: 'all' },
-      outputSummary: 'Net cash balance sheet verified. FCF yield outstanding at 12.8%.',
-      durationMs: 280,
-      status: 'SUCCESS',
-      creditCost: 15
-    },
-    {
-      id: 'tool-09',
-      timestamp: '20:30:14.450',
-      pillar: 'engine',
-      toolName: 'sectors_financial_statements',
-      category: 'Sectors API',
-      input: { symbol: 'AMRT', period: 'FY2021-FY2025', statement: 'all' },
-      outputSummary: 'Asset turnover confirmed at 2.84x, sustaining ROE of 24.8%.',
-      durationMs: 290,
-      status: 'SUCCESS',
-      creditCost: 15
-    },
-    {
-      id: 'tool-10',
-      timestamp: '20:30:14.750',
-      pillar: 'engine',
-      toolName: 'sectors_peer_comparison',
-      category: 'Sectors API',
-      input: { peers: ['BBCA', 'BMRI', 'BBRI', 'BBNI'], sector: 'Financials' },
-      outputSummary: 'Generated cross-sectional banking peer matrix. BBCA leads in ROE & CASA.',
-      durationMs: 340,
-      status: 'SUCCESS',
-      creditCost: 20
-    },
-    {
-      id: 'tool-11',
-      timestamp: '20:30:15.100',
-      pillar: 'engine',
-      toolName: 'agent_validator',
-      category: 'Validation',
-      input: { candidate_symbols: ['BBCA', 'BMRI', 'ICBP', 'UNTR', 'AMRT'] },
-      outputSummary: 'Zero financial data anomalies found. High confidence level assigned.',
-      durationMs: 180,
-      status: 'SUCCESS',
-      creditCost: 0
-    },
-    {
-      id: 'tool-12',
-      timestamp: '20:30:15.290',
-      pillar: 'report',
-      toolName: 'agent_report_synthesizer',
-      category: 'Research Engine',
-      input: { format: 'EXECUTIVE_DOSSIER', include_evidence: true },
-      outputSummary: 'Compiled comprehensive evidence-backed research report for 5 companies.',
-      durationMs: 320,
-      status: 'SUCCESS',
-      creditCost: 0
-    }
-  ])
+  const toolCalls = ref<ToolCallLog[]>([])
 
   // Screening Funnel Numbers
-  const screeningFunnel = ref<ScreeningFunnelStep[]>([
-    {
-      stage: 'Total Universe',
-      count: 914,
-      description: 'Active companies listed on the Indonesia Stock Exchange (IDX)',
-      filterCriteria: 'Status: ACTIVE on IDX',
-      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
-    },
-    {
-      stage: 'Basic Eligibility',
-      count: 284,
-      description: 'Filtered by market liquidity, trading frequency & reporting compliance',
-      filterCriteria: 'Market Cap > IDR 1T & 3-yr financial history',
-      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
-    },
-    {
-      stage: 'Financial Screening',
-      count: 68,
-      description: 'Fundamental filter on profitability, leverage, and growth stability',
-      filterCriteria: 'ROE > 12% & Debt/Equity < 1.5x',
-      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
-    },
-    {
-      stage: 'Quality Shortlist',
-      count: 18,
-      description: 'Derived Intelligence ranking score thresholding',
-      filterCriteria: 'Proprietary Quality Score >= 80/100',
-      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
-    },
-    {
-      stage: 'Final Selection',
-      count: 5,
-      description: 'Validated top compounders with explainable competitive moats',
-      filterCriteria: 'Passed Deep DuPont, Cash Flow & Peer Audit',
-      retainedSymbols: ALL_COMPANIES_DATABASE.slice(0, 5).map(company => company.symbol)
-    }
-  ])
+  const screeningFunnel = ref<ScreeningFunnelStep[]>([])
 
   // Candidates List
-  const candidates = ref<CandidateCompany[]>(ALL_COMPANIES_DATABASE.slice(0, 5))
+  const candidates = ref<CandidateCompany[]>([])
 
   // Selected company object
   const selectedCompany = computed<CandidateCompany | undefined>(() => {
@@ -340,12 +140,56 @@ export const useResearchStore = defineStore('research', () => {
     return { funnel, candidates: finalCompanies }
   }
 
+  const deriveSessionArtifacts = (results: ReturnType<typeof deriveSessionResults>, objective = currentObjective.value, basePillars = pillars.value) => {
+    const now = new Date().toLocaleTimeString('id-ID', { hour12: false, fractionalSecondDigits: 3 })
+    const criteria = results.funnel.slice(1).map(step => step.filterCriteria)
+    const plan: ResearchPlan = {
+      objective,
+      universe: `${results.funnel[0].count} perusahaan fixture: ${results.funnel[0].retainedSymbols.join(', ')}`,
+      criteria,
+      steps: results.funnel.map((step, index) => ({ order: index + 1, action: step.stage, tool: 'prototype_fixture_filter', description: step.filterCriteria })),
+      hypothesis: 'Perusahaan yang memenuhi filter terukur dan memiliki skor kualitas tertinggi menjadi kandidat untuk ditinjau lebih lanjut.',
+      requiredDataPoints: ['Kapitalisasi pasar', 'ROE', 'Debt-to-Equity', 'FCF Yield', 'Skor kualitas'],
+      estimatedDurationSeconds: 4.5,
+      estimatedCredits: 0
+    }
+    const nextPillars = clone(basePillars).map(pillar => ({ ...pillar, durationMs: undefined }))
+    nextPillars[0].metricsSummary = `${criteria.length} kriteria · ${results.funnel.length} tahap`
+    nextPillars[1].metricsSummary = `${results.funnel[0].count} → ${results.funnel[3].count} shortlist fixture`
+    nextPillars[2].metricsSummary = `${results.candidates.length} kandidat tersedia untuk ditinjau`
+    nextPillars[3].metricsSummary = `${results.funnel.length} event audit · sumber fixture`
+    nextPillars[4].metricsSummary = `${results.candidates.length} kandidat diperingkat`
+    const calls: ToolCallLog[] = results.funnel.map((step, index) => ({
+      id: `audit-${index + 1}`,
+      timestamp: now,
+      pillar: index === 0 ? 'planner' : index < 4 ? 'screener' : 'report',
+      toolName: 'prototype_fixture_filter',
+      category: index === 0 ? 'Research Engine' : 'Derived Intelligence',
+      input: {
+        source: 'prototype-fixture-v1',
+        input_symbols: index === 0 ? step.retainedSymbols : results.funnel[index - 1].retainedSymbols,
+        criteria: step.filterCriteria
+      },
+      outputSummary: `${step.stage}: ${step.count} perusahaan tersisa (${step.retainedSymbols.join(', ') || 'tidak ada'}).`,
+      durationMs: 0,
+      status: 'SUCCESS',
+      creditCost: 0,
+      sourceKind: 'prototype-fixture'
+    }))
+    return { plan, pillars: nextPillars, toolCalls: calls }
+  }
+
   const applyResults = (results: ReturnType<typeof deriveSessionResults>) => {
+    const artifacts = deriveSessionArtifacts(results)
+    activePlan.value = artifacts.plan
+    pillars.value = artifacts.pillars
+    toolCalls.value = artifacts.toolCalls
     screeningFunnel.value = clone(results.funnel)
     candidates.value = clone(results.candidates)
     report.value.screeningFunnel = clone(results.funnel)
     report.value.topCandidates = clone(results.candidates)
     report.value.universeSummary = `${results.funnel[0].count} perusahaan dalam dataset prototype disaring menjadi ${results.candidates.length} kandidat akhir.`
+    report.value.methodologyOverview = 'Penyaringan deterministik menggunakan ruang lingkup preset, kelengkapan metrik, filter finansial yang didukung fixture, ambang skor kualitas, dan ranking akhir. Data fixture tidak dihitung ulang sebagai laporan keuangan atau peer benchmark baru.'
     report.value.peerComparisonNotes = results.candidates.length
       ? `${results.candidates.map(company => company.symbol).join(', ')} lolos seluruh tahap berdasarkan metrik yang tersedia pada dataset prototype.`
       : 'Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.'
@@ -354,6 +198,7 @@ export const useResearchStore = defineStore('research', () => {
       'Kriteria yang datanya belum tersedia, termasuk NPL, histori NIM, interest coverage, frekuensi perdagangan, dan kepatuhan pelaporan, tidak diterapkan.',
       'Metrik valuasi bersifat statis dan dapat berubah setelah pembaruan harga atau laporan keuangan.'
     ]
+    report.value.uncertaintyNotes = 'Provenance: prototype-fixture-v1. Hasil memvalidasi alur seleksi dan tidak mewakili cakupan atau keyakinan data pasar produksi.'
   }
 
   // Final Report
@@ -361,11 +206,11 @@ export const useResearchStore = defineStore('research', () => {
     sessionId: 'RES-2026-IDX-0941',
     timestamp: '2026-08-25 20:30:15 WIB',
     objective: currentObjective.value,
-    universeSummary: 'Seluruh Bursa Efek Indonesia (914 perusahaan disaring menjadi 5 kandidat akhir)',
+    universeSummary: 'Dataset prototype belum dievaluasi.',
     screeningFunnel: screeningFunnel.value,
     methodologyOverview: 'Penyaringan bertahap menggabungkan lima faktor penilaian: profitabilitas, pertumbuhan, solvabilitas, valuasi, dan konsistensi. Analisis DuPont serta perbandingan perusahaan sejenis diterapkan pada kandidat terpilih.',
-    topCandidates: candidates.value,
-    peerComparisonNotes: 'BBCA memiliki skor kualitas tertinggi (94) dengan ROE 21.8% dan kualitas aset yang kuat. BMRI menawarkan pertumbuhan laba tinggi pada P/E 11.8x. ICBP menunjukkan margin defensif. UNTR menonjol pada valuasi dan FCF yield 12.8%. AMRT unggul pada perputaran aset 2.84x.',
+    topCandidates: [],
+    peerComparisonNotes: 'Menunggu hasil seleksi sesi.',
     limitations: [
       'Metrik valuasi menggunakan data trailing yang tersedia dan dapat berubah setelah laporan keuangan berikutnya.',
       'Sensitivitas komoditas pada UNTR dan risiko mata uang pada input impor ICBP belum sepenuhnya tercermin dalam rasio statis.',
@@ -451,9 +296,13 @@ export const useResearchStore = defineStore('research', () => {
         sessions.value = parsed.sessions.map(session => {
           const results = deriveSessionResults(session.presetId)
           const normalizedStatus = session.status === 'COMPLETED' || session.status === 'FAILED' ? session.status : 'PARTIAL'
+          const artifacts = deriveSessionArtifacts(results, session.objective, session.pillars)
           return {
             ...session,
             status: normalizedStatus,
+            plan: artifacts.plan,
+            pillars: artifacts.pillars,
+            toolCalls: artifacts.toolCalls,
             screeningFunnel: clone(results.funnel),
             candidates: clone(results.candidates),
             report: {
@@ -468,7 +317,9 @@ export const useResearchStore = defineStore('research', () => {
                 'Hasil ini menggunakan delapan fixture perusahaan untuk memvalidasi alur seleksi, bukan cakupan penuh Bursa Efek Indonesia.',
                 'Kriteria yang datanya belum tersedia, termasuk NPL, histori NIM, interest coverage, frekuensi perdagangan, dan kepatuhan pelaporan, tidak diterapkan.',
                 'Metrik valuasi bersifat statis dan dapat berubah setelah pembaruan harga atau laporan keuangan.'
-              ]
+              ],
+              methodologyOverview: 'Penyaringan deterministik menggunakan ruang lingkup preset, kelengkapan metrik, filter finansial yang didukung fixture, ambang skor kualitas, dan ranking akhir. Data fixture tidak dihitung ulang sebagai laporan keuangan atau peer benchmark baru.',
+              uncertaintyNotes: 'Provenance: prototype-fixture-v1. Hasil memvalidasi alur seleksi dan tidak mewakili cakupan atau keyakinan data pasar produksi.'
             }
           }
         })
@@ -527,7 +378,8 @@ export const useResearchStore = defineStore('research', () => {
       outputSummary: `Follow-up dicatat: ${question}`,
       durationMs: 0,
       status: 'SUCCESS',
-      creditCost: 0
+      creditCost: 0,
+      sourceKind: 'user-input'
     })
     saveCurrentSession(status.value)
   }

@@ -103,11 +103,18 @@ try {
     const candidateSymbols = session.candidates.map(company => company.symbol)
     const finalSymbols = session.screeningFunnel.at(-1).retainedSymbols
     const reportSymbols = session.report.topCandidates.map(company => company.symbol)
+    const auditMatches = session.toolCalls.length === session.screeningFunnel.length && session.toolCalls.every((event, index) =>
+      event.sourceKind === 'prototype-fixture' &&
+      event.category !== 'Sectors API' &&
+      event.durationMs === 0 &&
+      event.creditCost === 0 &&
+      event.outputSummary.includes(session.screeningFunnel[index].retainedSymbols.join(', '))
+    )
     return {
       version: payload.version,
       id: session.id,
       symbols: candidateSymbols,
-      valid: countsMatch && stagesAreSubsets && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
+      valid: countsMatch && stagesAreSubsets && auditMatches && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
     }
   })()`)
   if (sessionResult.version !== 2 || !sessionResult.valid || sessionResult.symbols.length !== 3 || sessionResult.symbols.some(symbol => !['BBCA', 'BMRI', 'BBRI'].includes(symbol))) {
@@ -139,7 +146,7 @@ try {
   await evaluate(`document.querySelector('[data-testid="confirm-delete-session"]').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=toast]")?.textContent.includes("dihapus")'), 'Session deletion toast was not shown')
 
-  console.log('Interaction test passed: screening invariants, persistence, dialog focus, peer empty state, and session deletion')
+  console.log('Interaction test passed: screening and audit invariants, persistence, dialog focus, peer empty state, and session deletion')
 } finally {
   socket?.close()
   browser.kill('SIGTERM')

@@ -55,12 +55,13 @@ export interface ToolCallLog {
   timestamp: string
   pillar: PillarId
   toolName: string
-  category: 'Sectors API' | 'Derived Intelligence' | 'Research Engine' | 'Validation'
+  category: 'Derived Intelligence' | 'Research Engine' | 'Validation'
   input: Record<string, any>
   outputSummary: string
   durationMs: number
   status: 'SUCCESS' | 'ERROR' | 'CACHED'
   creditCost: number
+  sourceKind?: 'prototype-fixture' | 'user-input'
 }
 
 export interface ScoreBreakdown {

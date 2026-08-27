@@ -12,6 +12,8 @@ const pendingDeleteId = ref<string | null>(null)
 
 const currentPillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedSteps = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
+const sessionStatus = computed(() => store.isExecuting ? 'Berjalan' : store.status === 'COMPLETED' ? 'Selesai' : store.status === 'FAILED' ? 'Parsial' : 'Disiapkan')
+const sessionSummary = computed(() => currentPillar.value?.subtitle || (store.status === 'COMPLETED' ? 'Seluruh tahap selesai. Kandidat dan laporan dapat dibuka kembali kapan saja.' : 'Sesi telah disiapkan dan menunggu proses berikutnya.'))
 
 const startDraft = () => {
   if (draftObjective.value.trim()) store.setObjective(draftObjective.value.trim())
@@ -67,7 +69,7 @@ const removeSession = (id: string) => {
               <p class="text-xs font-semibold text-blue-200">Sesi terakhir</p>
               <h2 class="mt-1 font-mono text-sm font-bold">{{ store.report.sessionId }}</h2>
             </div>
-            <span class="rounded-md bg-emerald-400/15 px-2 py-1 text-xs font-semibold text-emerald-200">Selesai</span>
+            <span class="rounded-md bg-white/10 px-2 py-1 text-xs font-semibold text-blue-100">{{ sessionStatus }}</span>
           </div>
           <p class="mt-5 line-clamp-3 text-sm leading-6 text-slate-200">{{ store.report.objective }}</p>
           <div class="mt-6 grid grid-cols-2 gap-3">
@@ -103,15 +105,15 @@ const removeSession = (id: string) => {
             <div class="max-w-3xl">
               <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Activity class="h-4 w-4 text-[#407EC9]" />
-                {{ currentPillar ? currentPillar.name : 'Laporan siap ditinjau' }}
+                 {{ currentPillar ? currentPillar.name : store.status === 'COMPLETED' ? 'Laporan siap ditinjau' : 'Sesi riset' }}
               </div>
               <h3 class="mt-2 text-lg font-bold text-slate-950">{{ store.report.objective }}</h3>
-              <p class="mt-2 text-sm leading-6 text-slate-600">{{ currentPillar?.subtitle || 'Seluruh tahap selesai. Kandidat dan laporan dapat dibuka kembali kapan saja.' }}</p>
+               <p class="mt-2 text-sm leading-6 text-slate-600">{{ sessionSummary }}</p>
             </div>
-            <span class="shrink-0 rounded-lg bg-slate-100 px-3 py-2 font-mono text-xs font-bold text-slate-700">{{ completedSteps }}/5 tahap</span>
+             <span class="shrink-0 rounded-lg bg-slate-100 px-3 py-2 font-mono text-xs font-bold text-slate-700">{{ completedSteps }}/{{ store.pillars.length }} tahap</span>
           </div>
-          <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100" aria-label="Progress riset" role="progressbar" :aria-valuenow="completedSteps" aria-valuemin="0" aria-valuemax="5">
-            <div class="h-full rounded-full bg-[#407EC9]" :style="{ width: `${(completedSteps / 5) * 100}%` }"></div>
+          <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100" aria-label="Progress riset" role="progressbar" :aria-valuenow="completedSteps" aria-valuemin="0" :aria-valuemax="store.pillars.length">
+            <div class="h-full rounded-full bg-[#407EC9]" :style="{ width: `${store.pillars.length ? (completedSteps / store.pillars.length) * 100 : 0}%` }"></div>
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-4">
             <router-link :to="`/research/${store.report.sessionId}`" class="button-secondary">Buka riset</router-link>
@@ -121,7 +123,7 @@ const removeSession = (id: string) => {
 
         <article class="rounded-2xl bg-[#407EC9] p-6 text-white shadow-[0_18px_45px_-25px_rgba(64,126,201,0.9)]">
           <FileText class="h-5 w-5 text-blue-100" />
-          <h3 class="mt-5 text-lg font-bold">Laporan tersedia</h3>
+          <h3 class="mt-5 text-lg font-bold">{{ store.status === 'COMPLETED' ? 'Laporan tersedia' : 'Hasil sementara' }}</h3>
           <p class="mt-2 text-sm leading-6 text-blue-100">Tinjau ranking, analisis kandidat, risiko, dan keterbatasan riset.</p>
           <router-link :to="`/research/${store.report.sessionId}/report`" class="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-white">
             Buka laporan <ArrowRight class="h-4 w-4" />

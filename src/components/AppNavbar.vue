@@ -43,9 +43,9 @@ const statusBadge = computed(() => {
     case 'COMPARING': return { text: 'Membandingkan kandidat', active: true, failed: false }
     case 'VALIDATING': return { text: 'Memeriksa temuan', active: true, failed: false }
     case 'REPORTING': return { text: 'Menyusun laporan', active: true, failed: false }
-    case 'COMPLETED': return { text: 'Siap memulai riset', active: false, failed: false }
-    case 'FAILED': return { text: 'Riset gagal', active: false, failed: true }
-    default: return { text: 'Belum ada riset', active: false, failed: false }
+    case 'COMPLETED': return { text: 'Riset selesai', active: false, failed: false }
+    case 'FAILED': return { text: 'Hasil parsial', active: false, failed: true }
+    default: return { text: 'Sesi disiapkan', active: false, failed: false }
   }
 })
 </script>
