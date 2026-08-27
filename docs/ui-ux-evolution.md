@@ -1342,3 +1342,106 @@ Return to the dashboard and reopen the session
 The same flow must be keyboard-operable, understandable at 200% zoom, usable with reduced motion enabled, and free from inaccessible modal or table interactions.
 
 The final experience should feel like a focused financial research product, not a collection of technical dashboard demonstrations.
+
+---
+
+## 28. Scoring System Limitations (Pre-API Integration)
+
+### Current State
+
+The scoring system uses a 5-factor formula with static fixture data:
+
+```
+Quality Score = (0.25 × Profitability) + (0.25 × Growth) + (0.20 × Solvency) 
+              + (0.20 × Valuation) + (0.10 × Consistency)
+```
+
+**Current Accuracy Assessment: 7/10**
+
+### Known Limitations
+
+| Limitation | Impact | Mitigation |
+|------------|--------|------------|
+| **No sector normalization** | Bank ROE 20% vs Retail ROE 20% treated equally | Scores should be peer-relative |
+| **No price momentum** | Purely fundamental, timing ignored | Add momentum factor from price performance |
+| **No forward-looking metrics** | Only historical data | Include analyst estimates |
+| **Consistency unvalidated** | Score 80-99 without historical proof | Validate from quarterly time series |
+| **No liquidity filter** | May recommend illiquid stocks | Filter by index membership or volume |
+| **Absolute valuation** | P/E compared to fixed threshold | Should compare to sector median |
+
+### User-Facing Disclaimers Required
+
+These disclaimers should appear in the UI:
+
+**Methodology Modal:**
+> Skor kualitas adalah demonstrasi metodologi menggunakan data prototype. Benchmark seharusnya dibandingkan dengan median sektor, bukan nilai absolut.
+
+**Score Tooltip:**
+> Momentum dan timing belum diperhitungkan dalam skor ini. Skor tinggi menunjukkan prioritas riset, bukan prediksi return.
+
+**Report Footer:**
+> Data menggunakan fixture demonstrasi untuk delapan perusahaan. Implementasi produksi akan menggunakan data real-time dari seluruh perusahaan tercatat.
+
+### Recommended Enhanced Scoring (Post-API Integration)
+
+With Sectors API integration, the scoring can be enhanced to:
+
+```typescript
+// Enhanced 8-factor formula (target accuracy: 9/10)
+const enhancedScore = 
+  (0.20 * profitability) +    // ROE, ROA vs sector median
+  (0.20 * growth) +           // Validated CAGR from quarterly data
+  (0.10 * solvency) +         // D/E, current ratio, interest coverage
+  (0.10 * valuation) +        // PE, PBV relative to sector median
+  (0.15 * momentum) +         // 30d, 90d, 365d price performance
+  (0.10 * liquidity) +        // Index membership, avg volume
+  (0.10 * consistency) +      // Earnings variance from historical data
+  (0.05 * forward)            // Forward PE, analyst growth estimates
+```
+
+### API Endpoints Required for Enhancement
+
+| Factor | Sectors API Endpoint |
+|--------|---------------------|
+| Peer comparison | `GET /company/report/{ticker}/?sections=peers` |
+| Price momentum | `GET /listing-performance/{ticker}/` |
+| Historical financials | `GET /financials/quarterly/{ticker}/` |
+| Index membership | `GET /index/{index}/` |
+| Forward estimates | `GET /company/report/{ticker}/?sections=future` |
+
+For detailed integration recommendations, see `docs/sectors-api-integration-recommendations.md`.
+
+---
+
+## 29. Data Source Transparency
+
+### Current Data Contract
+
+| Aspect | Current State | Production Target |
+|--------|---------------|-------------------|
+| **Universe** | 8 companies (fixture) | 900+ IDX companies |
+| **Data freshness** | Static | Daily/quarterly updates |
+| **Source** | `sectorsUniverse.ts` | Sectors API v1 |
+| **Validation** | Manual | API-verified |
+
+### Required UI Indicators
+
+1. **Data source badge** on every data-dependent page
+2. **Last updated timestamp** for time-sensitive metrics
+3. **"Demo data" indicator** while using fixtures
+4. **Sector coverage disclosure** in methodology
+
+### Evidence Citation Format
+
+Current format in fixtures:
+```
+source: 'Prototype fixture: /companies/BBCA/financials'
+```
+
+Production format should be:
+```
+source: 'Sectors API: /company/report/BBCA/?sections=financials'
+asOf: '2026-08-27'
+```
+
+This ensures auditability and user trust in the presented data.
