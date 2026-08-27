@@ -205,7 +205,7 @@ const useAsTemplate = async () => {
         <div>
           <div class="flex items-center gap-2">
              <h1 class="text-base font-bold text-slate-900 font-mono">Laporan riset</h1>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-mono font-bold text-emerald-700">
                {{ store.status === 'COMPLETED' ? 'SIAP DITINJAU' : 'HASIL PARSIAL' }}
             </span>
           </div>
@@ -222,7 +222,7 @@ const useAsTemplate = async () => {
           <button
              @click="viewMode = 'interactive'"
              :aria-pressed="viewMode === 'interactive'"
-            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            class="button-compact"
             :class="viewMode === 'interactive' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
           >
              Interaktif
@@ -230,7 +230,7 @@ const useAsTemplate = async () => {
           <button
              @click="viewMode = 'document'"
              :aria-pressed="viewMode === 'document'"
-            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            class="button-compact"
             :class="viewMode === 'document' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
           >
              Dokumen A4
@@ -242,7 +242,7 @@ const useAsTemplate = async () => {
         <!-- Copy Summary -->
         <button
           @click="handleCopySummary"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
            title="Salin ringkasan riset"
         >
           <Check v-if="copySuccess" class="w-3.5 h-3.5 text-emerald-600" />
@@ -253,7 +253,7 @@ const useAsTemplate = async () => {
         <!-- Print PDF -->
         <button
           @click="handlePrint"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
         >
           <Printer class="w-3.5 h-3.5" />
            <span>Unduh laporan</span>
@@ -262,7 +262,7 @@ const useAsTemplate = async () => {
         <!-- Export Markdown -->
         <button
           @click="handleExportMarkdown"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
         >
           <Download class="w-3.5 h-3.5" />
           <span>Markdown</span>

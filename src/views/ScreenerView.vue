@@ -123,7 +123,7 @@ watch(() => store.report.sessionId, () => {
       <div v-else class="grid gap-3 md:hidden">
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
-            <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 font-mono text-base font-bold text-[#2F64A8]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
+            <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 min-w-11 rounded-lg font-mono text-base font-bold text-[#2F64A8] hover:bg-[#F4F8FD]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
             <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ candidate.qualityScore }}/100</span>
           </div>
           <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ candidate.roePercent }}%</dd></div><div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold">{{ candidate.peRatio }}x</dd></div><div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold">{{ candidate.freeCashFlowYieldPercent }}%</dd></div></dl>
@@ -160,7 +160,7 @@ watch(() => store.report.sessionId, () => {
                  <button
                    :data-testid="`candidate-${candidate.symbol}`"
                    @click="store.openCandidateModal(candidate.symbol)"
-                  class="hover:underline cursor-pointer"
+                   class="inline-flex min-h-11 min-w-11 items-center rounded-lg hover:bg-[#F4F8FD] hover:underline cursor-pointer"
                 >
                   {{ candidate.symbol }}
                 </button>

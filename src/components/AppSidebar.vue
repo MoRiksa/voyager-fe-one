@@ -63,7 +63,7 @@ const sessionNavItems = computed(() => [
           </div>
           <div>
             <div class="flex items-center gap-1.5">
-              <span class="font-bold text-base tracking-tight text-slate-900 font-mono">VOYAGER<span class="text-[#407EC9]">.ONE</span></span>
+              <span class="font-bold text-base tracking-tight text-slate-900 font-mono">VOYAGER<span class="text-[#2F64A8]">.ONE</span></span>
             </div>
             <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Workspace riset finansial</p>
           </div>
@@ -82,7 +82,7 @@ const sessionNavItems = computed(() => [
               v-for="item in section.items"
               :key="item.path"
               :to="item.path"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150"
+              class="flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150"
               :class="item.names.includes(currentRouteName)
                 ? 'bg-[#2F64A8] text-white shadow-sm shadow-[#407EC9]/25 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
@@ -96,19 +96,19 @@ const sessionNavItems = computed(() => [
     </div>
 
     <div class="shrink-0 border-t border-slate-200 bg-slate-50/80 p-3">
-      <div class="mb-2 flex items-center gap-2 px-1 text-[10px] font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
+      <div class="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
       <router-link data-testid="sidebar-active-session" :to="`/research/${store.report.sessionId}`" class="block rounded-xl border border-[#407EC9]/20 bg-white p-3 transition-colors hover:border-[#407EC9]/50 hover:bg-blue-50" :aria-current="currentRouteName === 'research-session' ? 'page' : undefined">
         <p class="line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
-        <p class="mt-1 text-[11px] text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
-        <p class="mt-2 font-mono text-[10px] font-semibold text-[#2F64A8]">{{ store.report.sessionId }}</p>
+        <p class="mt-1 text-xs text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
+        <p class="mt-2 font-mono text-xs font-semibold text-[#2F64A8]">{{ store.report.sessionId }}</p>
       </router-link>
       <nav class="mt-2 grid grid-cols-2 gap-1" aria-label="Navigasi sesi aktif">
-        <router-link v-for="item in sessionNavItems" :key="item.path" :to="item.path" class="flex min-h-9 items-center gap-2 rounded-lg px-2 text-[11px] font-semibold transition-colors" :class="item.names.includes(currentRouteName) ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-white hover:text-slate-950'">
+        <router-link v-for="item in sessionNavItems" :key="item.path" :to="item.path" class="flex min-h-10 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors" :class="item.names.includes(currentRouteName) ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-white hover:text-slate-950'">
           <component :is="item.icon" class="h-3.5 w-3.5 shrink-0" />
           <span>{{ item.label }}</span>
         </router-link>
       </nav>
-      <div class="mt-2 px-1 text-[10px] leading-4 text-slate-500">
+      <div class="mt-2 px-1 text-xs leading-4 text-slate-500">
         Mode demonstrasi · data contoh
       </div>
     </div>

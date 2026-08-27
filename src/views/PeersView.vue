@@ -135,7 +135,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
     <!-- Comparative Synthesis Cards -->
     <div v-if="comparisonCandidates.length >= 2" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div v-for="highlight in comparisonHighlights" :key="highlight.label" class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">{{ highlight.label }}</h4>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] font-mono mb-2">{{ highlight.label }}</h4>
         <div class="text-xl font-bold font-mono text-slate-900">{{ highlight.company.symbol }} ({{ highlight.metric }})</div>
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">{{ highlight.company.whySelected }}</p>
       </div>
