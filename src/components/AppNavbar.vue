@@ -20,7 +20,13 @@ const pageTitle = computed(() => {
     case 'report': return 'Laporan Riset'
     case 'research-new': return 'Riset Baru'
     case 'research-session': return 'Sesi Riset'
+    case 'research-screener': return 'Proses Penyaringan'
+    case 'research-peers': return 'Perbandingan Kandidat'
+    case 'research-activity': return 'Aktivitas Riset'
+    case 'research-trace': return 'Audit Teknis'
+    case 'research-report': return 'Laporan Riset'
     case 'company-detail': return 'Analisis Perusahaan'
+    case 'research-company': return 'Analisis Perusahaan'
     case 'not-found': return 'Halaman Tidak Ditemukan'
     default: return 'Workspace Riset'
   }

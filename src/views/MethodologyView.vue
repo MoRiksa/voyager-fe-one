@@ -45,28 +45,28 @@ const store = useResearchStore()
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono text-xs">
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 1</div>
-          <div class="font-bold text-slate-900 font-sans">Research Planner</div>
-          <div class="text-[11px] text-slate-500 font-sans mt-1">Converts objective into structured execution DAG & required tools</div>
+          <div class="font-bold text-slate-900 font-sans">Menyusun rencana</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Mengubah tujuan menjadi ruang lingkup dan langkah riset</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 2</div>
-          <div class="font-bold text-slate-900 font-sans">Autonomous Screener</div>
-          <div class="text-[11px] text-slate-500 font-sans mt-1">Narrows universe progressively (914 -> 284 -> 68 -> 18 -> 5)</div>
+          <div class="font-bold text-slate-900 font-sans">Menyaring perusahaan</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Mempersempit daftar secara bertahap (914 -> 284 -> 68 -> 18 -> 5)</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 3</div>
-          <div class="font-bold text-slate-900 font-sans">Research Engine</div>
-          <div class="text-[11px] text-slate-500 font-sans mt-1">3-stage DuPont model, balance sheet checks & peer benchmarking</div>
+          <div class="font-bold text-slate-900 font-sans">Menganalisis kandidat</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Analisis DuPont, neraca, dan perbandingan perusahaan sejenis</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 4</div>
-          <div class="font-bold text-slate-900 font-sans">Memory & State</div>
-          <div class="text-[11px] text-slate-500 font-sans mt-1">Full state persistence & observable tool invocation trail</div>
+          <div class="font-bold text-slate-900 font-sans">Mencatat aktivitas</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Menyimpan status dan riwayat operasi pada sesi</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 5</div>
-          <div class="font-bold text-slate-900 font-sans">Final Report</div>
-          <div class="text-[11px] text-slate-500 font-sans mt-1">Synthesizes evidence citations, scores, limitations & uncertainty</div>
+          <div class="font-bold text-slate-900 font-sans">Menyusun laporan</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Merangkum skor, bukti, risiko, dan keterbatasan</div>
         </div>
       </div>
     </div>

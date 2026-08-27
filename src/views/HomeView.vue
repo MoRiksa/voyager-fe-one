@@ -117,7 +117,7 @@ const startDraft = () => {
           <FileText class="h-5 w-5 text-blue-100" />
           <h3 class="mt-5 text-lg font-bold">Laporan tersedia</h3>
           <p class="mt-2 text-sm leading-6 text-blue-100">Tinjau ranking, analisis kandidat, risiko, dan keterbatasan riset.</p>
-          <router-link to="/report" class="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-white">
+          <router-link :to="`/research/${store.report.sessionId}/report`" class="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-white">
             Buka laporan <ArrowRight class="h-4 w-4" />
           </router-link>
         </article>
@@ -130,7 +130,7 @@ const startDraft = () => {
           <p class="section-kicker">Temuan terbaru</p>
           <h2 id="latest-findings-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Tiga kandidat teratas</h2>
         </div>
-        <router-link to="/screener" class="text-link hidden sm:inline-flex">Lihat semua kandidat <ArrowRight class="h-4 w-4" /></router-link>
+        <router-link :to="`/research/${store.report.sessionId}/screener`" class="text-link hidden sm:inline-flex">Lihat semua kandidat <ArrowRight class="h-4 w-4" /></router-link>
       </div>
       <div class="grid gap-4 lg:grid-cols-3">
         <CandidateCard v-for="candidate in store.candidates.slice(0, 3)" :key="candidate.symbol" :candidate="candidate" />

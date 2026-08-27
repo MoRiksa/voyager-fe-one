@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import AppNavbar from './components/AppNavbar.vue'
 import MobileNav from './components/MobileNav.vue'
 import CandidateDetailModal from './components/CandidateDetailModal.vue'
 import MethodologyModal from './components/MethodologyModal.vue'
+import { useResearchStore } from './stores/researchStore'
+
+const route = useRoute()
+const router = useRouter()
+const store = useResearchStore()
+
+watch(() => route.params.id, id => {
+  if (typeof id === 'string' && id !== store.report.sessionId && !store.loadSession(id)) router.replace('/not-found')
+}, { immediate: true })
 </script>
 
 <template>
@@ -26,13 +38,13 @@ import MethodologyModal from './components/MethodologyModal.vue'
           <div class="flex items-center gap-2">
             <span class="font-bold text-slate-800 font-mono">VOYAGER.ONE</span>
             <span class="text-slate-300">•</span>
-            <span>Autonomous Financial Research Agent</span>
+            <span>Workspace riset finansial</span>
           </div>
 
           <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500 text-xs">
             <span>Sectors Hackathon 2026</span>
             <span>•</span>
-            <span>Deterministic Derived Intelligence</span>
+            <span>Analisis terukur dan dapat ditelusuri</span>
           </div>
         </div>
       </footer>

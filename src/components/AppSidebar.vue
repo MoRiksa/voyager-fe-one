@@ -24,25 +24,26 @@ const creditPercentage = computed(() => {
   return Math.round((store.creditsRemaining / store.totalCredits) * 100)
 })
 
-const navItems = [
+const navItems = computed(() => [
   {
-    group: 'CORE RESEARCH',
+    group: 'RISET UTAMA',
     items: [
       { name: 'home', label: 'Beranda', path: '/', icon: Layers },
       { name: 'research-new', label: 'Riset Baru', path: '/research/new', icon: Search },
-      { name: 'screener', label: 'Penyaringan', path: '/screener', icon: Filter },
-      { name: 'peers', label: 'Perbandingan', path: '/peers', icon: GitCompare },
+      { name: 'research-screener', label: 'Penyaringan', path: `/research/${store.report.sessionId}/screener`, icon: Filter },
+      { name: 'research-peers', label: 'Perbandingan', path: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
     ]
   },
   {
-    group: 'AUDIT & GOVERNANCE',
+    group: 'AUDIT DAN METODOLOGI',
     items: [
-      { name: 'trace', label: 'Aktivitas', path: '/trace', icon: Terminal },
+      { name: 'research-activity', label: 'Aktivitas', path: `/research/${store.report.sessionId}/activity`, icon: Terminal },
+      { name: 'research-trace', label: 'Audit Teknis', path: `/research/${store.report.sessionId}/trace`, icon: ShieldCheck },
       { name: 'methodology', label: 'Metodologi', path: '/methodology', icon: BookOpen },
-      { name: 'report', label: 'Laporan', path: '/report', icon: FileSpreadsheet },
+      { name: 'research-report', label: 'Laporan', path: `/research/${store.report.sessionId}/report`, icon: FileSpreadsheet },
     ]
   }
-]
+])
 </script>
 
 <template>
@@ -58,14 +59,14 @@ const navItems = [
             <div class="flex items-center gap-1.5">
               <span class="font-bold text-base tracking-tight text-slate-900 font-mono">VOYAGER<span class="text-[#407EC9]">.ONE</span></span>
             </div>
-            <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Financial Research Agent</p>
+            <p class="text-[11px] text-slate-500 font-medium -mt-0.5">Workspace riset finansial</p>
           </div>
         </router-link>
 
         <div class="mt-4 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px]">
             <span class="text-slate-500 font-medium">Mode kerja</span>
           <span class="font-mono font-bold text-[#407EC9] text-[10px] bg-[#407EC9]/10 px-1.5 py-0.5 rounded">
-            RESEARCH
+            RISET
           </span>
         </div>
       </div>
@@ -101,7 +102,7 @@ const navItems = [
         <div class="flex items-center justify-between text-xs">
           <span class="text-slate-500 font-medium flex items-center gap-1.5">
             <Coins class="w-3.5 h-3.5 text-[#407EC9]" />
-             Research Credits
+             Kredit riset
           </span>
           <span class="font-mono font-bold text-slate-800 tabular-nums">
             {{ store.creditsRemaining.toLocaleString() }}

@@ -415,7 +415,7 @@ const handleExportJson = () => {
             <h3 class="text-lg font-bold text-slate-900">
               Candidate Dossier: <span class="font-mono text-[#407EC9]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
             </h3>
-            <router-link :to="`/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
+            <router-link :to="`/research/${store.report.sessionId}/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
           </div>
 
           <!-- Horizontal Candidate Ticker Tabs -->

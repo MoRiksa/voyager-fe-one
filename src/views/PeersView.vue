@@ -105,31 +105,31 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Highest Return on Capital
+          Pengembalian modal tertinggi
         </h4>
         <div class="text-xl font-bold font-mono text-slate-900">AMRT (24.8% ROE)</div>
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Driven by high inventory velocity (Asset Turnover 2.84x) across 19,000 nationwide convenience stores.
+          Didukung perputaran aset 2.84x dan jaringan gerai yang luas.
         </p>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Deep Value & Cash Generation
+          Valuasi dan arus kas
         </h4>
         <div class="text-xl font-bold font-mono text-slate-900">UNTR (12.8% FCF Yield)</div>
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Trades at modest 5.2x P/E with pristine net cash balance sheet and high 8.6% dividend distribution.
+          Diperdagangkan pada P/E 5.2x dengan posisi kas bersih dan dividend yield 8.6%.
         </p>
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Highest Quality Score
+          Skor kualitas tertinggi
         </h4>
         <div class="text-xl font-bold font-mono text-slate-900">BBCA (94/100 Score)</div>
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Unrivaled low-cost deposit moat (81.4% CASA) sustaining 21.8% ROE and industry-lowest loan delinquency.
+          Basis dana murah CASA 81.4% mendukung ROE 21.8% dan kualitas kredit yang kuat.
         </p>
       </div>
     </div>

@@ -41,25 +41,25 @@ const toggleExpand = (id: string) => {
     <!-- Metrics Cards Strip -->
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-400 font-semibold uppercase">Total Tool Invocations</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Total operasi</span>
         <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ store.toolCalls.length }}</div>
         <span class="text-xs text-emerald-600 font-medium">{{ successRate }}% berhasil</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-400 font-semibold uppercase">Total Credits Spent</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Kredit terpakai</span>
         <div class="text-2xl font-mono font-bold text-[#407EC9] mt-1">{{ totalCredits }}</div>
-        <span class="text-[11px] text-slate-500 font-mono">Sectors API Credits</span>
+        <span class="text-xs text-slate-500 font-mono">Kredit sesi</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-400 font-semibold uppercase">Avg Tool Latency</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Rata-rata durasi</span>
         <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ averageLatency }}ms</div>
-        <span class="text-[11px] text-slate-500 font-medium">Fast Execution</span>
+        <span class="text-xs text-slate-500 font-medium">Per operasi</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs text-slate-400 font-semibold uppercase">Data Anomaly Flags</span>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Operasi gagal</span>
         <div class="text-2xl font-mono font-bold text-emerald-600 mt-1">{{ errorCount }}</div>
         <span class="text-xs text-emerald-600 font-medium">Operasi gagal</span>
       </div>

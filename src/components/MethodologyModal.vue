@@ -93,15 +93,15 @@ onBeforeUnmount(() => {
              Metodologi yang dapat ditelusuri
           </h4>
           <p class="text-xs text-slate-700 leading-relaxed">
-            The project does not merely re-render raw Sectors API data on a dashboard. It executes a proprietary 5-factor scoring model, 3-stage DuPont decomposition, and multi-tier universe screening directly on retrieved market metrics.
+            Voyager One merangkum data ke dalam lima faktor penilaian, analisis DuPont tiga tahap, dan penyaringan bertingkat. Setiap hasil tetap perlu dibaca bersama bukti dan keterbatasannya.
           </p>
         </div>
 
         <!-- 2. The 5-Factor Scoring Formula -->
         <div>
-          <h3 class="text-base font-bold text-slate-900 mb-2">1. Derived Quality Score Formula</h3>
+          <h3 class="text-base font-bold text-slate-900 mb-2">1. Formula skor kualitas</h3>
           <p class="text-xs leading-relaxed mb-3">
-            Every candidate is evaluated on a scale of 0 to 100 based on weighted fundamental dimensions:
+            Setiap kandidat dinilai pada skala 0 sampai 100 menggunakan dimensi fundamental berbobot:
           </p>
 
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 space-y-2">
@@ -120,16 +120,16 @@ onBeforeUnmount(() => {
 
         <!-- 3. De-coupled AI Orchestrator vs Deterministic Engine -->
         <div>
-          <h3 class="text-base font-bold text-slate-900 mb-2">2. Architecture Boundary & Explainability</h3>
+          <h3 class="text-base font-bold text-slate-900 mb-2">2. Perhitungan dan interpretasi</h3>
           <p class="text-xs leading-relaxed mb-3">
-            To ensure zero hallucinations, calculations are performed deterministically in the custom Intelligence Engine, while the Autonomous Agent handles strategy synthesis and evidence validation.
+            Perhitungan angka dipisahkan dari interpretasi naratif. Tujuannya agar skor dapat ditelusuri ke komponen yang digunakan dan kesimpulan tetap menyertakan risiko.
           </p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3.5 rounded-xl border border-slate-200 bg-white">
               <h5 class="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
                 <Cpu class="w-3.5 h-3.5 text-[#407EC9]" />
-                Intelligence Engine (Deterministic)
+                Perhitungan terukur
               </h5>
               <ul class="text-[11px] text-slate-600 space-y-1">
                 <li>• Multi-stage universe screening</li>
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
             <div class="p-3.5 rounded-xl border border-slate-200 bg-white">
               <h5 class="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
                 <Layers class="w-3.5 h-3.5 text-emerald-600" />
-                Autonomous Agent (Synthesis)
+                Sintesis riset
               </h5>
               <ul class="text-[11px] text-slate-600 space-y-1">
                 <li>• Translates objective into research plan</li>

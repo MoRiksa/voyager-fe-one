@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
               <span class="font-mono font-bold text-lg tabular-nums">{{ candidate.qualityScore }}</span>
               <span class="text-xs opacity-80">/100</span>
             </div>
-            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Derived Quality Score</div>
+            <div class="text-xs text-slate-500 font-medium mt-0.5">Skor kualitas</div>
           </div>
 
            <button
@@ -131,11 +131,11 @@ onBeforeUnmount(() => {
           <div class="flex items-center justify-between mb-4">
             <div>
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Pillar 4: Derived Intelligence
+                Komponen skor
               </h4>
-              <h3 class="text-base font-bold text-slate-900 mt-0.5">5-Factor Scoring Model Breakdown</h3>
+              <h3 class="text-base font-bold text-slate-900 mt-0.5">Lima faktor penilaian</h3>
             </div>
-            <span class="text-xs text-slate-400 font-mono">Deterministic Calculation</span>
+            <span class="text-xs text-slate-500 font-mono">Skala 0-100</span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
           <div class="flex items-center justify-between mb-4">
             <div>
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
-                Pillar 3: Research Engine
+                Analisis profitabilitas
               </h4>
               <h3 class="text-base font-bold text-slate-900 mt-0.5">3-Stage DuPont ROE Decomposition</h3>
             </div>
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 
         <div class="flex items-center gap-2">
           <button @click="handleClose" class="button-secondary">Tutup</button>
-          <router-link :to="`/company/${candidate.symbol}`" class="button-primary" @click="handleClose">Analisis lengkap</router-link>
+          <router-link :to="`/research/${store.report.sessionId}/company/${candidate.symbol}`" class="button-primary" @click="handleClose">Analisis lengkap</router-link>
         </div>
       </div>
     </div>

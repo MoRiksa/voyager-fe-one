@@ -1,26 +1,28 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useResearchStore } from '../stores/researchStore'
 import { Home, Search, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal } from 'lucide-vue-next'
 
 const route = useRoute()
+const store = useResearchStore()
 const isMoreOpen = ref(false)
 
-const primaryItems = [
+const primaryItems = computed(() => [
   { label: 'Beranda', to: '/', icon: Home, names: ['home'] },
   { label: 'Riset', to: '/research/new', icon: Search, names: ['research-new', 'research-session'] },
-  { label: 'Laporan', to: '/report', icon: FileText, names: ['report'] }
-]
+  { label: 'Laporan', to: `/research/${store.report.sessionId}/report`, icon: FileText, names: ['report', 'research-report'] }
+])
 
-const moreItems = [
-  { label: 'Proses penyaringan', to: '/screener', icon: Filter },
-  { label: 'Perbandingan kandidat', to: '/peers', icon: GitCompare },
+const moreItems = computed(() => [
+  { label: 'Proses penyaringan', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
+  { label: 'Perbandingan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
   { label: 'Metodologi', to: '/methodology', icon: BookOpen },
-  { label: 'Riwayat aktivitas', to: '/activity', icon: Terminal },
-  { label: 'Audit teknis', to: '/trace', icon: Terminal }
-]
+  { label: 'Riwayat aktivitas', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
+  { label: 'Audit teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
+])
 
-const moreIsActive = computed(() => ['screener', 'peers', 'methodology', 'activity', 'trace'].includes(String(route.name)))
+const moreIsActive = computed(() => ['screener', 'research-screener', 'peers', 'research-peers', 'methodology', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
 </script>
 
 <template>

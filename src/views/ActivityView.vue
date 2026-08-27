@@ -24,7 +24,7 @@ const iconFor = (category: string) => category === 'Sectors API' ? Search : cate
           <article class="rounded-xl border border-slate-200 p-4"><div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><div class="flex items-center gap-2"><CheckCircle2 class="h-4 w-4 text-emerald-600" /><h2 class="text-sm font-bold text-slate-950">{{ call.outputSummary }}</h2></div><p class="mt-2 text-xs text-slate-500">{{ call.category }} · langkah {{ index + 1 }}</p></div><span class="inline-flex shrink-0 items-center gap-1 font-mono text-xs text-slate-500"><Clock3 class="h-3.5 w-3.5" />{{ call.durationMs }} ms</span></div></article>
         </li>
       </ol>
-      <router-link to="/trace" class="button-secondary mt-7">Buka audit teknis <ArrowRight class="h-4 w-4" /></router-link>
+      <router-link :to="`/research/${store.report.sessionId}/trace`" class="button-secondary mt-7">Buka audit teknis <ArrowRight class="h-4 w-4" /></router-link>
     </section>
   </div>
 </template>

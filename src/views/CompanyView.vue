@@ -20,11 +20,11 @@ const factors = computed(() => company.value ? [
   <div v-if="!company" class="mx-auto flex min-h-[65dvh] max-w-xl flex-col items-center justify-center px-6 text-center">
     <h1 class="text-2xl font-bold text-slate-950">Perusahaan tidak ditemukan</h1>
     <p class="mt-3 text-sm text-slate-600">Ticker ini tidak tersedia dalam sesi riset yang sedang dibuka.</p>
-    <router-link to="/screener" class="button-primary mt-6">Kembali ke kandidat</router-link>
+    <router-link :to="`/research/${store.report.sessionId}/screener`" class="button-primary mt-6">Kembali ke kandidat</router-link>
   </div>
 
   <div v-else class="mx-auto max-w-7xl space-y-7 px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
-    <router-link to="/screener" class="text-link inline-flex"><ArrowLeft class="h-4 w-4" /> Kembali ke kandidat</router-link>
+    <router-link :to="`/research/${store.report.sessionId}/screener`" class="text-link inline-flex"><ArrowLeft class="h-4 w-4" /> Kembali ke kandidat</router-link>
 
     <header class="overflow-hidden rounded-3xl bg-[#102138] text-white shadow-xl">
       <div class="grid gap-7 p-6 sm:p-9 lg:grid-cols-[1fr_auto] lg:items-end">
