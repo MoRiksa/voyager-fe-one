@@ -26,6 +26,8 @@ Completed research follows an explicit in-page journey: session summary to candi
 
 New sessions begin without final screening stages, candidates, audit results, or report recommendations. While status is not `COMPLETED`, result routes show a progress gate and return users to the session summary. Final artifacts become visible atomically at completion; this visibility rule is part of the backend handoff contract, not presentation-only behavior.
 
+Before a run starts, the UI exposes the exact deterministic screening rules and actual fixture universe from the same evaluator used by execution. Editing objective prose detaches the selected preset and activates the documented general rule set; selecting a rule card restores its exact objective and criteria. Financial metrics are paired with plain-language meaning, score thresholds, sector-comparison cautions, and model limitations across candidate cards, comparison, company analysis, methodology, and reports.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

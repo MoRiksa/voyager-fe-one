@@ -124,14 +124,16 @@ watch(() => store.report.sessionId, () => {
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
             <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 font-mono text-base font-bold text-[#2F64A8]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
-            <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">{{ candidate.qualityScore }}</span>
+            <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ candidate.qualityScore }}/100</span>
           </div>
           <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ candidate.roePercent }}%</dd></div><div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold">{{ candidate.peRatio }}x</dd></div><div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold">{{ candidate.freeCashFlowYieldPercent }}%</dd></div></dl>
+          <p class="mt-3 text-[11px] leading-5 text-slate-500">Skor 80+ lolos ambang kualitas. Rasio keuangan tetap perlu dibandingkan dalam sektor yang sama.</p>
           <div class="mt-4 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" :class="resultMode === 'retained' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'"><CheckCircle2 v-if="resultMode === 'retained'" class="mt-0.5 h-3.5 w-3.5 shrink-0" /><XCircle v-else class="mt-0.5 h-3.5 w-3.5 shrink-0" />{{ resultMode === 'retained' ? 'Lolos berdasarkan kriteria tahap ini.' : `Tidak memenuhi: ${activeStep.filterCriteria}.` }}</div>
         </article>
       </div>
 
       <div v-if="visibleCompanies.length > 0" class="hidden overflow-x-auto md:block">
+        <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. ROE mengukur laba terhadap modal; P/E harga terhadap laba; Debt/Equity utang terhadap modal; FCF yield kas bebas relatif terhadap nilai perusahaan. Skor 80/100 adalah ambang kualitas, bukan rekomendasi membeli.</p>
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Kandidat yang lolos seluruh tahap penyaringan</caption>
           <thead>

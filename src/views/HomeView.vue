@@ -80,6 +80,7 @@ const removeSession = (id: string) => {
             <div class="rounded-xl bg-black/15 p-3">
               <span class="text-xs text-slate-400">Skor tertinggi</span>
               <strong class="mt-1 block font-mono text-xl">{{ store.candidates[0] ? `${store.candidates[0].qualityScore}/100` : 'Belum ada' }}</strong>
+              <span class="mt-1 block text-[10px] text-slate-400">80+ masuk shortlist sesi</span>
             </div>
           </div>
           <router-link :to="`/research/${store.report.sessionId}`" class="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-white hover:text-blue-100">

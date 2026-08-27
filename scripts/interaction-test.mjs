@@ -90,10 +90,34 @@ try {
   })()`)
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=objective-error]"))'), 'Research validation error was not shown')
 
+  await evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
+  await waitFor(() => evaluate('document.querySelector("[data-testid=screening-rule-contract]").textContent.includes("ROE > 15%")'), 'Banking rule preview was not shown')
   await evaluate(`(() => {
-    document.querySelector('[data-testid="preset-obj-banking-moat"]').click()
-    document.querySelector('[data-testid="research-form"]').requestSubmit()
+    const field = document.querySelector('[data-testid="research-objective"]')
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set
+    setter.call(field, 'Temukan bank Indonesia dengan ROE di atas 25% dan pertumbuhan laba yang konsisten.')
+    field.dispatchEvent(new Event('input', { bubbles: true }))
   })()`)
+  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=custom-rule-notice]"))'), 'Edited objective did not switch to explicit custom rules')
+  const customRuleState = await evaluate(`({
+    bankingPressed: document.querySelector('[data-testid="preset-obj-banking-moat"]').getAttribute('aria-pressed'),
+    rules: document.querySelector('[data-testid="screening-rule-contract"]').textContent
+  })`)
+  if (customRuleState.bankingPressed !== 'false' || !customRuleState.rules.includes('ROE > 12%') || !customRuleState.rules.includes('Debt/Equity < 1.5x') || customRuleState.rules.includes('ROE > 25%')) {
+    throw new Error(`Custom rule contract is misleading: ${JSON.stringify(customRuleState)}`)
+  }
+
+  await evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
+  await waitFor(() => evaluate('document.querySelector("[data-testid=screening-rule-contract]").textContent.includes("ROE > 15%")'), 'Banking rules did not return after reselecting template')
+  const bankingDisclosure = await evaluate(`({
+    pressed: document.querySelector('[data-testid="preset-obj-banking-moat"]').getAttribute('aria-pressed'),
+    universe: document.querySelector('[data-testid="actual-universe"]').textContent,
+    rules: document.querySelector('[data-testid="screening-rule-contract"]').textContent
+  })`)
+  if (bankingDisclosure.pressed !== 'true' || !bankingDisclosure.universe.includes('3 perusahaan') || !bankingDisclosure.rules.includes('ROE > 15%')) {
+    throw new Error(`Banking disclosure does not match execution: ${JSON.stringify(bankingDisclosure)}`)
+  }
+  await evaluate(`document.querySelector('[data-testid="research-form"]').requestSubmit()`)
   await waitFor(() => evaluate('location.pathname.startsWith("/research/RES-")'), 'Valid research form did not create a session')
   const runningSession = await evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
@@ -144,6 +168,7 @@ try {
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=session-next]"))'), 'Session next action did not render')
   await evaluate(`document.querySelector('[data-testid="session-next"]').click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/screener'`), 'Session did not guide to screener')
+  await waitFor(() => evaluate('document.querySelector("[data-testid=screener-metric-guide]")?.textContent.includes("Skor 80/100 adalah ambang")'), 'Screener did not explain financial metrics')
   const desktopNavigation = await evaluate(`({
     summaryHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Ringkasan')?.getAttribute('href'),
     activeLabel: document.querySelector('nav a[aria-current="page"]')?.textContent.trim(),
@@ -169,6 +194,7 @@ try {
   await evaluate(`document.querySelector('[data-testid="screener-primary-next"]').click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/peers'`), 'Screener did not guide to comparison')
   await waitFor(() => evaluate(`document.querySelectorAll('[data-testid^="comparison-row-"]').length === ${sessionResult.symbols.length}`), 'Peer comparison rows did not render')
+  await waitFor(() => evaluate('document.querySelector("[data-testid=metric-explanation]")?.textContent.includes("ambang shortlist")'), 'Peer comparison did not explain quality metrics')
   const comparisonState = await evaluate(`({
     rows: Array.from(document.querySelectorAll('[data-testid^="comparison-row-"]')).map(row => row.dataset.testid.replace('comparison-row-', '')),
     hasCandidateFilter: Boolean(document.querySelector('[data-testid^="peer-"]'))
@@ -183,10 +209,13 @@ try {
     select.dispatchEvent(new Event('change', { bubbles: true }))
   })()`)
   await waitFor(() => evaluate('Array.from(document.querySelectorAll("th")).some(cell => cell.textContent.includes("P/BV"))'), 'Metric view did not change comparison columns')
+  await waitFor(() => evaluate('document.querySelector("[data-testid=metric-explanation]")?.textContent.includes("mencerminkan risiko")'), 'Valuation view did not explain tradeoffs')
 
   await evaluate(`document.querySelector('[data-testid="peers-primary-next"]').click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/report'`), 'Comparison did not guide to report')
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
+  await waitFor(() => evaluate('document.querySelector("[data-testid=report-metric-guide]")?.textContent.includes("ROE = laba terhadap modal")'), 'Report did not explain financial metrics')
+  if (!await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report omitted consistency score factor')
   await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)
   await waitFor(() => evaluate('location.pathname === "/research"'), 'Report did not return to research library')
 

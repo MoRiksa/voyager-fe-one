@@ -26,6 +26,7 @@ const routes = [
 const renderedChecks = [
   { route: '/', text: 'Apa yang ingin Anda teliti hari ini?' },
   { route: '/research', text: 'Temukan dan lanjutkan riset Anda' },
+  { route: '/research/new', text: 'Aturan yang benar-benar diterapkan' },
   { route: `/research/${sessionId}/screener`, text: 'Proses penyaringan' },
   { route: `/research/${sessionId}/peers`, text: 'Bandingkan kekuatan dan tradeoff kandidat' },
   { route: `/research/${sessionId}/company/BBCA`, text: 'Lima faktor penilaian' },

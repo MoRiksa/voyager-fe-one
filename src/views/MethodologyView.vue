@@ -110,6 +110,7 @@ const store = useResearchStore()
         <div v-for="band in [{ range: '90-100', label: 'Sangat kuat', text: 'Profil menonjol dalam ruang lingkup yang dievaluasi.' }, { range: '80-89', label: 'Kuat', text: 'Fundamental baik dengan tradeoff yang perlu diperiksa.' }, { range: '70-79', label: 'Campuran', text: 'Memerlukan analisis tambahan sebelum diprioritaskan.' }, { range: '<70', label: 'Tidak diprioritaskan', text: 'Tidak memenuhi kombinasi kriteria sesi saat ini.' }]" :key="band.range" class="rounded-xl border border-slate-200 p-4"><span class="font-mono text-sm font-bold text-[#2F64A8]">{{ band.range }}</span><h3 class="mt-2 text-sm font-bold text-slate-900">{{ band.label }}</h3><p class="mt-1 text-xs leading-5 text-slate-500">{{ band.text }}</p></div>
       </div>
       <p class="rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-950">Skor digunakan untuk memprioritaskan riset, bukan untuk memprediksi return. Bank dan perusahaan non-finansial juga memerlukan metrik sektoral yang berbeda.</p>
+      <p class="rounded-xl bg-blue-50 p-4 text-xs leading-5 text-blue-950">Pada mode demonstrasi, komponen skor adalah nilai fixture model, bukan skor pasar terstandarisasi. Konteks sektor atau histori hanya digunakan jika tersedia pada data pendukung kandidat.</p>
     </div>
 
     <!-- DuPont Model Deconstruction -->

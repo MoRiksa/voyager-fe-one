@@ -140,6 +140,15 @@ export const useResearchStore = defineStore('research', () => {
     return { funnel, candidates: finalCompanies }
   }
 
+  const getScreeningPreview = (presetId: string) => {
+    const results = deriveSessionResults(presetId)
+    return {
+      universe: results.funnel[0],
+      criteria: results.funnel.slice(1).map(step => step.filterCriteria),
+      maximumCandidates: OBJECTIVE_PRESETS.find(preset => preset.id === presetId)?.expectedCandidates || 5
+    }
+  }
+
   const deriveSessionArtifacts = (results: ReturnType<typeof deriveSessionResults>, objective = currentObjective.value, basePillars = pillars.value) => {
     const now = new Date().toLocaleTimeString('id-ID', { hour12: false, fractionalSecondDigits: 3 })
     const criteria = results.funnel.slice(1).map(step => step.filterCriteria)
@@ -530,6 +539,7 @@ export const useResearchStore = defineStore('research', () => {
     // Actions
     setObjective,
     selectPreset,
+    getScreeningPreview,
     openCandidateModal,
     closeCandidateModal,
     openMethodology,

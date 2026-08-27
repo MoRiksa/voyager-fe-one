@@ -101,6 +101,7 @@ onBeforeUnmount(() => {
               <span class="text-xs opacity-80">/100</span>
             </div>
             <div class="text-xs text-slate-500 font-medium mt-0.5">Skor kualitas</div>
+            <div class="mt-0.5 max-w-32 text-[10px] leading-4 text-slate-400">{{ candidate.qualityScore >= 90 ? 'Sangat kuat dalam model' : candidate.qualityScore >= 80 ? 'Kuat dalam model' : 'Perlu analisis tambahan' }}</div>
           </div>
 
            <button
@@ -137,11 +138,12 @@ onBeforeUnmount(() => {
             </div>
             <span class="text-xs text-slate-500 font-mono">Skala 0-100</span>
           </div>
+          <p class="mb-4 text-xs leading-5 text-slate-500">90-100 sangat kuat, 80-89 kuat, dan 70-79 campuran. Bobot menunjukkan kontribusi ke skor akhir, bukan peluang keuntungan.</p>
 
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <!-- Factor 1: Profitability -->
             <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
-              <span class="text-[11px] text-slate-500 font-medium">Profitability (25%)</span>
+              <span class="text-[11px] text-slate-500 font-medium">Profitabilitas (25%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.profitability }}
               </div>
@@ -152,7 +154,7 @@ onBeforeUnmount(() => {
 
             <!-- Factor 2: Growth -->
             <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
-              <span class="text-[11px] text-slate-500 font-medium">Growth (25%)</span>
+              <span class="text-[11px] text-slate-500 font-medium">Pertumbuhan (25%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.growth }}
               </div>
@@ -163,7 +165,7 @@ onBeforeUnmount(() => {
 
             <!-- Factor 3: Solvency -->
             <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
-              <span class="text-[11px] text-slate-500 font-medium">Solvency (20%)</span>
+              <span class="text-[11px] text-slate-500 font-medium">Solvabilitas (20%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.solvency }}
               </div>
@@ -174,7 +176,7 @@ onBeforeUnmount(() => {
 
             <!-- Factor 4: Valuation -->
             <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
-              <span class="text-[11px] text-slate-500 font-medium">Valuation (20%)</span>
+              <span class="text-[11px] text-slate-500 font-medium">Valuasi (20%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.valuation }}
               </div>
@@ -185,7 +187,7 @@ onBeforeUnmount(() => {
 
             <!-- Factor 5: Consistency -->
             <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
-              <span class="text-[11px] text-slate-500 font-medium">Consistency (10%)</span>
+              <span class="text-[11px] text-slate-500 font-medium">Konsistensi (10%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.consistency }}
               </div>
@@ -203,7 +205,7 @@ onBeforeUnmount(() => {
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
                 Analisis profitabilitas
               </h4>
-              <h3 class="text-base font-bold text-slate-900 mt-0.5">3-Stage DuPont ROE Decomposition</h3>
+              <h3 class="text-base font-bold text-slate-900 mt-0.5">Sumber ROE: margin × efisiensi aset × leverage</h3>
             </div>
             <span class="px-2.5 py-1 text-xs font-mono font-bold bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
               ROE: {{ candidate.dupontAnalysis.calculatedRoe }}%
@@ -213,18 +215,18 @@ onBeforeUnmount(() => {
           <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
             <!-- Stage 1: Net Margin -->
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-              <span class="text-xs text-slate-500 font-medium">Net Profit Margin</span>
+              <span class="text-xs text-slate-500 font-medium">Margin laba bersih</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.netProfitMargin }}%</p>
-              <span class="text-[11px] text-slate-400">Pricing Power / Cost Control</span>
+              <span class="text-[11px] text-slate-400">Laba dari setiap Rp100 pendapatan</span>
             </div>
 
             <div class="text-center font-mono font-bold text-slate-400 text-lg hidden md:block">×</div>
 
             <!-- Stage 2: Asset Turnover -->
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-              <span class="text-xs text-slate-500 font-medium">Asset Turnover</span>
+              <span class="text-xs text-slate-500 font-medium">Efisiensi aset</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.assetTurnover }}x</p>
-              <span class="text-[11px] text-slate-400">Asset Velocity & Utilization</span>
+              <span class="text-[11px] text-slate-400">Pendapatan dari setiap Rp1 aset</span>
             </div>
 
             <div class="text-center font-mono font-bold text-slate-400 text-lg hidden md:block">×</div>

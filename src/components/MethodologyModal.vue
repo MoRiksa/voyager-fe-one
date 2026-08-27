@@ -106,14 +106,14 @@ onBeforeUnmount(() => {
 
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 space-y-2">
             <div class="font-bold text-[#407EC9]">
-              Quality Score = (0.25 × Profitability) + (0.25 × Growth) + (0.20 × Solvency) + (0.20 × Valuation) + (0.10 × Consistency)
+              Skor Kualitas = (0.25 × Profitabilitas) + (0.25 × Pertumbuhan) + (0.20 × Solvabilitas) + (0.20 × Valuasi) + (0.10 × Konsistensi)
             </div>
             <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              <div>• <strong>Profitability (25%)</strong>: ROE, ROA, Gross Margin</div>
-              <div>• <strong>Growth (25%)</strong>: 3Y Revenue & Net Income CAGR</div>
-              <div>• <strong>Solvency (20%)</strong>: Debt/Equity, Current Ratio, Cash Buffer</div>
-              <div>• <strong>Valuation (20%)</strong>: P/E, P/BV vs Historical Sector Medians</div>
-              <div>• <strong>Consistency (10%)</strong>: Multi-year dividend & earnings stability</div>
+              <div>• <strong>Profitabilitas (25%)</strong>: ROE, ROA, dan margin</div>
+              <div>• <strong>Pertumbuhan (25%)</strong>: CAGR pendapatan dan laba bersih tiga tahun</div>
+              <div>• <strong>Solvabilitas (20%)</strong>: Debt/Equity, current ratio, dan posisi kas</div>
+              <div>• <strong>Valuasi (20%)</strong>: P/E dan P/BV fixture; konteks historis hanya jika tersedia pada bukti</div>
+              <div>• <strong>Konsistensi (10%)</strong>: stabilitas laba dan dividen</div>
             </div>
           </div>
         </div>
@@ -132,10 +132,10 @@ onBeforeUnmount(() => {
                 Perhitungan terukur
               </h5>
               <ul class="text-[11px] text-slate-600 space-y-1">
-                <li>• Multi-stage universe screening</li>
-                <li>• Exact DuPont mathematical models</li>
-                <li>• Relative valuation multiple normalization</li>
-                <li>• Anomaly & missing data detection</li>
+                <li>• Penyaringan dataset bertahap</li>
+                <li>• Perhitungan DuPont dari data fixture</li>
+                <li>• Skor faktor yang tersimpan pada fixture</li>
+                <li>• Pemeriksaan kelengkapan metrik minimum</li>
               </ul>
             </div>
 
@@ -145,10 +145,10 @@ onBeforeUnmount(() => {
                 Sintesis riset
               </h5>
               <ul class="text-[11px] text-slate-600 space-y-1">
-                <li>• Translates objective into research plan</li>
-                <li>• Dynamic Sectors MCP tool selection</li>
-                <li>• Formulates explainable thesis ("Why Selected")</li>
-                <li>• Flags uncertainties & limitations</li>
+                <li>• Menyusun tujuan menjadi rencana riset</li>
+                <li>• Menerapkan rule set yang dipilih pengguna</li>
+                <li>• Menjelaskan alasan kandidat dipilih</li>
+                <li>• Menampilkan risiko dan keterbatasan</li>
               </ul>
             </div>
           </div>

@@ -21,6 +21,11 @@ const comparisonHighlights = computed(() => {
     { label: 'Skor kualitas tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
   ]
 })
+const metricExplanation = computed(() => metricGroup.value === 'valuation'
+  ? 'P/E, P/BV, dan EV/EBITDA menunjukkan harga relatif terhadap laba, ekuitas, atau laba operasional. Nilai lebih rendah dapat berarti lebih murah, tetapi juga dapat mencerminkan risiko. FCF yield menunjukkan kas bebas relatif terhadap nilai perusahaan.'
+  : metricGroup.value === 'growth'
+    ? 'CAGR adalah rata-rata pertumbuhan per tahun selama tiga tahun, bukan pertumbuhan setiap tahun. ROE mengukur laba terhadap modal, sedangkan ROA mengukur laba terhadap seluruh aset.'
+    : 'Skor kualitas merangkum lima faktor dan 80+ adalah ambang shortlist. ROE tinggi dapat berasal dari laba atau leverage. Debt/Equity yang lebih rendah umumnya berarti beban utang lebih kecil di luar sektor perbankan.')
 watch(() => store.candidates.map(candidate => candidate.symbol).join(','), () => {
   leftTicker.value = store.candidates[0]?.symbol || ''
   rightTicker.value = store.candidates[1]?.symbol || ''
@@ -72,6 +77,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
            {{ store.candidates.length }} kandidat
         </div>
       </div>
+      <p data-testid="metric-explanation" class="mb-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">{{ metricExplanation }} Perbandingan ini hanya mencakup kandidat akhir sesi.</p>
 
       <div v-if="comparisonCandidates.length < 2" data-testid="peers-empty" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
         <h3 class="text-base font-bold text-slate-900">Kandidat belum cukup untuk dibandingkan</h3>

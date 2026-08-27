@@ -60,6 +60,9 @@ Tujuan: ${store.report.objective}
 KANDIDAT TERATAS:
 ${store.candidates.map(c => `#${c.rank} ${c.symbol} (${c.name}) — Skor: ${c.qualityScore}/100 | ROE: ${c.roePercent}% | P/E: ${c.peRatio}x | FCF yield: ${c.freeCashFlowYieldPercent}%\nAlasan: ${c.whySelected}`).join('\n\n')}
 
+CARA MEMBACA:
+Skor 80+ memenuhi ambang shortlist. ROE mengukur laba terhadap modal; P/E harga terhadap laba; Debt/Equity utang terhadap modal; FCF yield kas bebas relatif terhadap nilai perusahaan. Rasio paling relevan dibandingkan dalam sektor yang sama.
+
 RINGKASAN PERBANDINGAN:
 ${store.report.peerComparisonNotes}
 
@@ -92,6 +95,9 @@ const handleExportMarkdown = () => {
 > "${store.report.objective}"
 
 ${store.report.methodologyOverview}
+
+## Aturan penyaringan yang diterapkan
+${store.activePlan.criteria.map(rule => `- ${rule}`).join('\n')}
 
 ---
 
@@ -350,6 +356,7 @@ const useAsTemplate = async () => {
           </div>
           <span class="text-xs text-slate-500 font-mono">Diurutkan berdasarkan skor kualitas</span>
         </div>
+        <p data-testid="report-metric-guide" class="border-b border-slate-100 px-5 py-3 text-xs leading-5 text-slate-500">Skor 80+ memenuhi ambang kualitas. ROE = laba terhadap modal; P/E = harga terhadap laba; Debt/Equity = utang terhadap modal; CAGR = rata-rata pertumbuhan tahunan tiga tahun; FCF yield = kas bebas relatif terhadap nilai perusahaan. Bandingkan rasio terutama dalam sektor yang sama.</p>
 
          <div class="overflow-x-auto">
            <table class="w-full text-left text-xs border-collapse">
@@ -363,7 +370,7 @@ const useAsTemplate = async () => {
                 <th class="py-3 px-4 font-bold text-right">ROE</th>
                 <th class="py-3 px-4 font-bold text-right">P/E</th>
                 <th class="py-3 px-4 font-bold text-right">DEBT/EQ</th>
-                <th class="py-3 px-4 font-bold text-right">3Y CAGR</th>
+                <th class="py-3 px-4 font-bold text-right">3Y REVENUE CAGR</th>
                 <th class="py-3 px-4 font-bold text-right">FCF YIELD</th>
                 <th class="py-3 px-4 font-bold">PRIMARY DUPONT DRIVER</th>
                 <th class="py-3 px-4 font-bold text-center">ACTION</th>
@@ -522,6 +529,10 @@ const useAsTemplate = async () => {
                 <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div class="h-full bg-[#407EC9] rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.profitability}%` }"></div>
                 </div>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
+                <div class="flex justify-between text-xs"><span class="text-slate-600 font-medium">Konsistensi laba dan dividen · bobot 10%</span><span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.consistency }}/100</span></div>
+                <div class="h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-slate-500" :style="{ width: `${activeCandidate.scoreBreakdown.consistency}%` }"></div></div>
               </div>
 
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
@@ -717,6 +728,7 @@ const useAsTemplate = async () => {
             </tr>
           </tbody>
         </table>
+        <p class="text-[11px] leading-5 text-slate-500">Cara membaca: skor 80+ memenuhi ambang shortlist. ROE mengukur laba terhadap modal; P/E harga terhadap laba; D/E utang terhadap modal; FCF yield kas bebas relatif terhadap nilai perusahaan. Rasio perlu dibandingkan dalam sektor yang sama.</p>
       </div>
 
       <!-- Candidate Profiles (Clean Print Layout) -->

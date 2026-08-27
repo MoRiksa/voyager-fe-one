@@ -71,9 +71,10 @@ const handleInspect = () => {
         </div>
         <div>
           <span class="text-xs text-slate-500 uppercase font-semibold">FCF Yield</span>
-          <p class="text-xs font-mono font-bold text-emerald-700 tabular-nums">{{ candidate.freeCashFlowYieldPercent }}%</p>
+          <p class="text-xs font-mono font-bold text-slate-900 tabular-nums">{{ candidate.freeCashFlowYieldPercent }}%</p>
         </div>
       </div>
+      <p data-testid="metric-guide" class="mb-4 text-[11px] leading-5 text-slate-500">Skor 80+ masuk shortlist. ROE menunjukkan laba terhadap modal, P/E harga terhadap laba, utang/modal tingkat leverage, dan FCF yield kas bebas relatif terhadap nilai perusahaan. Bandingkan terutama dalam sektor yang sama.</p>
 
       <!-- Explainability: Why Selected? -->
       <div class="mb-4">
