@@ -29,6 +29,7 @@ watch(() => store.report.sessionId, () => {
 <template>
   <div class="page-shell space-y-7">
     <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
+      <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Tahap seleksi tidak selesai' : 'Kandidat sedang diseleksi' }}</h1>
       <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? 'Kembali ke ringkasan sesi untuk melihat status dan hasil yang sempat tersimpan.' : 'Voyager One sedang mengevaluasi ruang lingkup dan kriteria. Hasil tahap seleksi akan muncul setelah riset selesai.' }}</p>

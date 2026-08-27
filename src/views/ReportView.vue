@@ -189,6 +189,7 @@ const useAsTemplate = async () => {
 <template>
   <div class="page-shell space-y-7">
     <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center print:hidden">
+      <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Laporan belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Laporan tidak berhasil diselesaikan' : 'Laporan sedang disusun' }}</h1>
       <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? 'Kembali ke ringkasan sesi untuk meninjau status proses.' : 'Ranking, analisis kandidat, risiko, dan keterbatasan akan tersedia setelah seluruh tahap selesai.' }}</p>
@@ -501,7 +502,7 @@ const useAsTemplate = async () => {
               <div class="flex items-center gap-2">
                 <BarChart3 class="w-4 h-4 text-[#407EC9]" />
                 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                  3-Stage DuPont ROE Decomposition Engine
+                  Dekomposisi ROE DuPont 3 Tahap
                 </h4>
               </div>
               <span class="text-xs font-mono font-bold text-[#407EC9]">
@@ -512,27 +513,27 @@ const useAsTemplate = async () => {
             <!-- Formula Chain Visualizer -->
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">1. Net Margin</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">1. Margin Laba</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.netProfitMargin }}%</p>
-                <span class="text-[10px] text-slate-500">Operating Profitability</span>
+                <span class="text-[10px] text-slate-500">Profitabilitas operasional</span>
               </div>
 
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">2. Asset Turnover</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">2. Perputaran Aset</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.assetTurnover }}x</p>
-                <span class="text-[10px] text-slate-500">Asset Efficiency</span>
+                <span class="text-[10px] text-slate-500">Efisiensi aset</span>
               </div>
 
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">3. Equity Multiplier</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">3. Multiplier Ekuitas</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.equityMultiplier }}x</p>
-                <span class="text-[10px] text-slate-500">Financial Leverage</span>
+                <span class="text-[10px] text-slate-500">Leverage finansial</span>
               </div>
 
               <div class="p-3 rounded-xl bg-[#2F64A8] text-white shadow-sm">
-                <span class="text-[10px] uppercase font-mono text-white/80 font-bold block">= Calculated ROE</span>
+                <span class="text-[10px] uppercase font-mono text-white/80 font-bold block">= ROE Terhitung</span>
                 <p class="text-base font-bold font-mono text-white mt-0.5">{{ activeCandidate.dupontAnalysis.calculatedRoe }}%</p>
-                <span class="text-[10px] text-white/80">Compound Return</span>
+                <span class="text-[10px] text-white/80">Return gabungan</span>
               </div>
             </div>
           </div>
@@ -545,7 +546,7 @@ const useAsTemplate = async () => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
                 <div class="flex justify-between text-xs">
-                  <span class="text-slate-600 font-medium">Profitability & ROIC (25% Weight)</span>
+                  <span class="text-slate-600 font-medium">Profitabilitas & ROIC · bobot 25%</span>
                   <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.profitability }}/100</span>
                 </div>
                 <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">

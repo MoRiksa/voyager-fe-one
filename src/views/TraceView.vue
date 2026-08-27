@@ -74,7 +74,16 @@ const toggleExpand = (id: string) => {
         </span>
       </div>
 
-      <div class="space-y-3">
+      <div v-if="!store.toolCalls.length" class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+          <ChevronDown class="h-6 w-6" />
+        </div>
+        <h2 class="mt-4 text-lg font-bold text-slate-900">Belum ada trace</h2>
+        <p class="mt-2 max-w-sm text-sm text-slate-500">Detail teknis akan muncul di sini setelah proses riset dimulai. Kembali ke sesi untuk memulai atau melanjutkan riset.</p>
+        <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke sesi</router-link>
+      </div>
+
+      <div v-else class="space-y-3">
         <div 
           v-for="call in store.toolCalls"
           :key="call.id"

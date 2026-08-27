@@ -246,7 +246,7 @@ onBeforeUnmount(() => {
           <div class="p-5 rounded-xl bg-emerald-50/40 border border-emerald-200/60">
             <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
               <CheckCircle2 class="w-4 h-4 text-emerald-600" />
-              Key Fundamental Strengths
+              Kekuatan Fundamental Utama
             </h4>
             <ul class="space-y-2">
               <li 
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
           <div class="p-5 rounded-xl bg-amber-50/40 border border-amber-200/60">
             <h4 class="text-xs font-bold uppercase tracking-wider text-amber-800 mb-3 flex items-center gap-1.5">
               <AlertTriangle class="w-4 h-4 text-amber-600" />
-              Potential Concerns & Risk Flags
+              Potensi Risiko dan Perhatian
             </h4>
             <ul class="space-y-2">
               <li 
