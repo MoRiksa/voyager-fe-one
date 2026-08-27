@@ -63,7 +63,7 @@ const submit = async () => {
             rows="5"
             aria-describedby="objective-help objective-error"
             :aria-invalid="Boolean(error)"
-            class="mt-4 w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#407EC9] focus:ring-4 focus:ring-[#407EC9]/10"
+            class="mt-4 w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 focus:border-[#2F64A8]"
             placeholder="Contoh: Temukan lima perusahaan consumer Indonesia dengan pertumbuhan laba konsisten, neraca sehat, dan valuasi di bawah median sektornya."
           ></textarea>
           <p v-if="error" id="objective-error" data-testid="objective-error" role="alert" class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
@@ -114,20 +114,20 @@ const submit = async () => {
         <h2 class="mt-4 text-lg font-bold">Ringkasan riset</h2>
         <dl class="mt-5 space-y-4 text-sm">
           <div>
-            <dt class="text-xs text-slate-400">Dataset yang diperiksa</dt>
+            <dt class="text-xs text-slate-500">Dataset yang diperiksa</dt>
             <dd data-testid="actual-universe" class="mt-1 font-semibold">{{ screeningPreview.universe.count }} perusahaan contoh</dd>
           </div>
           <div>
-            <dt class="text-xs text-slate-400">Batas hasil</dt>
+            <dt class="text-xs text-slate-500">Batas hasil</dt>
             <dd class="mt-1 font-semibold">Maksimal {{ screeningPreview.maximumCandidates }} kandidat</dd>
           </div>
         </dl>
-        <button type="submit" :disabled="store.isExecuting" class="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#407EC9] px-5 text-sm font-bold text-white transition-[background-color,transform] hover:bg-[#2F64A8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" :disabled="store.isExecuting" class="button-primary mt-6 min-h-12 w-full px-5 disabled:cursor-not-allowed disabled:opacity-50">
           <Search class="h-4 w-4" />
           Mulai riset
           <ArrowRight class="h-4 w-4" />
         </button>
-        <p class="mt-3 text-xs leading-5 text-slate-400">Anda dapat meninjau progress dan hasil sementara dari halaman sesi.</p>
+        <p class="mt-3 text-xs leading-5 text-slate-500">Anda dapat meninjau progress dan hasil sementara dari halaman sesi.</p>
       </aside>
     </form>
   </div>

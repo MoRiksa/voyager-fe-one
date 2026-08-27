@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
       <!-- Modal Header -->
       <div class="p-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-[#407EC9] text-white flex items-center justify-center shadow-xs">
+          <div class="w-10 h-10 rounded-xl bg-[#2F64A8] text-white flex items-center justify-center shadow-sm">
             <Calculator class="w-5 h-5" />
           </div>
           <div>
@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
       <div class="p-6 sm:p-8 overflow-y-auto space-y-6 text-sm text-slate-600">
         <!-- 1. Qualifying Test Mandate -->
         <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] mb-1 flex items-center gap-1.5">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] mb-1 flex items-center gap-1.5">
             <ShieldCheck class="w-4 h-4" />
              Metodologi yang dapat ditelusuri
           </h4>
@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
           </p>
 
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 space-y-2">
-            <div class="font-bold text-[#407EC9]">
+            <div class="font-bold text-[#2F64A8]">
               Skor Kualitas = (0.25 × Profitabilitas) + (0.25 × Pertumbuhan) + (0.20 × Solvabilitas) + (0.20 × Valuasi) + (0.10 × Konsistensi)
             </div>
             <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
       <div class="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 flex justify-end">
         <button
            @click="close"
-          class="px-5 py-2 text-xs font-bold text-white bg-[#407EC9] hover:bg-[#2F64A8] rounded-xl transition-colors cursor-pointer"
+          class="button-primary"
         >
            Tutup
         </button>

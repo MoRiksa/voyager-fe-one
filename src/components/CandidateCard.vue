@@ -21,7 +21,7 @@ const handleInspect = () => {
 </script>
 
 <template>
-  <article class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition-[box-shadow,border-color] flex flex-col justify-between group">
+  <article class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
     <!-- Top Header Strip: Rank, Symbol, Score -->
     <div>
       <div class="flex items-start justify-between gap-3 mb-4">
@@ -33,7 +33,7 @@ const handleInspect = () => {
 
           <div>
             <div class="flex items-center gap-2">
-              <h3 class="text-lg font-bold text-slate-900 tracking-tight font-mono group-hover:text-[#407EC9] transition-colors">
+              <h3 class="text-lg font-bold text-slate-900 tracking-tight font-mono">
                 {{ candidate.symbol }}
               </h3>
               <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
@@ -46,7 +46,7 @@ const handleInspect = () => {
 
         <!-- Derived Quality Score Badge -->
         <div class="text-right shrink-0">
-          <div class="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-xl bg-[#407EC9]/10 border border-[#407EC9]/20 text-[#407EC9]">
+          <div class="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-xl bg-[#407EC9]/10 border border-[#407EC9]/20 text-[#2F64A8]">
             <Award class="w-3.5 h-3.5 self-center" />
             <span class="font-mono font-bold text-base tabular-nums">{{ candidate.qualityScore }}</span>
             <span class="text-[10px] font-medium text-slate-500">/100</span>
@@ -107,7 +107,7 @@ const handleInspect = () => {
 
     <!-- Card Action Button -->
     <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-      <span class="text-[11px] font-mono text-slate-400">
+      <span class="text-[11px] font-mono text-slate-500">
         {{ candidate.peerRankInMemory }}
       </span>
 

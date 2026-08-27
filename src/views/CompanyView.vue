@@ -52,7 +52,7 @@ const dupontParts = computed(() => company.value ? [
     </header>
 
     <section class="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Metrik utama">
-      <div v-for="metric in primaryMetrics" :key="metric.term" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><span class="text-xs font-semibold text-slate-700">{{ metric.label }}</span><span class="ml-1 text-[11px] text-slate-400">{{ metric.term }}</span><strong class="mt-1 block font-mono text-xl text-slate-950">{{ metric.value }}</strong><p class="mt-2 text-[11px] leading-5 text-slate-500">{{ metric.help }}</p></div>
+      <div v-for="metric in primaryMetrics" :key="metric.term" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><span class="text-xs font-semibold text-slate-700">{{ metric.label }}</span><span class="ml-1 text-xs text-slate-500">{{ metric.term }}</span><strong class="mt-1 block font-mono text-xl text-slate-950">{{ metric.value }}</strong><p class="mt-2 text-[11px] leading-5 text-slate-500">{{ metric.help }}</p></div>
     </section>
 
     <div class="grid gap-6 lg:grid-cols-[1fr_0.7fr]">

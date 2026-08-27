@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
+import { sessionStatusMeta } from '../utils/status'
 import { 
   ChevronRight
 } from '@lucide/vue'
@@ -46,10 +47,11 @@ const statusBadge = computed(() => {
     case 'VALIDATING': return { text: 'Memeriksa temuan', active: true, failed: false }
     case 'REPORTING': return { text: 'Menyusun laporan', active: true, failed: false }
     case 'COMPLETED': return { text: 'Riset selesai', active: false, failed: false }
-    case 'FAILED': return { text: 'Hasil parsial', active: false, failed: true }
+    case 'FAILED': return { text: 'Gagal', active: false, failed: true }
     default: return { text: 'Sesi disiapkan', active: false, failed: false }
   }
 })
+const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecuting))
 </script>
 
 <template>
@@ -68,12 +70,12 @@ const statusBadge = computed(() => {
     <!-- Right: Subtle Status & Clean Action Button -->
     <div class="flex shrink-0 items-center gap-2">
       <!-- Subtle Minimal Status Pill -->
-      <div role="status" aria-live="polite" class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs">
+      <div role="status" aria-live="polite" class="status-badge" :class="statusMeta.className">
         <span 
-          class="w-2 h-2 rounded-full"
-          :class="statusBadge.failed ? 'bg-rose-500' : statusBadge.active ? 'bg-[#407EC9] animate-pulse' : 'bg-emerald-500'"
+          class="h-2 w-2 rounded-full bg-current"
+          :class="statusBadge.active ? 'animate-pulse' : ''"
         ></span>
-        <span class="hidden min-[390px]:inline text-slate-700 font-medium text-xs">{{ statusBadge.text }}</span>
+        <span class="font-bold"><span class="min-[390px]:hidden">{{ statusMeta.shortLabel }}</span><span class="hidden min-[390px]:inline">{{ statusBadge.text }}</span></span>
       </div>
     </div>
   </header>

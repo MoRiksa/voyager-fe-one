@@ -29,12 +29,12 @@ watch(() => route.params.id, id => {
     <div class="flex-1 flex flex-col min-w-0">
       <AppNavbar />
 
-      <main id="main-content" tabindex="-1" class="flex-1 pb-24 md:pb-12">
+      <main id="main-content" tabindex="-1" class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12">
         <router-view />
       </main>
 
       <!-- Institutional Footer -->
-      <footer class="border-t border-slate-200 bg-white py-6 px-6 lg:px-8 print:hidden mb-16 md:mb-0">
+      <footer class="border-t border-slate-200 bg-white py-6 px-6 lg:px-8 print:hidden">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div class="flex items-center gap-2">
             <span class="font-bold text-slate-800 font-mono">VOYAGER.ONE</span>
@@ -54,7 +54,7 @@ watch(() => route.params.id, id => {
     <MobileNav />
     <CandidateDetailModal />
     <MethodologyModal />
-    <div v-if="store.toast" class="fixed inset-x-4 bottom-20 z-[60] flex justify-center md:bottom-6" :role="store.toast.tone === 'error' ? 'alert' : 'status'" :aria-live="store.toast.tone === 'error' ? 'assertive' : 'polite'">
+    <div v-if="store.toast" class="fixed inset-x-4 z-[60] flex justify-center bottom-[calc(var(--mobile-nav-height)+1rem)] md:bottom-6" :role="store.toast.tone === 'error' ? 'alert' : 'status'" :aria-live="store.toast.tone === 'error' ? 'assertive' : 'polite'">
       <div data-testid="toast" class="flex w-full max-w-md items-start gap-3 rounded-2xl border bg-white p-4 shadow-2xl" :class="store.toast.tone === 'error' ? 'border-rose-200' : store.toast.tone === 'success' ? 'border-emerald-200' : 'border-blue-200'">
         <CheckCircle2 v-if="store.toast.tone === 'success'" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
         <AlertCircle v-else-if="store.toast.tone === 'error'" class="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />

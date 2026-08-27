@@ -187,7 +187,7 @@ const useAsTemplate = async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="page-shell space-y-7">
     <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center print:hidden">
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Laporan belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Laporan tidak berhasil diselesaikan' : 'Laporan sedang disusun' }}</h1>
@@ -199,7 +199,7 @@ const useAsTemplate = async () => {
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm print:hidden">
       <!-- Left: Session Context -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#407EC9]/10 text-[#407EC9] flex items-center justify-center shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-[#407EC9]/10 text-[#2F64A8] flex items-center justify-center shrink-0">
           <FileSpreadsheet class="w-5 h-5" />
         </div>
         <div>
@@ -271,7 +271,7 @@ const useAsTemplate = async () => {
         <!-- Export JSON -->
         <button
           @click="handleExportJson"
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#407EC9] hover:bg-[#2F64A8] rounded-xl transition-colors cursor-pointer shadow-2xs"
+          class="button-compact bg-[#2F64A8] text-white hover:bg-[#244F87]"
         >
           <Download class="w-3.5 h-3.5" />
           <span>JSON</span>
@@ -297,7 +297,7 @@ const useAsTemplate = async () => {
       <div v-if="activeSection === 'summary'" id="report-panel-summary" role="tabpanel" aria-labelledby="report-tab-summary" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
-            <div class="inline-flex items-center gap-1.5 text-xs font-bold font-mono uppercase tracking-wider text-[#407EC9] mb-1.5">
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold font-mono uppercase tracking-wider text-[#2F64A8] mb-1.5">
               <ShieldCheck class="w-4 h-4" />
                Ringkasan riset
             </div>
@@ -318,21 +318,21 @@ const useAsTemplate = async () => {
             <span class="text-slate-300">•</span>
             <div>
               <span class="text-xs text-slate-500 font-mono uppercase block">Sumber</span>
-              <strong class="text-[#407EC9] font-mono">Fixture v1</strong>
+              <strong class="text-[#2F64A8] font-mono">Fixture v1</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
                <span class="text-[10px] text-slate-500 font-mono uppercase block">Status</span>
-               <strong class="text-[#407EC9] font-mono">{{ store.status === 'COMPLETED' ? 'Selesai' : 'Parsial' }}</strong>
+               <strong class="text-[#2F64A8] font-mono">{{ store.status === 'COMPLETED' ? 'Selesai' : 'Parsial' }}</strong>
             </div>
           </div>
         </div>
 
         <!-- Research Objective Highlight -->
         <div class="space-y-2">
-          <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-            Tujuan riset
-          </label>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
+             Tujuan riset
+          </p>
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-sm text-slate-800 font-medium leading-relaxed">
             "{{ store.report.objective }}"
           </div>
@@ -342,7 +342,7 @@ const useAsTemplate = async () => {
         <div v-if="analyticalHighlights.length" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div v-for="(company, index) in analyticalHighlights" :key="company.symbol" class="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
             <div class="flex items-center gap-2 text-slate-800 font-bold text-xs">
-              <span class="w-5 h-5 rounded-md bg-[#407EC9] text-white flex items-center justify-center text-[10px] font-mono">{{ index + 1 }}</span>
+              <span class="flex h-5 w-5 items-center justify-center rounded-md bg-[#2F64A8] text-xs font-mono text-white">{{ index + 1 }}</span>
               <span>{{ company.symbol }} · skor {{ company.qualityScore }}</span>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">{{ company.whySelected }}</p>
@@ -357,7 +357,7 @@ const useAsTemplate = async () => {
             <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
               Perbandingan kandidat
             </h3>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
+            <span class="badge bg-slate-100 text-slate-600">
                {{ store.candidates.length }} kandidat
             </span>
           </div>
@@ -365,22 +365,37 @@ const useAsTemplate = async () => {
         </div>
         <p data-testid="report-metric-guide" class="border-b border-slate-100 px-5 py-3 text-xs leading-5 text-slate-500">Skor 80+ memenuhi ambang kualitas. ROE = laba terhadap modal; P/E = harga terhadap laba; Debt/Equity = utang terhadap modal; CAGR = rata-rata pertumbuhan tahunan tiga tahun; FCF yield = kas bebas relatif terhadap nilai perusahaan. Bandingkan rasio terutama dalam sektor yang sama.</p>
 
-         <div class="overflow-x-auto">
-           <table class="w-full text-left text-xs border-collapse">
+        <div class="grid gap-3 p-4 md:hidden">
+          <article v-for="c in store.candidates" :key="c.symbol" class="rounded-xl border border-slate-200 bg-white p-4" :class="selectedTicker === c.symbol ? 'border-[#2F64A8] bg-[#F4F8FD]' : ''">
+            <div class="flex items-start justify-between gap-3">
+              <div><p class="font-mono text-xs font-bold text-[#2F64A8]">#{{ c.rank }} · {{ c.symbol }}</p><h4 class="mt-1 text-sm font-bold text-slate-950">{{ c.name }}</h4><p class="mt-1 text-xs text-slate-500">{{ c.subsector }}</p></div>
+              <span class="badge bg-[#2F64A8] text-white">{{ c.qualityScore }}/100</span>
+            </div>
+            <dl class="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3 text-xs">
+              <div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold text-slate-900">{{ c.roePercent }}%</dd></div>
+              <div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold text-slate-900">{{ c.peRatio }}x</dd></div>
+              <div><dt class="text-slate-500">Utang/modal</dt><dd class="mt-1 font-mono font-bold text-slate-900">{{ c.debtToEquity }}x</dd></div>
+              <div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold text-slate-900">{{ c.freeCashFlowYieldPercent }}%</dd></div>
+            </dl>
+            <button type="button" class="button-secondary mt-3 w-full" @click="inspectCandidate(c.symbol)">Buka analisis kandidat</button>
+          </article>
+        </div>
+         <div class="hidden overflow-x-auto md:block">
+           <table class="data-table">
              <caption class="sr-only">Perbandingan kandidat riset berdasarkan skor dan metrik utama</caption>
             <thead>
-              <tr class="bg-slate-50 text-slate-500 font-mono text-[11px] border-b border-slate-200">
+              <tr class="bg-slate-50 text-slate-600 font-mono text-xs border-b border-slate-200">
                  <th scope="col" class="py-3 px-4 font-bold">RANK</th>
                  <th scope="col" class="py-3 px-4 font-bold">TICKER & COMPANY</th>
-                <th class="py-3 px-4 font-bold">SECTOR</th>
-                <th class="py-3 px-4 font-bold text-center">QUALITY SCORE</th>
-                <th class="py-3 px-4 font-bold text-right">ROE</th>
-                <th class="py-3 px-4 font-bold text-right">P/E</th>
-                <th class="py-3 px-4 font-bold text-right">DEBT/EQ</th>
-                <th class="py-3 px-4 font-bold text-right">3Y REVENUE CAGR</th>
-                <th class="py-3 px-4 font-bold text-right">FCF YIELD</th>
-                <th class="py-3 px-4 font-bold">PRIMARY DUPONT DRIVER</th>
-                <th class="py-3 px-4 font-bold text-center">ACTION</th>
+                 <th scope="col" class="text-left">SECTOR</th>
+                 <th scope="col" class="text-center">QUALITY SCORE</th>
+                 <th scope="col" class="text-right">ROE</th>
+                 <th scope="col" class="text-right">P/E</th>
+                 <th scope="col" class="text-right">DEBT/EQ</th>
+                 <th scope="col" class="text-right">3Y REVENUE CAGR</th>
+                 <th scope="col" class="text-right">FCF YIELD</th>
+                 <th scope="col">PRIMARY DUPONT DRIVER</th>
+                 <th scope="col" class="text-center">ACTION</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 font-mono">
@@ -397,7 +412,7 @@ const useAsTemplate = async () => {
                 </td>
                 <td class="py-3.5 px-4 text-slate-600 font-sans">{{ c.subsector }}</td>
                 <td class="py-3.5 px-4 text-center">
-                  <span class="inline-block px-2 py-1 rounded-md bg-[#407EC9] text-white font-bold text-xs">
+                   <span class="badge inline-block bg-[#2F64A8] text-white">
                     {{ c.qualityScore }}/100
                   </span>
                 </td>
@@ -405,7 +420,7 @@ const useAsTemplate = async () => {
                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">{{ c.peRatio }}x</td>
                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">{{ c.debtToEquity }}x</td>
                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">+{{ c.revenue3yCagrPercent }}%</td>
-                <td class="py-3.5 px-4 text-right font-bold text-emerald-700 tabular-nums">{{ c.freeCashFlowYieldPercent }}%</td>
+                <td class="py-3.5 px-4 text-right font-bold text-slate-900 tabular-nums">{{ c.freeCashFlowYieldPercent }}%</td>
                 <td class="py-3.5 px-4 font-sans text-slate-600 text-[11px]">
                   <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono">
                     Margin: {{ c.dupontAnalysis.netProfitMargin }}%
@@ -416,7 +431,7 @@ const useAsTemplate = async () => {
                      type="button"
                      @click="inspectCandidate(c.symbol)"
                      :aria-pressed="selectedTicker === c.symbol"
-                     class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#407EC9] hover:bg-[#407EC9] hover:text-white transition-colors cursor-pointer"
+                     class="button-compact text-[#2F64A8] hover:bg-[#2F64A8] hover:text-white"
                   >
                      Pilih
                   </button>
@@ -431,11 +446,11 @@ const useAsTemplate = async () => {
       <div v-if="activeSection === 'candidates' && activeCandidate" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-wider text-[#407EC9] font-mono">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] font-mono">
               Analisis mendalam
             </div>
             <h3 class="text-lg font-bold text-slate-900">
-              Kandidat: <span class="font-mono text-[#407EC9]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
+              Kandidat: <span class="font-mono text-[#2F64A8]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
             </h3>
             <router-link :to="`/research/${store.report.sessionId}/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
           </div>
@@ -449,7 +464,7 @@ const useAsTemplate = async () => {
                :aria-pressed="selectedTicker === c.symbol"
               class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               :class="selectedTicker === c.symbol 
-                ? 'bg-[#407EC9] text-white shadow-xs' 
+                ? 'bg-[#2F64A8] text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
             >
               <span>#{{ c.rank }}</span>
@@ -464,18 +479,18 @@ const useAsTemplate = async () => {
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
               <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Skor kualitas</span>
-              <p class="text-xl font-bold font-mono text-[#407EC9] mt-0.5">{{ activeCandidate.qualityScore }}<span class="text-xs text-slate-400">/100</span></p>
+              <p class="text-xl font-bold font-mono text-[#2F64A8] mt-0.5">{{ activeCandidate.qualityScore }}<span class="text-xs text-slate-500">/100</span></p>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-              <span class="text-[10px] font-mono uppercase text-slate-400 font-semibold">Return on Equity</span>
+              <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Return on Equity</span>
               <p class="text-xl font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.roePercent }}%</p>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-              <span class="text-[10px] font-mono uppercase text-slate-400 font-semibold">Valuation (P/E)</span>
+              <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Valuation (P/E)</span>
               <p class="text-xl font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.peRatio }}x</p>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-              <span class="text-[10px] font-mono uppercase text-slate-400 font-semibold">Free Cash Flow Yield</span>
+              <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Free Cash Flow Yield</span>
               <p class="text-xl font-bold font-mono text-emerald-700 mt-0.5">{{ activeCandidate.freeCashFlowYieldPercent }}%</p>
             </div>
           </div>
@@ -497,24 +512,24 @@ const useAsTemplate = async () => {
             <!-- Formula Chain Visualizer -->
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="text-[10px] uppercase font-mono text-slate-400 font-bold block">1. Net Margin</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">1. Net Margin</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.netProfitMargin }}%</p>
                 <span class="text-[10px] text-slate-500">Operating Profitability</span>
               </div>
 
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="text-[10px] uppercase font-mono text-slate-400 font-bold block">2. Asset Turnover</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">2. Asset Turnover</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.assetTurnover }}x</p>
                 <span class="text-[10px] text-slate-500">Asset Efficiency</span>
               </div>
 
               <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span class="text-[10px] uppercase font-mono text-slate-400 font-bold block">3. Equity Multiplier</span>
+                <span class="block text-xs uppercase font-mono text-slate-500 font-bold">3. Equity Multiplier</span>
                 <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.equityMultiplier }}x</p>
                 <span class="text-[10px] text-slate-500">Financial Leverage</span>
               </div>
 
-              <div class="p-3 rounded-xl bg-[#407EC9] text-white shadow-2xs">
+              <div class="p-3 rounded-xl bg-[#2F64A8] text-white shadow-sm">
                 <span class="text-[10px] uppercase font-mono text-white/80 font-bold block">= Calculated ROE</span>
                 <p class="text-base font-bold font-mono text-white mt-0.5">{{ activeCandidate.dupontAnalysis.calculatedRoe }}%</p>
                 <span class="text-[10px] text-white/80">Compound Return</span>
@@ -626,7 +641,7 @@ const useAsTemplate = async () => {
                 class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-start justify-between gap-2"
               >
                 <div>
-                  <div class="font-bold text-slate-800">{{ citation.metric }}: <span class="text-[#407EC9]">{{ citation.value }}</span></div>
+                  <div class="font-bold text-slate-800">{{ citation.metric }}: <span class="text-[#2F64A8]">{{ citation.value }}</span></div>
                   <div class="text-[10px] text-slate-500 font-sans mt-0.5">{{ citation.context }}</div>
                 </div>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono shrink-0">
@@ -725,7 +740,7 @@ const useAsTemplate = async () => {
           <tbody class="divide-y divide-slate-200 font-mono">
             <tr v-for="c in store.candidates" :key="c.symbol">
               <td class="p-2 border-r border-slate-200 font-bold">#{{ c.rank }}</td>
-              <td class="p-2 border-r border-slate-200 font-bold text-[#407EC9]">{{ c.symbol }}</td>
+              <td class="p-2 border-r border-slate-200 font-bold text-[#2F64A8]">{{ c.symbol }}</td>
               <td class="p-2 border-r border-slate-200 font-sans">{{ c.name }}</td>
               <td class="p-2 border-r border-slate-200 text-center font-bold">{{ c.qualityScore }}/100</td>
               <td class="p-2 border-r border-slate-200 text-right">{{ c.roePercent }}%</td>

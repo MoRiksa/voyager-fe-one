@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
+import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
 import { ArrowRight, Clock3, FileText, Search, Sparkles, Activity, ChevronRight, Trash2 } from '@lucide/vue'
 
@@ -12,7 +13,8 @@ const pendingDeleteId = ref<string | null>(null)
 
 const currentPillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedSteps = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
-const sessionStatus = computed(() => store.isExecuting ? 'Berjalan' : store.status === 'COMPLETED' ? 'Selesai' : store.status === 'FAILED' ? 'Parsial' : 'Disiapkan')
+const sessionStatus = computed(() => sessionStatusMeta(store.status, store.isExecuting).label)
+const savedStatusMeta = (status: Parameters<typeof sessionStatusMeta>[0]) => sessionStatusMeta(status)
 const sessionSummary = computed(() => currentPillar.value?.subtitle || (store.status === 'COMPLETED' ? 'Seluruh tahap selesai. Kandidat dan laporan dapat dibuka kembali kapan saja.' : 'Sesi telah disiapkan dan menunggu proses berikutnya.'))
 
 const startDraft = () => {
@@ -48,7 +50,7 @@ const removeSession = (id: string) => {
               id="dashboard-objective"
               v-model="draftObjective"
               rows="2"
-              class="block w-full resize-none rounded-xl px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#407EC9]"
+              class="block w-full resize-none rounded-xl px-4 py-3 text-sm leading-6 text-slate-900"
               placeholder="Contoh: Temukan perusahaan consumer Indonesia dengan margin stabil dan valuasi yang wajar."
             ></textarea>
             <div class="flex flex-col gap-2 border-t border-slate-100 px-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
@@ -122,7 +124,7 @@ const removeSession = (id: string) => {
           </div>
         </article>
 
-        <article class="rounded-2xl bg-[#407EC9] p-6 text-white shadow-[0_18px_45px_-25px_rgba(64,126,201,0.9)]">
+        <article class="rounded-2xl bg-[#2F64A8] p-6 text-white shadow-[0_18px_45px_-25px_rgba(64,126,201,0.9)]">
           <FileText class="h-5 w-5 text-blue-100" />
           <h3 class="mt-5 text-lg font-bold">{{ store.status === 'COMPLETED' ? 'Laporan tersedia' : 'Hasil sementara' }}</h3>
           <p class="mt-2 text-sm leading-6 text-blue-100">Tinjau ranking, analisis kandidat, risiko, dan keterbatasan riset.</p>
@@ -154,7 +156,7 @@ const removeSession = (id: string) => {
             <h3 class="truncate text-sm font-bold text-slate-900">{{ session.objective }}</h3>
             <p class="mt-1 font-mono text-xs text-slate-500">{{ session.id }} · {{ session.candidates.length }} kandidat</p>
           </router-link>
-          <span class="hidden shrink-0 rounded-md px-2 py-1 text-xs font-bold sm:inline" :class="session.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : session.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'">{{ session.status === 'COMPLETED' ? 'Selesai' : session.status === 'PARTIAL' ? 'Parsial' : 'Berjalan' }}</span>
+          <span class="status-badge hidden shrink-0 sm:inline-flex" :class="savedStatusMeta(session.status).className">{{ savedStatusMeta(session.status).label }}</span>
           <div v-if="pendingDeleteId === session.id" class="flex shrink-0 items-center gap-1">
             <button type="button" data-testid="confirm-delete-session" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="removeSession(session.id)">Hapus</button>
             <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600 hover:bg-slate-100" @click="pendingDeleteId = null">Batal</button>

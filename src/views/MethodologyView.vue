@@ -18,7 +18,7 @@ const store = useResearchStore()
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="page-shell space-y-7">
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
@@ -44,27 +44,27 @@ const store = useResearchStore()
 
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono text-xs">
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div class="text-[#407EC9] font-bold mb-1">PILLAR 1</div>
+          <div class="text-[#2F64A8] font-bold mb-1">PILAR 1</div>
           <div class="font-bold text-slate-900 font-sans">Menyusun rencana</div>
           <div class="text-xs text-slate-500 font-sans mt-1">Mengubah tujuan menjadi ruang lingkup dan langkah riset</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div class="text-[#407EC9] font-bold mb-1">PILLAR 2</div>
+          <div class="text-[#2F64A8] font-bold mb-1">PILAR 2</div>
           <div class="font-bold text-slate-900 font-sans">Menyaring perusahaan</div>
           <div class="text-xs text-slate-500 font-sans mt-1">Ilustrasi skala produksi: mempersempit daftar secara bertahap (914 -> 284 -> 68 -> 18 -> 5)</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div class="text-[#407EC9] font-bold mb-1">PILLAR 3</div>
+          <div class="text-[#2F64A8] font-bold mb-1">PILAR 3</div>
           <div class="font-bold text-slate-900 font-sans">Menganalisis kandidat</div>
           <div class="text-xs text-slate-500 font-sans mt-1">Analisis DuPont, neraca, dan perbandingan perusahaan sejenis</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div class="text-[#407EC9] font-bold mb-1">PILLAR 4</div>
+          <div class="text-[#2F64A8] font-bold mb-1">PILAR 4</div>
           <div class="font-bold text-slate-900 font-sans">Mencatat aktivitas</div>
           <div class="text-xs text-slate-500 font-sans mt-1">Menyimpan status dan riwayat operasi pada sesi</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div class="text-[#407EC9] font-bold mb-1">PILLAR 5</div>
+          <div class="text-[#2F64A8] font-bold mb-1">PILAR 5</div>
           <div class="font-bold text-slate-900 font-sans">Menyusun laporan</div>
           <div class="text-xs text-slate-500 font-sans mt-1">Merangkum skor, bukti, risiko, dan keterbatasan</div>
         </div>
@@ -79,7 +79,7 @@ const store = useResearchStore()
       </p>
 
       <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20 font-mono text-xs text-slate-800 space-y-2">
-        <div class="font-bold text-[#407EC9] text-sm">
+        <div class="font-bold text-[#2F64A8] text-sm">
           Skor Kualitas = (0.25 × P) + (0.25 × G) + (0.20 × S) + (0.20 × V) + (0.10 × C)
         </div>
         <div class="text-[11px] text-slate-600 pt-2 border-t border-[#407EC9]/20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-sans">

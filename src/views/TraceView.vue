@@ -18,7 +18,7 @@ const toggleExpand = (id: string) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="page-shell space-y-7">
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
@@ -45,7 +45,7 @@ const toggleExpand = (id: string) => {
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-500 font-semibold uppercase">Sumber data</span>
-        <div class="text-lg font-mono font-bold text-[#407EC9] mt-2">Fixture v1</div>
+        <div class="text-lg font-mono font-bold text-[#2F64A8] mt-2">Fixture v1</div>
         <span class="text-xs text-slate-500 font-mono">Prototype lokal</span>
       </div>
 
@@ -57,8 +57,8 @@ const toggleExpand = (id: string) => {
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-500 font-semibold uppercase">Operasi gagal</span>
-        <div class="text-2xl font-mono font-bold text-emerald-600 mt-1">{{ errorCount }}</div>
-        <span class="text-xs text-emerald-600 font-medium">Operasi gagal</span>
+        <div class="mt-1 font-mono text-2xl font-bold" :class="errorCount ? 'text-rose-700' : 'text-slate-900'">{{ errorCount }}</div>
+        <span class="text-xs font-medium" :class="errorCount ? 'text-rose-700' : 'text-slate-500'">{{ errorCount ? 'Perlu diperiksa' : 'Tidak ada kegagalan' }}</span>
       </div>
     </div>
 
@@ -96,7 +96,7 @@ const toggleExpand = (id: string) => {
                   <span class="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
                     {{ call.category }}
                   </span>
-                  <span class="text-[11px] font-mono text-slate-400">{{ call.timestamp }}</span>
+                  <span class="text-[11px] font-mono text-slate-500">{{ call.timestamp }}</span>
                 </div>
                  <p class="text-xs text-slate-500 mt-1 font-mono">{{ call.toolName }}</p>
               </div>

@@ -73,18 +73,18 @@ onBeforeUnmount(() => {
   >
     <div ref="dialogRef" data-testid="candidate-dialog" role="dialog" aria-modal="true" aria-labelledby="candidate-dialog-title" tabindex="-1" class="bg-white w-full max-w-4xl h-[94dvh] sm:h-auto sm:max-h-[90dvh] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden outline-none">
       <!-- Modal Header -->
-      <div class="p-6 border-b border-slate-200/80 bg-slate-50/70 flex items-start justify-between gap-4">
-        <div class="flex items-start gap-4">
-          <div class="w-12 h-12 rounded-xl bg-[#407EC9] text-white flex items-center justify-center font-mono font-bold text-lg shadow-sm shrink-0">
+      <div class="relative flex flex-col gap-4 border-b border-slate-200/80 bg-slate-50/70 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div class="flex min-w-0 items-start gap-3 pr-12 sm:gap-4 sm:pr-0">
+          <div class="w-12 h-12 rounded-xl bg-[#2F64A8] text-white flex items-center justify-center font-mono font-bold text-lg shadow-sm shrink-0">
             {{ candidate.symbol.slice(0, 2) }}
           </div>
-          <div>
-            <div class="flex items-center gap-2.5">
+           <div class="min-w-0">
+             <div class="flex flex-wrap items-center gap-2.5">
                <h2 id="candidate-dialog-title" class="text-2xl font-bold font-mono text-slate-900">{{ candidate.symbol }}</h2>
               <span class="px-2.5 py-0.5 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-md">
                 {{ candidate.sector }} • {{ candidate.subsector }}
               </span>
-              <span class="px-2 py-0.5 text-[11px] font-mono font-bold bg-slate-900 text-white rounded">
+              <span class="rounded-md bg-slate-900 px-2 py-1 text-xs font-mono font-bold text-white">
                 Rank #{{ candidate.rank }}
               </span>
             </div>
@@ -92,22 +92,22 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-start justify-between gap-3 sm:justify-end">
           <!-- Quality Score Tag -->
           <div class="text-right">
-            <div class="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-xl bg-[#407EC9] text-white shadow-xs">
+            <div class="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-xl bg-[#2F64A8] text-white shadow-sm">
               <Award class="w-4 h-4 self-center" />
               <span class="font-mono font-bold text-lg tabular-nums">{{ candidate.qualityScore }}</span>
               <span class="text-xs opacity-80">/100</span>
             </div>
             <div class="text-xs text-slate-500 font-medium mt-0.5">Skor kualitas</div>
-            <div class="mt-0.5 max-w-32 text-[10px] leading-4 text-slate-400">{{ candidate.qualityScore >= 90 ? 'Sangat kuat dalam model' : candidate.qualityScore >= 80 ? 'Kuat dalam model' : 'Perlu analisis tambahan' }}</div>
+            <div class="mt-1 max-w-40 text-xs leading-5 text-slate-500">{{ candidate.qualityScore >= 90 ? 'Sangat kuat dalam model' : candidate.qualityScore >= 80 ? 'Kuat dalam model' : 'Perlu analisis tambahan' }}</div>
           </div>
 
            <button
             @click="handleClose"
              aria-label="Tutup analisis perusahaan"
-             class="icon-button"
+             class="icon-button absolute right-3 top-3 sm:static"
           >
             <X class="w-5 h-5" />
           </button>
@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
       <div class="p-6 sm:p-8 overflow-y-auto space-y-6">
         <!-- 1. Executive Thesis Strip -->
         <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] mb-1.5 flex items-center gap-1.5">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] mb-1.5 flex items-center gap-1.5">
             <ShieldCheck class="w-4 h-4" />
              Mengapa perusahaan ini dipilih
           </h4>
@@ -212,12 +212,12 @@ onBeforeUnmount(() => {
             </span>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+          <div class="grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
             <!-- Stage 1: Net Margin -->
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
               <span class="text-xs text-slate-500 font-medium">Margin laba bersih</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.netProfitMargin }}%</p>
-              <span class="text-[11px] text-slate-400">Laba dari setiap Rp100 pendapatan</span>
+              <span class="text-xs text-slate-500">Laba dari setiap Rp100 pendapatan</span>
             </div>
 
             <div class="text-center font-mono font-bold text-slate-400 text-lg hidden md:block">×</div>
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
               <span class="text-xs text-slate-500 font-medium">Efisiensi aset</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.assetTurnover }}x</p>
-              <span class="text-[11px] text-slate-400">Pendapatan dari setiap Rp1 aset</span>
+              <span class="text-xs text-slate-500">Pendapatan dari setiap Rp1 aset</span>
             </div>
 
             <div class="text-center font-mono font-bold text-slate-400 text-lg hidden md:block">×</div>
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
               <span class="text-xs text-slate-500 font-medium">Equity Multiplier</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.equityMultiplier }}x</p>
-              <span class="text-[11px] text-slate-400">Financial Leverage Factor</span>
+              <span class="text-xs text-slate-500">Pengaruh leverage ke pengembalian modal</span>
             </div>
           </div>
         </div>
@@ -299,10 +299,10 @@ onBeforeUnmount(() => {
             >
               <div>
                 <span class="font-mono font-semibold text-slate-800">{{ evidence.metric }}: </span>
-                <span class="font-mono font-bold text-[#407EC9]">{{ evidence.value }}</span>
-                <p class="text-slate-500 text-[11px] mt-0.5">{{ evidence.context }}</p>
+                <span class="font-mono font-bold text-[#2F64A8]">{{ evidence.value }}</span>
+                <p class="mt-1 text-xs text-slate-500">{{ evidence.context }}</p>
               </div>
-              <span class="font-mono text-[10px] text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 shrink-0 self-start sm:self-center">
+              <span class="shrink-0 self-start rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-mono text-slate-600 sm:self-center">
                 {{ evidence.source }}
               </span>
             </div>
@@ -311,14 +311,14 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div class="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <span class="text-xs text-slate-500">
            Posisi terhadap perusahaan sejenis: <strong class="text-slate-800">{{ candidate.peerRankInMemory }}</strong>
         </span>
 
-        <div class="flex items-center gap-2">
-          <button @click="handleClose" class="button-secondary">Tutup</button>
-          <router-link :to="`/research/${store.report.sessionId}/company/${candidate.symbol}`" class="button-primary" @click="handleClose">Analisis lengkap</router-link>
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+          <button @click="handleClose" class="button-secondary w-full">Tutup</button>
+          <router-link :to="`/research/${store.report.sessionId}/company/${candidate.symbol}`" class="button-primary w-full" @click="handleClose">Analisis lengkap</router-link>
         </div>
       </div>
     </div>

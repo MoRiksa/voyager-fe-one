@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
+import { sessionStatusMeta } from '../utils/status'
 import { 
   Compass, 
   Home,
@@ -22,7 +23,7 @@ const store = useResearchStore()
 
 const currentRouteName = computed(() => String(route.name))
 const sessionTitle = computed(() => store.presets.find(preset => preset.id === store.activePresetId)?.title || `${store.currentObjective.slice(0, 42)}${store.currentObjective.length > 42 ? '…' : ''}`)
-const sessionStatus = computed(() => store.isExecuting ? 'Sedang berjalan' : store.status === 'COMPLETED' ? 'Selesai' : store.status === 'FAILED' ? 'Hasil parsial' : 'Disiapkan')
+const sessionStatus = computed(() => sessionStatusMeta(store.status, store.isExecuting).label)
 
 const navItems = computed(() => [
   {
@@ -57,7 +58,7 @@ const sessionNavItems = computed(() => [
     <div class="min-h-0 flex-1 overflow-y-auto">
       <div class="p-6 border-b border-slate-100">
         <router-link to="/" class="flex items-center gap-3 group">
-          <div class="w-10 h-10 rounded-xl bg-[#407EC9] flex items-center justify-center text-white shadow-sm shadow-[#407EC9]/30 transition-transform group-hover:scale-105">
+          <div class="w-10 h-10 rounded-xl bg-[#2F64A8] flex items-center justify-center text-white shadow-sm shadow-[#407EC9]/30 transition-transform group-hover:scale-105">
             <Compass class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
@@ -73,7 +74,7 @@ const sessionNavItems = computed(() => [
       <!-- Navigation Groups -->
       <nav class="p-4 space-y-6">
         <div v-for="section in navItems" :key="section.group">
-          <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+          <div class="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
             {{ section.group }}
           </div>
           <div class="space-y-1">
@@ -83,7 +84,7 @@ const sessionNavItems = computed(() => [
               :to="item.path"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150"
               :class="item.names.includes(currentRouteName)
-                ? 'bg-[#407EC9] text-white shadow-sm shadow-[#407EC9]/25 font-bold' 
+                ? 'bg-[#2F64A8] text-white shadow-sm shadow-[#407EC9]/25 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
             >
               <component :is="item.icon" class="w-4 h-4 shrink-0" />

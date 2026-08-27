@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
+import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
 import { Activity, ArrowRight, CheckCircle2, Clock3, FileText, MessageSquare, Send, Terminal } from '@lucide/vue'
 
@@ -11,6 +12,7 @@ const activePanel = ref<'overview' | 'activity' | 'results'>('overview')
 const followUp = ref('')
 const followUpResponse = ref('')
 const sessionFound = ref(true)
+const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecuting))
 
 watch(() => String(route.params.id), id => {
   sessionFound.value = id === store.report.sessionId || store.sessions.some(session => session.id === id)
@@ -48,7 +50,7 @@ const askFollowUp = () => {
         <div class="max-w-4xl">
           <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
             <span class="text-[#2F64A8]">Sesi {{ store.report.sessionId }}</span>
-             <span class="rounded-md px-2 py-1" :class="store.isExecuting ? 'bg-blue-50 text-blue-700' : store.status === 'FAILED' ? 'bg-amber-50 text-amber-700' : store.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'">{{ store.isExecuting ? 'Sedang berjalan' : store.status === 'FAILED' ? 'Hasil parsial' : store.status === 'COMPLETED' ? 'Selesai' : 'Disiapkan' }}</span>
+             <span class="status-badge" :class="statusMeta.className">{{ statusMeta.label }}</span>
           </div>
           <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Riset khusus Anda' }}</h1>
           <div class="mt-4 max-w-4xl rounded-xl bg-slate-50 p-4"><span class="text-xs font-bold text-slate-500">Tujuan riset</span><p class="mt-1 text-sm leading-6 text-slate-700">{{ store.currentObjective }}</p></div>
@@ -72,7 +74,7 @@ const askFollowUp = () => {
     </div>
 
     <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_21rem]">
-      <main class="space-y-6">
+      <div class="space-y-6">
         <section v-show="activePanel === 'overview' || activePanel === 'results'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="flex items-center justify-between gap-3"><div><p class="section-kicker">Rencana riset</p><h2 class="mt-1 text-xl font-bold text-slate-950">Langkah yang dijalankan</h2></div><span class="font-mono text-xs text-slate-500">{{ completedCount }}/{{ store.pillars.length }} selesai</span></div>
           <ol class="mt-5 grid gap-3 sm:grid-cols-2">
@@ -99,10 +101,10 @@ const askFollowUp = () => {
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div class="flex items-center gap-2"><MessageSquare class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Catatan lanjutan</h2></div>
           <p class="mt-1 text-xs leading-5 text-slate-500">Simpan pertanyaan atau ide untuk riset berikutnya. Catatan tidak menghitung ulang hasil sesi ini.</p>
-          <form class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="askFollowUp"><label for="follow-up" class="sr-only">Pertanyaan lanjutan</label><input id="follow-up" v-model="followUp" class="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 text-sm outline-none focus:border-[#407EC9] focus:ring-4 focus:ring-[#407EC9]/10" placeholder="Contoh: Bandingkan tiga kandidat teratas dari sisi risiko." /><button type="submit" class="button-primary"><Send class="h-4 w-4" /> Kirim</button></form>
+          <form class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="askFollowUp"><label for="follow-up" class="sr-only">Pertanyaan lanjutan</label><input id="follow-up" v-model="followUp" class="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 text-sm focus:border-[#2F64A8]" placeholder="Contoh: Bandingkan tiga kandidat teratas dari sisi risiko." /><button type="submit" class="button-primary"><Send class="h-4 w-4" /> Kirim</button></form>
           <p v-if="followUpResponse" role="status" class="mt-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-900">{{ followUpResponse }}</p>
         </section>
-      </main>
+      </div>
 
       <aside class="hidden space-y-4 lg:block">
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-center gap-2"><Activity class="h-4 w-4 text-[#407EC9]" /><h2 class="text-sm font-bold text-slate-950">Aktivitas sesi</h2></div><div class="mt-5 space-y-5"><div v-for="call in store.toolCalls.slice(-5).reverse()" :key="call.id" class="relative border-l-2 border-slate-200 pl-4"><span class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-[#407EC9]"></span><p class="text-xs font-semibold leading-5 text-slate-800">{{ call.outputSummary }}</p><p class="mt-1 font-mono text-[11px] text-slate-500">{{ call.timestamp }} · {{ call.sourceKind === 'prototype-fixture' ? 'fixture v1' : 'input pengguna' }}</p></div></div><router-link :to="`/research/${store.report.sessionId}/activity`" class="text-link mt-5">Lihat seluruh aktivitas <ArrowRight class="h-4 w-4" /></router-link></section>

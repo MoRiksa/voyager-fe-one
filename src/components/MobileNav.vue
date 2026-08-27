@@ -34,7 +34,7 @@ const moreIsActive = computed(() => ['research-library', 'research-new', 'screen
       v-if="isMoreOpen"
       id="mobile-more-menu"
       aria-label="Menu lainnya"
-      class="fixed inset-x-3 bottom-20 z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl"
+      class="fixed inset-x-3 z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl bottom-[calc(var(--mobile-nav-height)+0.75rem)]"
     >
       <div class="flex items-center justify-between px-2 pb-2">
         <div><h2 class="text-sm font-bold text-slate-900">Menu lainnya</h2><p class="mt-0.5 text-xs text-slate-500">Sesi {{ store.report.sessionId }}</p></div>
@@ -47,16 +47,16 @@ const moreIsActive = computed(() => ['research-library', 'research-new', 'screen
           v-for="item in moreItems"
           :key="item.to"
           :to="item.to"
-          class="flex min-h-16 items-center gap-3 rounded-xl bg-slate-50 px-3 text-sm font-semibold text-slate-700"
+          class="flex min-h-16 items-center gap-3 rounded-xl bg-slate-50 px-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
           @click="isMoreOpen = false"
         >
-          <component :is="item.icon" class="h-4 w-4 text-[#407EC9]" />
+          <component :is="item.icon" class="h-4 w-4 text-[#2F64A8]" />
           {{ item.label }}
         </router-link>
       </nav>
     </section>
 
-    <nav class="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-4 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md" aria-label="Navigasi utama mobile">
+    <nav class="fixed inset-x-0 bottom-0 z-40 grid h-[var(--mobile-nav-height)] grid-cols-4 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md" aria-label="Navigasi utama mobile">
       <router-link
         v-for="item in primaryItems"
         :key="item.to"

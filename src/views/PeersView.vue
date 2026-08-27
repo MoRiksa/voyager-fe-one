@@ -38,7 +38,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="page-shell space-y-7">
     <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Perbandingan belum tersedia' : 'Menunggu kandidat akhir' }}</h1>
@@ -86,7 +86,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
 
       <div v-else class="md:hidden">
         <p class="mb-3 text-xs text-slate-500">Pilih dua dari kandidat hasil screening untuk tampilan mobile.</p>
-        <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in leftOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in rightOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
+        <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in leftOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-500">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in rightOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
         <div class="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200">
           <div v-for="metric in groupColumns" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
         </div>
@@ -96,7 +96,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Perbandingan metrik kandidat terpilih</caption>
           <thead>
-            <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
+            <tr class="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase font-mono font-semibold">
                <th scope="col" class="pb-3 pr-4">Kandidat</th>
               <th v-for="column in groupColumns" :key="column.key" scope="col" class="pb-3 pr-4 text-right">{{ column.label }}</th>
             </tr>
@@ -116,7 +116,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
                   <div>
                     <button 
                       @click="store.openCandidateModal(candidate.symbol)"
-                      class="font-bold text-[#407EC9] hover:underline cursor-pointer text-sm"
+                      class="font-bold text-[#2F64A8] hover:underline cursor-pointer text-sm"
                     >
                       {{ candidate.symbol }}
                     </button>

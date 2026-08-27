@@ -81,6 +81,15 @@ try {
   await send('Runtime.enable')
 
   await navigate('/research/new')
+  const visualTokens = await evaluate(`(() => {
+    const button = document.querySelector('[data-testid="research-form"] button[type="submit"]')
+    button.focus()
+    const style = getComputedStyle(button)
+    return { background: style.backgroundColor, outlineColor: style.outlineColor, outlineWidth: style.outlineWidth }
+  })()`)
+  if (visualTokens.background !== 'rgb(47, 100, 168)' || visualTokens.outlineColor !== 'rgb(47, 100, 168)' || visualTokens.outlineWidth !== '3px') {
+    throw new Error(`Accessible action tokens were not applied: ${JSON.stringify(visualTokens)}`)
+  }
   await evaluate(`(() => {
     const field = document.querySelector('[data-testid="research-objective"]')
     const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set
@@ -187,12 +196,17 @@ try {
   const persistedSymbols = await evaluate(`JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}').candidates.map(company => company.symbol)`)
   if (JSON.stringify(persistedSymbols) !== JSON.stringify(sessionResult.symbols)) throw new Error('Candidate results changed after reload')
 
+  await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 740, deviceScaleFactor: 1, mobile: true })
+  const mobileStatus = await evaluate(`({ text: document.querySelector('[role="status"]')?.textContent.trim(), width: document.querySelector('[role="status"]')?.getBoundingClientRect().width })`)
+  if (!mobileStatus.text || mobileStatus.width < 44) throw new Error(`Mobile status lost its visible label: ${JSON.stringify(mobileStatus)}`)
   await evaluate(`(() => {
     const trigger = Array.from(document.querySelectorAll('[data-testid^="candidate-"]')).find(element => element.offsetParent !== null)
     trigger.focus()
     trigger.click()
   })()`)
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=candidate-dialog]"))'), 'Candidate dialog did not open')
+  const modalBounds = await evaluate(`(() => { const box = document.querySelector('[data-testid="candidate-dialog"]').getBoundingClientRect(); return { left: box.left, right: box.right, viewport: innerWidth } })()`)
+  if (modalBounds.left < 0 || modalBounds.right > modalBounds.viewport) throw new Error(`Candidate dialog overflowed mobile viewport: ${JSON.stringify(modalBounds)}`)
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' })
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' })
   await waitFor(() => evaluate('!document.querySelector("[data-testid=candidate-dialog]")'), 'Candidate dialog did not close with Escape')
@@ -223,6 +237,8 @@ try {
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
   await evaluate(`document.querySelector('#report-tab-ranking').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=report-metric-guide]")?.textContent.includes("ROE = laba terhadap modal")'), 'Report did not explain financial metrics')
+  const mobileRanking = await evaluate(`({ cards: document.querySelectorAll('#report-panel-ranking article').length, desktopTableVisible: getComputedStyle(document.querySelector('#report-panel-ranking table').parentElement).display !== 'none' })`)
+  if (mobileRanking.cards !== sessionResult.symbols.length || mobileRanking.desktopTableVisible) throw new Error(`Report mobile ranking is not responsive: ${JSON.stringify(mobileRanking)}`)
   if (await evaluate('Boolean(document.querySelector("#report-panel-summary"))')) throw new Error('Report rendered more than the selected section')
   await evaluate(`document.querySelector('#report-tab-candidates').click()`)
   if (!await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report omitted consistency score factor')

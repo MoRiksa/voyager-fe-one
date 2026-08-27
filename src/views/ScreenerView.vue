@@ -27,7 +27,7 @@ watch(() => store.report.sessionId, () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="page-shell space-y-7">
     <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Tahap seleksi tidak selesai' : 'Kandidat sedang diseleksi' }}</h1>
@@ -137,7 +137,7 @@ watch(() => store.report.sessionId, () => {
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Kandidat yang lolos seluruh tahap penyaringan</caption>
           <thead>
-            <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
+            <tr class="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase font-mono font-semibold">
                <th scope="col" class="pb-3 pr-4">Peringkat</th>
                <th scope="col" class="pb-3 pr-4">Ticker</th>
                <th scope="col" class="pb-3 pr-4">Sektor</th>
@@ -156,7 +156,7 @@ watch(() => store.report.sessionId, () => {
               class="hover:bg-slate-50/80 transition-colors"
             >
               <td class="py-3.5 pr-4 font-bold text-slate-900">#{{ candidate.rank }}</td>
-               <th scope="row" class="py-3.5 pr-4 font-bold text-[#407EC9]">
+               <th scope="row" class="py-3.5 pr-4 font-bold text-[#2F64A8]">
                  <button
                    :data-testid="`candidate-${candidate.symbol}`"
                    @click="store.openCandidateModal(candidate.symbol)"
@@ -167,11 +167,11 @@ watch(() => store.report.sessionId, () => {
                </th>
               <td class="py-3.5 pr-4 font-sans text-slate-700">{{ candidate.sector }}</td>
               <td class="py-3.5 pr-4 text-right text-slate-800">IDR {{ candidate.marketCapTrillionIdr }}T</td>
-              <td class="py-3.5 pr-4 text-right font-bold text-emerald-700">{{ candidate.roePercent }}%</td>
+              <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ candidate.roePercent }}%</td>
               <td class="py-3.5 pr-4 text-right text-slate-800">{{ candidate.peRatio }}x</td>
               <td class="py-3.5 pr-4 text-right text-slate-800">{{ candidate.debtToEquity }}x</td>
-              <td class="py-3.5 pr-4 text-right text-emerald-700">{{ candidate.freeCashFlowYieldPercent }}%</td>
-              <td class="py-3.5 text-right font-bold text-[#407EC9]">
+              <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ candidate.freeCashFlowYieldPercent }}%</td>
+              <td class="py-3.5 text-right font-bold text-[#2F64A8]">
                 <span class="px-2 py-1 rounded bg-[#407EC9]/10 border border-[#407EC9]/20">
                   {{ candidate.qualityScore }}/100
                 </span>
