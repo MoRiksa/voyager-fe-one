@@ -31,6 +31,14 @@ const viewMode = ref<'interactive' | 'document'>('interactive')
 const selectedTicker = ref<string>(store.candidates[0]?.symbol || 'BBCA')
 const copySuccess = ref(false)
 const copyError = ref('')
+const reportSections = [
+  { id: 'summary', label: 'Ringkasan' },
+  { id: 'ranking', label: 'Ranking' },
+  { id: 'candidates', label: 'Kandidat' },
+  { id: 'risks', label: 'Risiko' }
+]
+
+const goToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const activeCandidate = computed(() => {
   return store.candidates.find(c => c.symbol === selectedTicker.value) || store.candidates[0]
@@ -229,12 +237,21 @@ const handleExportJson = () => {
       <p v-if="copyError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError }}</p>
     </div>
 
+    <nav v-if="viewMode === 'interactive'" class="sticky top-16 z-10 hidden items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur-md sm:flex print:hidden" aria-label="Bagian laporan">
+      <button v-for="section in reportSections" :key="section.id" type="button" class="min-h-10 rounded-lg px-4 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-950" @click="goToSection(section.id)">{{ section.label }}</button>
+    </nav>
+    <label v-if="viewMode === 'interactive'" class="block text-xs font-bold text-slate-700 sm:hidden print:hidden">Lompat ke bagian
+      <select class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm" @change="goToSection(($event.target as HTMLSelectElement).value)">
+        <option v-for="section in reportSections" :key="section.id" :value="section.id">{{ section.label }}</option>
+      </select>
+    </label>
+
     <!-- ========================================================================= -->
     <!-- MODE 1: INTERACTIVE EXECUTIVE DOSSIER (Rich Interactive View)            -->
     <!-- ========================================================================= -->
     <div v-if="viewMode === 'interactive'" class="space-y-8">
       <!-- 1. Executive Summary & Objective Card -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+      <div id="summary" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
             <div class="inline-flex items-center gap-1.5 text-xs font-bold font-mono uppercase tracking-wider text-[#407EC9] mb-1.5">
@@ -296,7 +313,7 @@ const handleExportJson = () => {
               <span>Consumer Pricing Power</span>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-              ICBP & AMRT mendemonstrasikan keunggulan perputaran aset (*Asset Turnover >1.8x*) dan kekuatan jaringan distribusi ritel.
+              ICBP menunjukkan pricing power melalui margin yang defensif, sementara AMRT unggul pada perputaran aset dan jaringan distribusi ritel.
             </p>
           </div>
 
@@ -306,14 +323,14 @@ const handleExportJson = () => {
               <span>Cash Flow & Dividend Yield</span>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-              UNTR memberikan arus kas bebas tertinggi (*FCF Yield 14.8%*) dengan neraca kas bersih (*Net Cash*) untuk meredam fluktuasi siklus bisnis.
+              UNTR memberikan arus kas bebas tertinggi (FCF yield 12.8%) dengan neraca kas bersih untuk meredam fluktuasi siklus bisnis.
             </p>
           </div>
         </div>
       </div>
 
       <!-- 2. Master Comparison Matrix Table (Institutional Bloomberg Style) -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+      <div id="ranking" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
@@ -389,7 +406,7 @@ const handleExportJson = () => {
       </div>
 
       <!-- 3. Interactive Deep-Dive Dossier Tab Section -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+      <div id="candidates" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-[#407EC9] font-mono">
@@ -398,6 +415,7 @@ const handleExportJson = () => {
             <h3 class="text-lg font-bold text-slate-900">
               Candidate Dossier: <span class="font-mono text-[#407EC9]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
             </h3>
+            <router-link :to="`/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
           </div>
 
           <!-- Horizontal Candidate Ticker Tabs -->
@@ -605,7 +623,7 @@ const handleExportJson = () => {
       </div>
 
       <!-- 5. Limitations & Regulatory Disclaimer -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
+      <div id="risks" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
           Limitations, Uncertainty & Regulatory Notice
         </h3>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   Coins, 
@@ -10,6 +10,10 @@ import {
 
 const store = useResearchStore()
 const expandedLogId = ref<string | null>('tool-01')
+const totalCredits = computed(() => store.toolCalls.reduce((sum, call) => sum + call.creditCost, 0))
+const averageLatency = computed(() => Math.round(store.toolCalls.reduce((sum, call) => sum + call.durationMs, 0) / Math.max(store.toolCalls.length, 1)))
+const successRate = computed(() => Math.round((store.toolCalls.filter(call => call.status !== 'ERROR').length / Math.max(store.toolCalls.length, 1)) * 100))
+const errorCount = computed(() => store.toolCalls.filter(call => call.status === 'ERROR').length)
 
 const toggleExpand = (id: string) => {
   expandedLogId.value = expandedLogId.value === id ? null : id
@@ -21,16 +25,16 @@ const toggleExpand = (id: string) => {
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
-         <span class="section-kicker">Aktivitas dan audit</span>
+         <span class="section-kicker">Audit teknis</span>
         <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
            Detail teknis tersedia
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-         Riwayat aktivitas riset
+         Payload dan metadata operasi
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Lihat langkah yang telah dijalankan. Buka detail teknis hanya ketika Anda memerlukan input, durasi, dan payload suatu operasi.
+         Periksa nama operasi, durasi, kredit, input, dan ringkasan hasil untuk kebutuhan audit atau debugging.
       </p>
     </div>
 
@@ -39,25 +43,25 @@ const toggleExpand = (id: string) => {
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-400 font-semibold uppercase">Total Tool Invocations</span>
         <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ store.toolCalls.length }}</div>
-        <span class="text-[11px] text-emerald-600 font-medium">100% Success Rate</span>
+        <span class="text-xs text-emerald-600 font-medium">{{ successRate }}% berhasil</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-400 font-semibold uppercase">Total Credits Spent</span>
-        <div class="text-2xl font-mono font-bold text-[#407EC9] mt-1">160</div>
+        <div class="text-2xl font-mono font-bold text-[#407EC9] mt-1">{{ totalCredits }}</div>
         <span class="text-[11px] text-slate-500 font-mono">Sectors API Credits</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-400 font-semibold uppercase">Avg Tool Latency</span>
-        <div class="text-2xl font-mono font-bold text-slate-900 mt-1">285ms</div>
+        <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ averageLatency }}ms</div>
         <span class="text-[11px] text-slate-500 font-medium">Fast Execution</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-400 font-semibold uppercase">Data Anomaly Flags</span>
-        <div class="text-2xl font-mono font-bold text-emerald-600 mt-1">0</div>
-        <span class="text-[11px] text-emerald-600 font-medium">Validated Clean</span>
+        <div class="text-2xl font-mono font-bold text-emerald-600 mt-1">{{ errorCount }}</div>
+        <span class="text-xs text-emerald-600 font-medium">Operasi gagal</span>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   ArrowRight
@@ -8,6 +8,17 @@ import {
 const store = useResearchStore()
 const leftTicker = ref(store.candidates[0]?.symbol || '')
 const rightTicker = ref(store.candidates[1]?.symbol || '')
+const selectedTickers = ref(store.candidates.slice(0, 3).map(candidate => candidate.symbol))
+const metricGroup = ref<'quality' | 'valuation' | 'growth'>('quality')
+const selectedCandidates = computed(() => store.candidates.filter(candidate => selectedTickers.value.includes(candidate.symbol)))
+const toggleCandidate = (symbol: string) => {
+  selectedTickers.value = selectedTickers.value.includes(symbol) ? selectedTickers.value.filter(item => item !== symbol) : selectedTickers.value.length < 5 ? [...selectedTickers.value, symbol] : selectedTickers.value
+}
+const groupColumns = computed(() => metricGroup.value === 'valuation'
+  ? [{ key: 'peRatio', label: 'P/E', suffix: 'x' }, { key: 'pbvRatio', label: 'P/BV', suffix: 'x' }, { key: 'evToEbitda', label: 'EV/EBITDA', suffix: 'x' }, { key: 'freeCashFlowYieldPercent', label: 'FCF yield', suffix: '%' }]
+  : metricGroup.value === 'growth'
+    ? [{ key: 'revenue3yCagrPercent', label: 'Revenue CAGR', suffix: '%' }, { key: 'netIncome3yCagrPercent', label: 'Net income CAGR', suffix: '%' }, { key: 'roePercent', label: 'ROE', suffix: '%' }, { key: 'roaPercent', label: 'ROA', suffix: '%' }]
+    : [{ key: 'qualityScore', label: 'Skor kualitas', suffix: '' }, { key: 'roePercent', label: 'ROE', suffix: '%' }, { key: 'debtToEquity', label: 'Debt/Equity', suffix: 'x' }, { key: 'freeCashFlowYieldPercent', label: 'FCF yield', suffix: '%' }])
 </script>
 
 <template>
@@ -30,6 +41,10 @@ const rightTicker = ref(store.candidates[1]?.symbol || '')
 
     <!-- Comparative Table -->
     <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm overflow-hidden">
+      <div class="mb-6 grid gap-5 border-b border-slate-100 pb-5 lg:grid-cols-[1fr_auto]">
+        <fieldset><legend class="text-sm font-bold text-slate-900">Pilih kandidat</legend><div class="mt-3 flex flex-wrap gap-2"><label v-for="candidate in store.candidates" :key="candidate.symbol" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-xs font-bold" :class="selectedTickers.includes(candidate.symbol) ? 'border-[#407EC9] bg-[#407EC9]/5 text-[#2F64A8]' : 'border-slate-200 text-slate-600'"><input type="checkbox" class="sr-only" :checked="selectedTickers.includes(candidate.symbol)" @change="toggleCandidate(candidate.symbol)" />{{ candidate.symbol }}</label></div><p class="mt-2 text-xs text-slate-500">Pilih 2 sampai 5 perusahaan.</p></fieldset>
+        <label class="text-xs font-bold text-slate-700">Kelompok metrik<select v-model="metricGroup" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm lg:w-48"><option value="quality">Kualitas</option><option value="valuation">Valuasi</option><option value="growth">Pertumbuhan</option></select></label>
+      </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
         <div>
            <h3 class="text-lg font-bold text-slate-900">Metrik utama kandidat</h3>
@@ -43,7 +58,7 @@ const rightTicker = ref(store.candidates[1]?.symbol || '')
       <div class="md:hidden">
         <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
         <div class="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200">
-          <div v-for="metric in [{ label: 'Skor kualitas', key: 'qualityScore', suffix: '' }, { label: 'ROE', key: 'roePercent', suffix: '%' }, { label: 'P/E', key: 'peRatio', suffix: 'x' }, { label: '3Y revenue CAGR', key: 'revenue3yCagrPercent', suffix: '%' }, { label: 'FCF yield', key: 'freeCashFlowYieldPercent', suffix: '%' }]" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
+          <div v-for="metric in groupColumns" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
         </div>
       </div>
 
@@ -53,20 +68,12 @@ const rightTicker = ref(store.candidates[1]?.symbol || '')
           <thead>
             <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
                <th scope="col" class="pb-3 pr-4">Candidate</th>
-              <th class="pb-3 pr-4 text-center">Quality Score</th>
-              <th class="pb-3 pr-4 text-right">ROE (%)</th>
-              <th class="pb-3 pr-4 text-right">ROA (%)</th>
-              <th class="pb-3 pr-4 text-right">P/E Ratio</th>
-              <th class="pb-3 pr-4 text-right">P/BV Ratio</th>
-              <th class="pb-3 pr-4 text-right">EV/EBITDA</th>
-              <th class="pb-3 pr-4 text-right">Debt/Equity</th>
-              <th class="pb-3 pr-4 text-right">3Y Rev CAGR</th>
-              <th class="pb-3 text-right">FCF Yield</th>
+              <th v-for="column in groupColumns" :key="column.key" scope="col" class="pb-3 pr-4 text-right">{{ column.label }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-mono">
             <tr 
-              v-for="candidate in store.candidates"
+              v-for="candidate in selectedCandidates"
               :key="candidate.symbol"
               class="hover:bg-slate-50/80 transition-colors"
             >
@@ -87,52 +94,7 @@ const rightTicker = ref(store.candidates[1]?.symbol || '')
                 </div>
               </td>
 
-              <!-- Quality Score with indicator -->
-              <td class="py-4 pr-4 text-center">
-                <span class="px-2.5 py-1 rounded-md bg-[#407EC9]/10 text-[#407EC9] font-bold border border-[#407EC9]/20">
-                  {{ candidate.qualityScore }}
-                </span>
-              </td>
-
-              <!-- ROE -->
-              <td class="py-4 pr-4 text-right font-bold text-emerald-700">
-                {{ candidate.roePercent }}%
-              </td>
-
-              <!-- ROA -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                {{ candidate.roaPercent }}%
-              </td>
-
-              <!-- PE -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                {{ candidate.peRatio }}x
-              </td>
-
-              <!-- PBV -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                {{ candidate.pbvRatio }}x
-              </td>
-
-              <!-- EV/EBITDA -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                {{ candidate.evToEbitda }}x
-              </td>
-
-              <!-- Debt to Equity -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                {{ candidate.debtToEquity }}x
-              </td>
-
-              <!-- 3Y Rev CAGR -->
-              <td class="py-4 pr-4 text-right text-slate-800">
-                +{{ candidate.revenue3yCagrPercent }}%
-              </td>
-
-              <!-- FCF Yield -->
-              <td class="py-4 text-right font-bold text-emerald-700">
-                {{ candidate.freeCashFlowYieldPercent }}%
-              </td>
+              <td v-for="column in groupColumns" :key="column.key" class="py-4 pr-4 text-right font-mono font-bold text-slate-800">{{ candidate[column.key as keyof typeof candidate] }}{{ column.suffix }}</td>
             </tr>
           </tbody>
         </table>

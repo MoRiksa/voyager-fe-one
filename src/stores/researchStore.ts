@@ -8,11 +8,14 @@ import type {
   CandidateCompany, 
   ResearchReport,
   ScreeningFunnelStep,
-  ResearchObjectivePreset
+  ResearchObjectivePreset,
+  ResearchSession
 } from '../types'
 import { OBJECTIVE_PRESETS, ALL_COMPANIES_DATABASE } from '../data/sectorsUniverse'
 
 export const useResearchStore = defineStore('research', () => {
+  const STORAGE_KEY = 'voyager-one-research-sessions-v1'
+  const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
   // --- Core State ---
   const currentObjective = ref<string>(OBJECTIVE_PRESETS[2].objective)
   const activePresetId = ref<string>('obj-broad-fundamental')
@@ -26,6 +29,7 @@ export const useResearchStore = defineStore('research', () => {
   const selectedSymbol = ref<string>('BBCA')
   const isDetailModalOpen = ref<boolean>(false)
   const isMethodologyModalOpen = ref<boolean>(false)
+  const sessions = ref<ResearchSession[]>([])
 
   // 5 Pillars State
   const pillars = ref<PillarStep[]>([
@@ -289,8 +293,10 @@ export const useResearchStore = defineStore('research', () => {
 
   // Selected company object
   const selectedCompany = computed<CandidateCompany>(() => {
-    return ALL_COMPANIES_DATABASE.find(c => c.symbol === selectedSymbol.value) || candidates.value[0]
+    return candidates.value.find(c => c.symbol === selectedSymbol.value) || ALL_COMPANIES_DATABASE.find(c => c.symbol === selectedSymbol.value) || candidates.value[0]
   })
+
+  const recentSessions = computed(() => [...sessions.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
 
   // Final Report
   const report = ref<ResearchReport>({
@@ -344,11 +350,103 @@ export const useResearchStore = defineStore('research', () => {
     isMethodologyModalOpen.value = false
   }
 
+  const persistSessions = () => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, sessions: sessions.value.slice(0, 5) }))
+    } catch {
+      // Storage may be unavailable or full; the in-memory session remains usable.
+    }
+  }
+
+  const snapshotSession = (sessionStatus: ResearchSession['status'] = status.value): ResearchSession => {
+    const now = new Date().toISOString()
+    const existing = sessions.value.find(session => session.id === report.value.sessionId)
+    return clone({
+      id: report.value.sessionId,
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+      objective: currentObjective.value,
+      presetId: activePresetId.value,
+      status: sessionStatus,
+      plan: activePlan.value,
+      pillars: pillars.value,
+      toolCalls: toolCalls.value,
+      screeningFunnel: screeningFunnel.value,
+      candidates: candidates.value,
+      report: report.value,
+      creditsSpent: totalCredits.value - creditsRemaining.value
+    })
+  }
+
+  const saveCurrentSession = (sessionStatus: ResearchSession['status'] = status.value) => {
+    const snapshot = snapshotSession(sessionStatus)
+    sessions.value = [snapshot, ...sessions.value.filter(session => session.id !== snapshot.id)].slice(0, 5)
+    persistSessions()
+  }
+
+  const hydrateSessions = () => {
+    if (typeof window === 'undefined') return
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as { version?: number; sessions?: ResearchSession[] } | null
+      if (parsed?.version === 1 && Array.isArray(parsed.sessions)) {
+        sessions.value = parsed.sessions.map(session => session.status === 'COMPLETED' || session.status === 'FAILED' ? session : { ...session, status: 'PARTIAL' })
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+    if (!sessions.value.length) saveCurrentSession('COMPLETED')
+    else loadSession(recentSessions.value[0].id)
+  }
+
+  const loadSession = (id: string) => {
+    const session = sessions.value.find(item => item.id === id)
+    if (!session) return false
+    currentObjective.value = session.objective
+    activePresetId.value = session.presetId
+    status.value = session.status === 'PARTIAL' ? 'FAILED' : session.status
+    activePlan.value = clone(session.plan)
+    pillars.value = clone(session.pillars)
+    toolCalls.value = clone(session.toolCalls)
+    screeningFunnel.value = clone(session.screeningFunnel)
+    candidates.value = clone(session.candidates)
+    report.value = clone(session.report)
+    isExecuting.value = false
+    return true
+  }
+
+  const createSession = () => {
+    const id = `RES-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`
+    report.value.sessionId = id
+    report.value.objective = currentObjective.value
+    report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
+    saveCurrentSession('IDLE')
+    return id
+  }
+
+  const addFollowUp = (question: string) => {
+    const now = new Date()
+    toolCalls.value.push({
+      id: `follow-up-${now.getTime()}`,
+      timestamp: now.toLocaleTimeString('id-ID', { hour12: false, fractionalSecondDigits: 3 }),
+      pillar: 'report',
+      toolName: 'session_follow_up',
+      category: 'Research Engine',
+      input: { question },
+      outputSummary: `Follow-up dicatat: ${question}`,
+      durationMs: 0,
+      status: 'SUCCESS',
+      creditCost: 0
+    })
+    saveCurrentSession(status.value)
+  }
+
   // Autonomous Execution Simulation (Live Agent Loop)
   const runAutonomousResearch = async () => {
     if (isExecuting.value) return
     isExecuting.value = true
     status.value = 'UNDERSTANDING'
+    saveCurrentSession('UNDERSTANDING')
 
     // Reset pillars to pending
     pillars.value.forEach(p => {
@@ -365,6 +463,7 @@ export const useResearchStore = defineStore('research', () => {
       await sleep(executionSpeedMs.value)
       pillars.value[0].status = 'completed'
       creditsRemaining.value -= 10
+      saveCurrentSession('PLANNING')
 
       // Step 2: Discovering & Screening
       status.value = 'DISCOVERING'
@@ -374,6 +473,7 @@ export const useResearchStore = defineStore('research', () => {
       await sleep(executionSpeedMs.value * 0.8)
       pillars.value[1].status = 'completed'
       creditsRemaining.value -= 40
+      saveCurrentSession('SCREENING')
 
       // Step 3: Deep Researching Candidates
       status.value = 'RESEARCHING'
@@ -383,12 +483,14 @@ export const useResearchStore = defineStore('research', () => {
       await sleep(executionSpeedMs.value * 0.7)
       pillars.value[2].status = 'completed'
       creditsRemaining.value -= 75
+      saveCurrentSession('RESEARCHING')
 
       // Step 4: State & Validation
       status.value = 'VALIDATING'
       pillars.value[3].status = 'active'
       await sleep(executionSpeedMs.value * 0.6)
       pillars.value[3].status = 'completed'
+      saveCurrentSession('VALIDATING')
 
       // Step 5: Final Reporting
       status.value = 'REPORTING'
@@ -423,8 +525,10 @@ export const useResearchStore = defineStore('research', () => {
       report.value.topCandidates = candidates.value
 
       status.value = 'COMPLETED'
+      saveCurrentSession('COMPLETED')
     } catch (err) {
       status.value = 'FAILED'
+      saveCurrentSession('FAILED')
     } finally {
       isExecuting.value = false
     }
@@ -449,7 +553,10 @@ export const useResearchStore = defineStore('research', () => {
     screeningFunnel,
     candidates,
     report,
+    sessions,
+    recentSessions,
     presets: OBJECTIVE_PRESETS,
+    companyUniverse: ALL_COMPANIES_DATABASE,
     
     // Actions
     setObjective,
@@ -458,6 +565,11 @@ export const useResearchStore = defineStore('research', () => {
     closeCandidateModal,
     openMethodology,
     closeMethodology,
+    hydrateSessions,
+    loadSession,
+    createSession,
+    addFollowUp,
+    saveCurrentSession,
     runAutonomousResearch
   }
 })

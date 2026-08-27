@@ -23,6 +23,12 @@ const router = createRouter({
       meta: { title: 'Sesi Riset' }
     },
     {
+      path: '/company/:symbol',
+      name: 'company-detail',
+      component: () => import('../views/CompanyView.vue'),
+      meta: { title: 'Analisis Perusahaan' }
+    },
+    {
       path: '/screener',
       name: 'screener',
       component: () => import('../views/ScreenerView.vue'),
@@ -33,6 +39,12 @@ const router = createRouter({
       name: 'peers',
       component: () => import('../views/PeersView.vue'),
       meta: { title: 'Peer Comparison Matrix' }
+    },
+    {
+      path: '/activity',
+      name: 'activity',
+      component: () => import('../views/ActivityView.vue'),
+      meta: { title: 'Aktivitas Riset' }
     },
     {
       path: '/trace',
@@ -63,6 +75,7 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition
     }
+    if (_to.hash) return { el: _to.hash, top: 88, behavior: 'smooth' }
     return { top: 0 }
   }
 })

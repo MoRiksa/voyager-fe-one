@@ -137,3 +137,19 @@ export interface ResearchReport {
   uncertaintyNotes: string
   disclaimer: string
 }
+
+export interface ResearchSession {
+  id: string
+  createdAt: string
+  updatedAt: string
+  objective: string
+  presetId: string
+  status: AgentStatus | 'PARTIAL'
+  plan: ResearchPlan
+  pillars: PillarStep[]
+  toolCalls: ToolCallLog[]
+  screeningFunnel: ScreeningFunnelStep[]
+  candidates: CandidateCompany[]
+  report: ResearchReport
+  creditsSpent: number
+}

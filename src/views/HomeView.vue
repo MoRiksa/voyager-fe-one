@@ -136,5 +136,10 @@ const startDraft = () => {
         <CandidateCard v-for="candidate in store.candidates.slice(0, 3)" :key="candidate.symbol" :candidate="candidate" />
       </div>
     </section>
+
+    <section v-if="store.recentSessions.length" aria-labelledby="recent-sessions-title">
+      <div class="mb-4"><p class="section-kicker">Riwayat lokal</p><h2 id="recent-sessions-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Riset terbaru</h2><p class="mt-1 text-xs text-slate-500">Tersimpan pada browser ini, maksimal lima sesi.</p></div>
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><router-link v-for="session in store.recentSessions" :key="session.id" :to="`/research/${session.id}`" class="flex min-h-20 items-center justify-between gap-4 border-b border-slate-100 px-5 py-4 last:border-0 hover:bg-slate-50"><div class="min-w-0"><h3 class="truncate text-sm font-bold text-slate-900">{{ session.objective }}</h3><p class="mt-1 font-mono text-xs text-slate-500">{{ session.id }} · {{ session.candidates.length }} kandidat</p></div><span class="shrink-0 rounded-md px-2 py-1 text-xs font-bold" :class="session.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : session.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'">{{ session.status === 'COMPLETED' ? 'Selesai' : session.status === 'PARTIAL' ? 'Parsial' : 'Berjalan' }}</span></router-link></div>
+    </section>
   </div>
 </template>

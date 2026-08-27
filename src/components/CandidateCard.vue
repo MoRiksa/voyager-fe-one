@@ -110,13 +110,12 @@ const handleInspect = () => {
         {{ candidate.peerRankInMemory }}
       </span>
 
-      <button
-        @click="handleInspect"
-        class="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold text-[#2F64A8] hover:text-[#244F87] py-2 px-2 rounded-lg hover:bg-[#407EC9]/5 transition-[background-color,color,transform] active:scale-[0.97] cursor-pointer"
-      >
-        <span>Lihat analisis</span>
-        <ChevronRight class="w-3.5 h-3.5" />
-      </button>
+      <div class="flex items-center gap-1">
+        <button @click="handleInspect" class="inline-flex min-h-11 items-center px-2 text-xs font-semibold text-slate-600 hover:text-slate-950">Ringkasan</button>
+        <router-link :to="`/company/${candidate.symbol}`" class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold text-[#2F64A8] hover:bg-[#407EC9]/5">
+          Analisis lengkap <ChevronRight class="w-3.5 h-3.5" />
+        </router-link>
+      </div>
     </div>
   </article>
 </template>

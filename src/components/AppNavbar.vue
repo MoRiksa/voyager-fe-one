@@ -14,11 +14,13 @@ const pageTitle = computed(() => {
   switch (route.name) {
     case 'screener': return 'Proses Penyaringan'
     case 'peers': return 'Perbandingan Kandidat'
-    case 'trace': return 'Riwayat Aktivitas'
+    case 'trace': return 'Audit Teknis'
+    case 'activity': return 'Aktivitas Riset'
     case 'methodology': return 'Metodologi Penilaian'
     case 'report': return 'Laporan Riset'
     case 'research-new': return 'Riset Baru'
     case 'research-session': return 'Sesi Riset'
+    case 'company-detail': return 'Analisis Perusahaan'
     case 'not-found': return 'Halaman Tidak Ditemukan'
     default: return 'Workspace Riset'
   }

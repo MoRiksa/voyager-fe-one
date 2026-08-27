@@ -16,10 +16,11 @@ const moreItems = [
   { label: 'Proses penyaringan', to: '/screener', icon: Filter },
   { label: 'Perbandingan kandidat', to: '/peers', icon: GitCompare },
   { label: 'Metodologi', to: '/methodology', icon: BookOpen },
-  { label: 'Riwayat aktivitas', to: '/trace', icon: Terminal }
+  { label: 'Riwayat aktivitas', to: '/activity', icon: Terminal },
+  { label: 'Audit teknis', to: '/trace', icon: Terminal }
 ]
 
-const moreIsActive = computed(() => ['screener', 'peers', 'methodology', 'trace'].includes(String(route.name)))
+const moreIsActive = computed(() => ['screener', 'peers', 'methodology', 'activity', 'trace'].includes(String(route.name)))
 </script>
 
 <template>

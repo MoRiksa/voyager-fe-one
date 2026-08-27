@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import CandidateCard from '../components/CandidateCard.vue'
 import { Activity, ArrowRight, CheckCircle2, Clock3, FileText, MessageSquare, Send, Terminal } from 'lucide-vue-next'
 
 const store = useResearchStore()
+const route = useRoute()
 const activePanel = ref<'overview' | 'activity' | 'results'>('overview')
 const followUp = ref('')
 const followUpResponse = ref('')
+const sessionFound = ref(true)
+
+watch(() => String(route.params.id), id => {
+  sessionFound.value = store.loadSession(id) || id === store.report.sessionId
+}, { immediate: true })
 
 const activePillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedCount = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
@@ -15,22 +22,28 @@ const progress = computed(() => Math.round((completedCount.value / store.pillars
 
 const askFollowUp = () => {
   if (!followUp.value.trim()) return
+  store.addFollowUp(followUp.value.trim())
   followUpResponse.value = 'Pertanyaan lanjutan telah dicatat pada sesi ini. Dalam prototype ini, hasil tetap menggunakan kandidat yang tersedia.'
   followUp.value = ''
 }
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+  <div v-if="!sessionFound" class="mx-auto flex min-h-[65dvh] max-w-xl flex-col items-center justify-center px-6 text-center">
+    <h1 class="text-2xl font-bold text-slate-950">Sesi riset tidak ditemukan</h1>
+    <p class="mt-3 text-sm leading-6 text-slate-600">Sesi ini tidak tersedia di perangkat ini atau telah melewati batas riwayat lokal.</p>
+    <router-link to="/" class="button-primary mt-6">Kembali ke beranda</router-link>
+  </div>
+  <div v-else class="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
     <header class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div class="max-w-4xl">
           <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
             <span class="text-[#2F64A8]">Sesi {{ store.report.sessionId }}</span>
-            <span class="rounded-md bg-emerald-50 px-2 py-1 text-emerald-700">{{ store.isExecuting ? 'Sedang berjalan' : 'Selesai' }}</span>
+            <span class="rounded-md px-2 py-1" :class="store.isExecuting ? 'bg-blue-50 text-blue-700' : store.status === 'FAILED' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'">{{ store.isExecuting ? 'Sedang berjalan' : store.status === 'FAILED' ? 'Hasil parsial' : 'Selesai' }}</span>
           </div>
           <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.currentObjective }}</h1>
-          <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.' }}</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || (store.status === 'FAILED' ? 'Eksekusi sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.' : 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.') }}</p>
         </div>
         <router-link v-if="!store.isExecuting" to="/report" class="button-primary shrink-0">Buka laporan <ArrowRight class="h-4 w-4" /></router-link>
       </div>
@@ -76,7 +89,7 @@ const askFollowUp = () => {
       </main>
 
       <aside class="hidden space-y-4 lg:block">
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-center gap-2"><Activity class="h-4 w-4 text-[#407EC9]" /><h2 class="text-sm font-bold text-slate-950">Aktivitas sesi</h2></div><div class="mt-5 space-y-5"><div v-for="call in store.toolCalls.slice(-5).reverse()" :key="call.id" class="relative border-l-2 border-slate-200 pl-4"><span class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-[#407EC9]"></span><p class="text-xs font-semibold leading-5 text-slate-800">{{ call.outputSummary }}</p><p class="mt-1 font-mono text-[11px] text-slate-500">{{ call.timestamp }} · {{ call.durationMs }} ms</p></div></div><router-link to="/trace" class="text-link mt-5">Lihat seluruh aktivitas <ArrowRight class="h-4 w-4" /></router-link></section>
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-center gap-2"><Activity class="h-4 w-4 text-[#407EC9]" /><h2 class="text-sm font-bold text-slate-950">Aktivitas sesi</h2></div><div class="mt-5 space-y-5"><div v-for="call in store.toolCalls.slice(-5).reverse()" :key="call.id" class="relative border-l-2 border-slate-200 pl-4"><span class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-[#407EC9]"></span><p class="text-xs font-semibold leading-5 text-slate-800">{{ call.outputSummary }}</p><p class="mt-1 font-mono text-[11px] text-slate-500">{{ call.timestamp }} · {{ call.durationMs }} ms</p></div></div><router-link to="/activity" class="text-link mt-5">Lihat seluruh aktivitas <ArrowRight class="h-4 w-4" /></router-link></section>
         <section class="rounded-2xl bg-slate-900 p-5 text-white"><Terminal class="h-4 w-4 text-blue-200" /><h2 class="mt-4 text-sm font-bold">Perlu detail teknis?</h2><p class="mt-2 text-xs leading-5 text-slate-300">Payload dan metadata tersedia tanpa memenuhi ruang kerja utama.</p><router-link to="/trace" class="mt-4 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-white">Buka audit trail <ArrowRight class="h-4 w-4" /></router-link></section>
       </aside>
     </div>

@@ -11,7 +11,8 @@ import {
   BookOpen, 
   FileSpreadsheet,
   Coins,
-  Search
+  Search,
+  ShieldCheck
 } from 'lucide-vue-next'
 
 const route = useRoute()

@@ -314,12 +314,10 @@ onBeforeUnmount(() => {
            Posisi terhadap perusahaan sejenis: <strong class="text-slate-800">{{ candidate.peerRankInMemory }}</strong>
         </span>
 
-        <button
-          @click="handleClose"
-          class="px-5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
-        >
-           Tutup analisis
-        </button>
+        <div class="flex items-center gap-2">
+          <button @click="handleClose" class="button-secondary">Tutup</button>
+          <router-link :to="`/company/${candidate.symbol}`" class="button-primary" @click="handleClose">Analisis lengkap</router-link>
+        </div>
       </div>
     </div>
   </div>

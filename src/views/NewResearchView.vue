@@ -30,8 +30,9 @@ const submit = async () => {
   error.value = ''
   store.setObjective(objective.value.trim(), selectedPreset.value)
   store.activePlan.objective = objective.value.trim()
+  const sessionId = store.createSession()
   void store.runAutonomousResearch()
-  await router.push(`/research/${store.report.sessionId}`)
+  await router.push(`/research/${sessionId}`)
 }
 </script>
 
