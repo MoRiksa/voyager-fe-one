@@ -16,6 +16,8 @@ The current prototype now persists the actual symbol membership of every screeni
 
 Session activity and technical trace use the same result provenance. Prototype runs emit neutral fixture audit events with stage inputs, criteria, and retained symbols; they do not claim API requests, measured latency, or credit usage. JSON exports include the report, funnel membership, audit events, and dataset identity as one reviewable package.
 
+Peer Comparison consumes the complete final candidate list from the active screening session. It does not maintain a second stock filter or default to a fixed subset; the only page-level control changes the metric columns. Mobile narrows the presentation to two distinct candidates at a time without changing the underlying result set.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

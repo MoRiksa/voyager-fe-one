@@ -137,8 +137,20 @@ try {
   await waitFor(() => evaluate('document.activeElement?.dataset?.testid?.startsWith("candidate-")'), 'Focus did not return to the candidate trigger')
 
   await navigate(`/research/${sessionResult.id}/peers`)
-  await evaluate(`Array.from(document.querySelectorAll('[data-testid^="peer-"]')).slice(0, 2).forEach(input => input.click())`)
-  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=peers-empty]"))'), 'Peer comparison empty state was not shown')
+  const comparisonState = await evaluate(`({
+    rows: Array.from(document.querySelectorAll('[data-testid^="comparison-row-"]')).map(row => row.dataset.testid.replace('comparison-row-', '')),
+    hasCandidateFilter: Boolean(document.querySelector('[data-testid^="peer-"]'))
+  })`)
+  if (comparisonState.hasCandidateFilter || JSON.stringify(comparisonState.rows) !== JSON.stringify(sessionResult.symbols)) {
+    throw new Error(`Peer comparison did not follow screening results: ${JSON.stringify(comparisonState)}`)
+  }
+  await evaluate(`(() => {
+    const select = document.querySelector('[data-testid="metric-view"]')
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set
+    setter.call(select, 'valuation')
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })()`)
+  await waitFor(() => evaluate('Array.from(document.querySelectorAll("th")).some(cell => cell.textContent.includes("P/BV"))'), 'Metric view did not change comparison columns')
 
   await navigate('/')
   await evaluate(`Array.from(document.querySelectorAll('[data-testid="delete-session"]')).find(button => !button.disabled).click()`)
@@ -146,7 +158,7 @@ try {
   await evaluate(`document.querySelector('[data-testid="confirm-delete-session"]').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=toast]")?.textContent.includes("dihapus")'), 'Session deletion toast was not shown')
 
-  console.log('Interaction test passed: screening and audit invariants, persistence, dialog focus, peer empty state, and session deletion')
+  console.log('Interaction test passed: screening, audit, dynamic comparison, persistence, dialog focus, and session deletion')
 } finally {
   socket?.close()
   browser.kill('SIGTERM')

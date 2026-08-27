@@ -8,32 +8,23 @@ import {
 const store = useResearchStore()
 const leftTicker = ref(store.candidates[0]?.symbol || '')
 const rightTicker = ref(store.candidates[1]?.symbol || '')
-const selectedTickers = ref(store.candidates.slice(0, 3).map(candidate => candidate.symbol))
 const metricGroup = ref<'quality' | 'valuation' | 'growth'>('quality')
-const selectedCandidates = computed(() => store.candidates.filter(candidate => selectedTickers.value.includes(candidate.symbol)))
+const comparisonCandidates = computed(() => store.candidates)
+const leftOptions = computed(() => comparisonCandidates.value.filter(candidate => candidate.symbol !== rightTicker.value))
+const rightOptions = computed(() => comparisonCandidates.value.filter(candidate => candidate.symbol !== leftTicker.value))
 const comparisonHighlights = computed(() => {
-  if (!selectedCandidates.value.length) return []
-  const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...selectedCandidates.value].sort((a, b) => b[key] - a[key])[0]
+  if (!comparisonCandidates.value.length) return []
+  const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...comparisonCandidates.value].sort((a, b) => b[key] - a[key])[0]
   return [
     { label: 'Pengembalian modal tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
     { label: 'Arus kas bebas tertinggi', company: highest('freeCashFlowYieldPercent'), metric: `${highest('freeCashFlowYieldPercent').freeCashFlowYieldPercent}% FCF yield` },
     { label: 'Skor kualitas tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
   ]
 })
-watch(() => store.report.sessionId, () => {
-  selectedTickers.value = store.candidates.slice(0, 3).map(candidate => candidate.symbol)
+watch(() => store.candidates.map(candidate => candidate.symbol).join(','), () => {
   leftTicker.value = store.candidates[0]?.symbol || ''
   rightTicker.value = store.candidates[1]?.symbol || ''
 })
-const toggleCandidate = (symbol: string) => {
-  if (selectedTickers.value.includes(symbol)) {
-    selectedTickers.value = selectedTickers.value.filter(item => item !== symbol)
-  } else if (selectedTickers.value.length < 5) {
-    selectedTickers.value = [...selectedTickers.value, symbol]
-  } else {
-    store.notify('Maksimal lima kandidat dapat dibandingkan sekaligus.', 'info')
-  }
-}
 const groupColumns = computed(() => metricGroup.value === 'valuation'
   ? [{ key: 'peRatio', label: 'P/E', suffix: 'x' }, { key: 'pbvRatio', label: 'P/BV', suffix: 'x' }, { key: 'evToEbitda', label: 'EV/EBITDA', suffix: 'x' }, { key: 'freeCashFlowYieldPercent', label: 'FCF yield', suffix: '%' }]
   : metricGroup.value === 'growth'
@@ -55,15 +46,15 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
          Bandingkan kekuatan dan tradeoff kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Pilih kandidat dan lihat perbedaan profitabilitas, pertumbuhan, valuasi, serta kesehatan neracanya.
+         Seluruh kandidat akhir dari sesi screening dibandingkan otomatis. Ubah tampilan metrik untuk meninjau kualitas, valuasi, atau pertumbuhan.
       </p>
     </div>
 
     <!-- Comparative Table -->
     <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm overflow-hidden">
-      <div class="mb-6 grid gap-5 border-b border-slate-100 pb-5 lg:grid-cols-[1fr_auto]">
-        <fieldset><legend class="text-sm font-bold text-slate-900">Pilih kandidat</legend><div class="mt-3 flex flex-wrap gap-2"><label v-for="candidate in store.candidates" :key="candidate.symbol" class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-xs font-bold" :class="selectedTickers.includes(candidate.symbol) ? 'border-[#407EC9] bg-[#407EC9]/5 text-[#2F64A8]' : 'border-slate-200 text-slate-600'"><input type="checkbox" :data-testid="`peer-${candidate.symbol}`" class="sr-only" :checked="selectedTickers.includes(candidate.symbol)" @change="toggleCandidate(candidate.symbol)" />{{ candidate.symbol }}</label></div><p class="mt-2 text-xs text-slate-500">Pilih 2 sampai 5 perusahaan.</p></fieldset>
-        <label class="text-xs font-bold text-slate-700">Kelompok metrik<select v-model="metricGroup" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm lg:w-48"><option value="quality">Kualitas</option><option value="valuation">Valuasi</option><option value="growth">Pertumbuhan</option></select></label>
+      <div class="mb-6 grid gap-5 border-b border-slate-100 pb-5 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div><h2 class="text-sm font-bold text-slate-900">Hasil seleksi akhir</h2><p class="mt-2 text-xs leading-5 text-slate-500">{{ comparisonCandidates.length }} kandidat dari tahap terakhir Screener. Daftar ini mengikuti hasil sesi dan tidak difilter ulang pada halaman perbandingan.</p></div>
+        <label class="text-xs font-bold text-slate-700">Tampilan metrik<select v-model="metricGroup" data-testid="metric-view" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm lg:w-48"><option value="quality">Kualitas</option><option value="valuation">Valuasi</option><option value="growth">Pertumbuhan</option></select></label>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
         <div>
@@ -75,19 +66,20 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         </div>
       </div>
 
-      <div v-if="selectedCandidates.length < 2" data-testid="peers-empty" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-        <h3 class="text-base font-bold text-slate-900">Pilih sedikitnya dua kandidat</h3>
-        <p class="mt-2 text-sm leading-6 text-slate-600">Perbandingan membutuhkan minimal dua perusahaan agar perbedaan metrik dapat dibaca dengan bermakna.</p>
+      <div v-if="comparisonCandidates.length < 2" data-testid="peers-empty" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <h3 class="text-base font-bold text-slate-900">Kandidat belum cukup untuk dibandingkan</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Sesi screening hanya menghasilkan {{ comparisonCandidates.length }} kandidat. Perbandingan membutuhkan sedikitnya dua perusahaan.</p>
       </div>
 
       <div v-else class="md:hidden">
-        <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
+        <p class="mb-3 text-xs text-slate-500">Pilih dua dari kandidat hasil screening untuk tampilan mobile.</p>
+        <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in leftOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in rightOptions" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
         <div class="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200">
           <div v-for="metric in groupColumns" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
         </div>
       </div>
 
-      <div v-if="selectedCandidates.length >= 2" class="hidden overflow-x-auto md:block">
+      <div v-if="comparisonCandidates.length >= 2" class="hidden overflow-x-auto md:block">
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Perbandingan metrik kandidat terpilih</caption>
           <thead>
@@ -98,8 +90,9 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
           </thead>
           <tbody class="divide-y divide-slate-100 font-mono">
             <tr 
-              v-for="candidate in selectedCandidates"
+              v-for="candidate in comparisonCandidates"
               :key="candidate.symbol"
+              :data-testid="`comparison-row-${candidate.symbol}`"
               class="hover:bg-slate-50/80 transition-colors"
             >
               <td class="py-4 pr-4">
@@ -127,7 +120,7 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
     </div>
 
     <!-- Comparative Synthesis Cards -->
-    <div v-if="selectedCandidates.length >= 2" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div v-if="comparisonCandidates.length >= 2" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div v-for="highlight in comparisonHighlights" :key="highlight.label" class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">{{ highlight.label }}</h4>
         <div class="text-xl font-bold font-mono text-slate-900">{{ highlight.company.symbol }} ({{ highlight.metric }})</div>
