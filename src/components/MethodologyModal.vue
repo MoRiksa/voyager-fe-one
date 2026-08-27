@@ -14,8 +14,51 @@ import {
 } from '@lucide/vue'
 
 const store = useResearchStore()
+const modalRootRef = ref<HTMLElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
 let previousFocus: HTMLElement | null = null
+let inertedElements: HTMLElement[] = []
+
+type InertEntry = { count: number; wasInert: boolean }
+const globalState = globalThis as typeof globalThis & {
+  __voyagerModalInertRegistry?: Map<HTMLElement, InertEntry>
+}
+const inertRegistry = globalState.__voyagerModalInertRegistry ??= new Map<HTMLElement, InertEntry>()
+
+const restoreBackgroundInert = () => {
+  for (const element of inertedElements) {
+    const entry = inertRegistry.get(element)
+    if (!entry) continue
+
+    if (entry.count === 1) {
+      element.inert = entry.wasInert
+      inertRegistry.delete(element)
+    } else {
+      entry.count--
+    }
+  }
+  inertedElements = []
+}
+
+const setBackgroundInert = () => {
+  restoreBackgroundInert()
+  const modalRoot = modalRootRef.value
+  const parent = modalRoot?.parentElement
+  if (!modalRoot || !parent) return
+
+  inertedElements = Array.from(parent.children).filter(
+    (element): element is HTMLElement => element instanceof HTMLElement && element !== modalRoot,
+  )
+  for (const element of inertedElements) {
+    const entry = inertRegistry.get(element)
+    if (entry) {
+      entry.count++
+    } else {
+      inertRegistry.set(element, { count: 1, wasInert: element.inert })
+      element.inert = true
+    }
+  }
+}
 
 const close = () => store.closeMethodology()
 const handleKeydown = (event: KeyboardEvent) => {
@@ -42,8 +85,10 @@ watch(() => store.isMethodologyModalOpen, async (isOpen) => {
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeydown)
     await nextTick()
+    setBackgroundInert()
     dialogRef.value?.focus()
   } else {
+    restoreBackgroundInert()
     document.body.style.overflow = ''
     window.removeEventListener('keydown', handleKeydown)
     previousFocus?.focus()
@@ -51,13 +96,15 @@ watch(() => store.isMethodologyModalOpen, async (isOpen) => {
 })
 
 onBeforeUnmount(() => {
+  restoreBackgroundInert()
   document.body.style.overflow = ''
   window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
 <template>
-  <div 
+  <div
+    ref="modalRootRef"
     v-if="store.isMethodologyModalOpen"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs transition-opacity"
     @click.self="close"
@@ -158,10 +205,10 @@ onBeforeUnmount(() => {
         <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
           <div class="flex items-center gap-1.5 font-bold text-slate-800 mb-1">
             <AlertCircle class="w-4 h-4 text-slate-500" />
-            Compliance Notice
+            Pemberitahuan kepatuhan
           </div>
           <p class="text-[11px] text-slate-500 leading-relaxed">
-            Voyager One operates strictly as a financial research tool. It does not perform automated trade execution, buy/sell recommendations, or guaranteed return claims.
+            Voyager One hanya berfungsi sebagai alat riset finansial. Sistem tidak mengeksekusi transaksi otomatis, memberikan rekomendasi beli atau jual, maupun menjanjikan imbal hasil.
           </p>
         </div>
       </div>

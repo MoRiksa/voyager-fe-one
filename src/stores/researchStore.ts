@@ -9,7 +9,8 @@ import type {
   ResearchReport,
   ScreeningFunnelStep,
   ResearchObjectivePreset,
-  ResearchSession
+  ResearchSession,
+  ResearchBrief
 } from '../types'
 import { OBJECTIVE_PRESETS, ALL_COMPANIES_DATABASE } from '../data/sectorsUniverse'
 
@@ -17,6 +18,33 @@ export const useResearchStore = defineStore('research', () => {
   const STORAGE_KEY = 'voyager-one-research-sessions-v1'
   const STORAGE_VERSION = 2
   const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+  const defaultResearchBrief = (): ResearchBrief => ({
+    market: 'IDX',
+    sectorScope: 'Semua sektor fixture',
+    indexScope: 'Seluruh fixture IDX',
+    candidateCount: 5,
+    researchDepth: 'Standar',
+    useSectorMetrics: true,
+    optionalDimensions: [],
+    clarificationNotes: []
+  })
+  const normalizeResearchBrief = (brief?: Partial<ResearchBrief>): ResearchBrief => {
+    const defaults = defaultResearchBrief()
+    return {
+      market: brief?.market === 'IDX' || brief?.market === 'SGX' ? brief.market : defaults.market,
+      sectorScope: typeof brief?.sectorScope === 'string' ? brief.sectorScope : defaults.sectorScope,
+      indexScope: typeof brief?.indexScope === 'string' ? brief.indexScope : defaults.indexScope,
+      candidateCount: typeof brief?.candidateCount === 'number' && Number.isFinite(brief.candidateCount) && brief.candidateCount > 0
+        ? Math.floor(brief.candidateCount)
+        : defaults.candidateCount,
+      researchDepth: ['Ringkas', 'Standar', 'Mendalam'].includes(brief?.researchDepth || '')
+        ? brief!.researchDepth!
+        : defaults.researchDepth,
+      useSectorMetrics: typeof brief?.useSectorMetrics === 'boolean' ? brief.useSectorMetrics : defaults.useSectorMetrics,
+      optionalDimensions: Array.isArray(brief?.optionalDimensions) ? brief.optionalDimensions.filter(item => typeof item === 'string') : [],
+      clarificationNotes: Array.isArray(brief?.clarificationNotes) ? brief.clarificationNotes.filter(item => typeof item === 'string') : []
+    }
+  }
   // --- Core State ---
   const currentObjective = ref<string>(OBJECTIVE_PRESETS[2].objective)
   const activePresetId = ref<string>('obj-broad-fundamental')
@@ -25,6 +53,10 @@ export const useResearchStore = defineStore('research', () => {
   const executionSpeedMs = ref<number>(800) // delay per step in ms for simulation
   const creditsRemaining = ref<number>(8840)
   const totalCredits = ref<number>(10000)
+  const activeBrief = ref<ResearchBrief>(defaultResearchBrief())
+  const clarificationQuestion = ref<string | null>(null)
+  let clarificationReturnStatus: AgentStatus = 'IDLE'
+  let executionToken = 0
   
   // Selected Company for detail dossier view
   const selectedSymbol = ref<string>('BBCA')
@@ -39,40 +71,40 @@ export const useResearchStore = defineStore('research', () => {
     {
       id: 'planner',
       number: 1,
-      name: 'Research Planner',
-      subtitle: 'Formulates structured hypothesis & execution graph',
+      name: 'Perencana Riset',
+      subtitle: 'Menyusun hipotesis dan urutan eksekusi terstruktur',
       status: 'completed',
       metricsSummary: 'Menunggu konteks sesi'
     },
     {
       id: 'screener',
       number: 2,
-      name: 'Autonomous Screener',
-      subtitle: 'Dynamic multi-stage universe narrowing',
+      name: 'Penyaring Kandidat',
+      subtitle: 'Mempersempit universe melalui beberapa tahap',
       status: 'completed',
       metricsSummary: 'Menunggu hasil penyaringan'
     },
     {
       id: 'engine',
       number: 3,
-      name: 'Deep Research Engine',
-      subtitle: 'Fundamental, DuPont & balance sheet audit',
+      name: 'Analisis Mendalam',
+      subtitle: 'Meninjau fundamental, DuPont, dan kesehatan neraca',
       status: 'completed',
       metricsSummary: 'Menunggu kandidat'
     },
     {
       id: 'state',
       number: 4,
-      name: 'State & Observability',
-      subtitle: 'State persistence & tool call audit trail',
+      name: 'Status dan Audit',
+      subtitle: 'Menyimpan status serta jejak aktivitas sesi',
       status: 'completed',
       metricsSummary: 'Menunggu event audit'
     },
     {
       id: 'report',
       number: 5,
-      name: 'Synthesis & Final Report',
-      subtitle: 'Evidence-backed report & peer comparison',
+      name: 'Sintesis dan Laporan',
+      subtitle: 'Merangkum bukti, pembanding, dan keterbatasan',
       status: 'completed',
       metricsSummary: 'Menunggu hasil akhir'
     }
@@ -188,8 +220,8 @@ export const useResearchStore = defineStore('research', () => {
     return { plan, pillars: nextPillars, toolCalls: calls }
   }
 
-  const applyResults = (results: ReturnType<typeof deriveSessionResults>) => {
-    const artifacts = deriveSessionArtifacts(results)
+  const applyResults = (results: ReturnType<typeof deriveSessionResults>, objective = currentObjective.value, basePillars = pillars.value) => {
+    const artifacts = deriveSessionArtifacts(results, objective, basePillars)
     activePlan.value = artifacts.plan
     pillars.value = artifacts.pillars
     toolCalls.value = artifacts.toolCalls
@@ -259,6 +291,10 @@ export const useResearchStore = defineStore('research', () => {
     activePresetId.value = preset.id
   }
 
+  const setResearchBrief = (brief: Partial<ResearchBrief>) => {
+    activeBrief.value = normalizeResearchBrief({ ...activeBrief.value, ...brief })
+  }
+
   const openCandidateModal = (symbol: string) => {
     selectedSymbol.value = symbol
     isDetailModalOpen.value = true
@@ -285,6 +321,27 @@ export const useResearchStore = defineStore('research', () => {
     }
   }
 
+  const normalizeActivePillars = () => {
+    pillars.value.forEach(pillar => {
+      if (pillar.status === 'active') pillar.status = 'pending'
+    })
+  }
+
+  const deriveClarificationReturnStatus = (session: Partial<ResearchSession>): AgentStatus => {
+    const restorableStatuses: AgentStatus[] = ['IDLE', 'PARTIAL', 'CANCELLED', 'COMPLETED', 'FAILED']
+    if (session.clarificationReturnStatus && restorableStatuses.includes(session.clarificationReturnStatus)) {
+      return session.clarificationReturnStatus
+    }
+    if (session.status && restorableStatuses.includes(session.status)) return session.status
+    const hasCompletedArtifacts = Boolean(session.pillars?.length) && session.pillars!.every(pillar => pillar.status === 'completed')
+      && Boolean(session.screeningFunnel?.length || session.candidates?.length)
+    if (hasCompletedArtifacts) return 'COMPLETED'
+    const hasArtifacts = session.pillars?.some(pillar => pillar.status === 'active' || pillar.status === 'completed')
+      || session.toolCalls?.some(call => call.toolName !== 'clarification_request')
+      || Boolean(session.screeningFunnel?.length || session.candidates?.length)
+    return hasArtifacts ? 'PARTIAL' : 'IDLE'
+  }
+
   const snapshotSession = (sessionStatus: ResearchSession['status'] = status.value): ResearchSession => {
     const now = new Date().toISOString()
     const existing = sessions.value.find(session => session.id === report.value.sessionId)
@@ -294,7 +351,9 @@ export const useResearchStore = defineStore('research', () => {
       updatedAt: now,
       objective: currentObjective.value,
       presetId: activePresetId.value,
+      brief: activeBrief.value,
       status: sessionStatus,
+      clarificationReturnStatus,
       plan: activePlan.value,
       pillars: pillars.value,
       toolCalls: toolCalls.value,
@@ -315,19 +374,23 @@ export const useResearchStore = defineStore('research', () => {
     if (typeof window === 'undefined') return
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as { version?: number; sessions?: ResearchSession[] } | null
-      if ((parsed?.version === 1 || parsed?.version === STORAGE_VERSION) && Array.isArray(parsed.sessions)) {
+      if ([1, STORAGE_VERSION].includes(parsed?.version || 0) && Array.isArray(parsed?.sessions)) {
         sessions.value = parsed.sessions.map(session => {
-          if (parsed.version === STORAGE_VERSION) {
-            return session.status === 'COMPLETED' || session.status === 'FAILED' || session.status === 'PARTIAL'
-              ? session
-              : { ...session, status: 'PARTIAL' }
+          const brief = normalizeResearchBrief(session.brief)
+          const sessionClarificationReturnStatus = deriveClarificationReturnStatus(session)
+          if (parsed.version !== 1) {
+            return ['IDLE', 'NEEDS_INPUT', 'PARTIAL', 'CANCELLED', 'COMPLETED', 'FAILED'].includes(session.status)
+              ? { ...session, brief, clarificationReturnStatus: sessionClarificationReturnStatus }
+              : { ...session, brief, status: 'PARTIAL', clarificationReturnStatus: sessionClarificationReturnStatus }
           }
           const results = deriveSessionResults(session.presetId)
           const normalizedStatus = session.status === 'COMPLETED' || session.status === 'FAILED' ? session.status : 'PARTIAL'
           const artifacts = deriveSessionArtifacts(results, session.objective, session.pillars)
           return {
             ...session,
+            brief,
             status: normalizedStatus,
+            clarificationReturnStatus: sessionClarificationReturnStatus,
             plan: artifacts.plan,
             pillars: artifacts.pillars,
             toolCalls: artifacts.toolCalls,
@@ -366,9 +429,19 @@ export const useResearchStore = defineStore('research', () => {
   const loadSession = (id: string) => {
     const session = sessions.value.find(item => item.id === id)
     if (!session) return false
+    if (isExecuting.value && report.value.sessionId === id) return true
+    if (isExecuting.value && report.value.sessionId !== id) {
+      executionToken += 1
+      isExecuting.value = false
+      status.value = 'PARTIAL'
+      normalizeActivePillars()
+      saveCurrentSession('PARTIAL')
+    }
     currentObjective.value = session.objective
     activePresetId.value = session.presetId
-    status.value = session.status === 'PARTIAL' ? 'FAILED' : session.status
+    activeBrief.value = normalizeResearchBrief(session.brief)
+    status.value = session.status
+    clarificationReturnStatus = deriveClarificationReturnStatus(session)
     activePlan.value = clone(session.plan)
     pillars.value = clone(session.pillars)
     toolCalls.value = clone(session.toolCalls)
@@ -378,6 +451,10 @@ export const useResearchStore = defineStore('research', () => {
     selectedSymbol.value = candidates.value[0]?.symbol || ''
     isDetailModalOpen.value = false
     isExecuting.value = false
+    executionToken += 1
+    clarificationQuestion.value = session.status === 'NEEDS_INPUT'
+      ? [...session.toolCalls].reverse().find(call => call.toolName === 'clarification_request')?.input.question as string || null
+      : null
     return true
   }
 
@@ -411,6 +488,59 @@ export const useResearchStore = defineStore('research', () => {
     saveCurrentSession(status.value)
   }
 
+  const cancelResearch = () => {
+    if (!isExecuting.value) return false
+    executionToken += 1
+    isExecuting.value = false
+    status.value = 'CANCELLED'
+    normalizeActivePillars()
+    saveCurrentSession('CANCELLED')
+    return true
+  }
+
+  const markPartial = () => {
+    executionToken += 1
+    isExecuting.value = false
+    status.value = 'PARTIAL'
+    normalizeActivePillars()
+    saveCurrentSession('PARTIAL')
+  }
+
+  const requestClarification = (question: string) => {
+    const normalizedQuestion = question.trim()
+    if (!normalizedQuestion) return false
+    clarificationReturnStatus = ['IDLE', 'PARTIAL', 'CANCELLED', 'FAILED', 'COMPLETED'].includes(status.value) ? status.value : 'IDLE'
+    executionToken += 1
+    isExecuting.value = false
+    clarificationQuestion.value = normalizedQuestion
+    status.value = 'NEEDS_INPUT'
+    toolCalls.value.push({
+      id: `clarification-${toolCalls.value.length + 1}`,
+      timestamp: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+      pillar: 'planner',
+      toolName: 'clarification_request',
+      category: 'Research Engine',
+      input: { question: normalizedQuestion },
+      outputSummary: `Klarifikasi diminta: ${normalizedQuestion}`,
+      durationMs: 0,
+      status: 'SUCCESS',
+      creditCost: 0,
+      sourceKind: 'user-input'
+    })
+    saveCurrentSession('NEEDS_INPUT')
+    return true
+  }
+
+  const answerClarification = (answer: string) => {
+    const normalizedAnswer = answer.trim()
+    if (status.value !== 'NEEDS_INPUT' || !clarificationQuestion.value || !normalizedAnswer) return false
+    activeBrief.value.clarificationNotes.push(`${clarificationQuestion.value}: ${normalizedAnswer}`)
+    clarificationQuestion.value = null
+    status.value = clarificationReturnStatus === 'NEEDS_INPUT' ? 'IDLE' : clarificationReturnStatus
+    saveCurrentSession(status.value)
+    return true
+  }
+
   const deleteSession = (id: string) => {
     if (sessions.value.length <= 1) return false
     sessions.value = sessions.value.filter(session => session.id !== id)
@@ -433,6 +563,10 @@ export const useResearchStore = defineStore('research', () => {
   // Autonomous Execution Simulation (Live Agent Loop)
   const runAutonomousResearch = async (sessionId = report.value.sessionId) => {
     if (isExecuting.value) return
+    const capturedPresetId = activePresetId.value
+    const capturedObjective = currentObjective.value
+    const capturedBrief = clone(activeBrief.value)
+    const token = ++executionToken
     isExecuting.value = true
     status.value = 'UNDERSTANDING'
     saveCurrentSession('UNDERSTANDING')
@@ -444,14 +578,14 @@ export const useResearchStore = defineStore('research', () => {
 
     // Helper sleep
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-    const ownsSession = () => report.value.sessionId === sessionId
+    const ownsExecution = () => executionToken === token && report.value.sessionId === sessionId && isExecuting.value
 
     try {
       // Step 1: Understanding & Planning
       status.value = 'PLANNING'
       pillars.value[0].status = 'active'
       await sleep(executionSpeedMs.value)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       pillars.value[0].status = 'completed'
       creditsRemaining.value -= 10
       saveCurrentSession('PLANNING')
@@ -460,10 +594,10 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'DISCOVERING'
       pillars.value[1].status = 'active'
       await sleep(executionSpeedMs.value * 0.6)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       status.value = 'SCREENING'
       await sleep(executionSpeedMs.value * 0.8)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       pillars.value[1].status = 'completed'
       creditsRemaining.value -= 40
       saveCurrentSession('SCREENING')
@@ -472,10 +606,10 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'RESEARCHING'
       pillars.value[2].status = 'active'
       await sleep(executionSpeedMs.value * 1.2)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       status.value = 'COMPARING'
       await sleep(executionSpeedMs.value * 0.7)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       pillars.value[2].status = 'completed'
       creditsRemaining.value -= 75
       saveCurrentSession('RESEARCHING')
@@ -484,7 +618,7 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'VALIDATING'
       pillars.value[3].status = 'active'
       await sleep(executionSpeedMs.value * 0.6)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       pillars.value[3].status = 'completed'
       saveCurrentSession('VALIDATING')
 
@@ -492,23 +626,34 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'REPORTING'
       pillars.value[4].status = 'active'
       await sleep(executionSpeedMs.value * 0.8)
-      if (!ownsSession()) return
+      if (!ownsExecution()) return
       pillars.value[4].status = 'completed'
 
-      applyResults(deriveSessionResults(activePresetId.value))
+      const results = deriveSessionResults(capturedPresetId)
+      currentObjective.value = capturedObjective
+      activePresetId.value = capturedPresetId
+      activeBrief.value = capturedBrief
+      applyResults(results, capturedObjective)
 
       // Update Report timestamp & top candidates
       report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
-      report.value.objective = currentObjective.value
+      report.value.objective = capturedObjective
 
       status.value = 'COMPLETED'
       saveCurrentSession('COMPLETED')
     } catch (err) {
+      if (!ownsExecution()) return
       status.value = 'FAILED'
       saveCurrentSession('FAILED')
     } finally {
-      isExecuting.value = false
+      if (executionToken === token) isExecuting.value = false
     }
+  }
+
+  const retryResearch = () => {
+    if (isExecuting.value || !['FAILED', 'PARTIAL', 'CANCELLED'].includes(status.value)) return false
+    void runAutonomousResearch(report.value.sessionId)
+    return true
   }
 
   return {
@@ -520,6 +665,8 @@ export const useResearchStore = defineStore('research', () => {
     executionSpeedMs,
     creditsRemaining,
     totalCredits,
+    activeBrief,
+    clarificationQuestion,
     selectedSymbol,
     selectedCompany,
     isDetailModalOpen,
@@ -539,6 +686,7 @@ export const useResearchStore = defineStore('research', () => {
     // Actions
     setObjective,
     selectPreset,
+    setResearchBrief,
     getScreeningPreview,
     openCandidateModal,
     closeCandidateModal,
@@ -548,6 +696,11 @@ export const useResearchStore = defineStore('research', () => {
     loadSession,
     createSession,
     addFollowUp,
+    cancelResearch,
+    markPartial,
+    requestClarification,
+    answerClarification,
+    retryResearch,
     deleteSession,
     notify,
     dismissToast,

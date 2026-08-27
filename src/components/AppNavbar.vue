@@ -11,6 +11,12 @@ const route = useRoute()
 const store = useResearchStore()
 const isSessionRoute = computed(() => String(route.name).startsWith('research-') && route.name !== 'research-new')
 const sessionTitle = computed(() => store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Sesi riset')
+const journeySteps = computed(() => [
+  { label: 'Ringkasan', name: 'research-session', to: `/research/${store.report.sessionId}` },
+  { label: 'Seleksi', name: 'research-screener', to: `/research/${store.report.sessionId}/screener` },
+  { label: 'Perbandingan', name: 'research-peers', to: `/research/${store.report.sessionId}/peers` },
+  { label: 'Laporan', name: 'research-report', to: `/research/${store.report.sessionId}/report` }
+])
 
 const pageTitle = computed(() => {
   switch (route.name) {
@@ -19,6 +25,7 @@ const pageTitle = computed(() => {
     case 'trace': return 'Audit Teknis'
     case 'activity': return 'Aktivitas Riset'
     case 'methodology': return 'Metodologi Penilaian'
+    case 'glossary': return 'Kamus Istilah Finansial'
     case 'report': return 'Laporan Riset'
     case 'research-new': return 'Riset Baru'
     case 'research-library': return 'Pustaka Riset'
@@ -66,6 +73,20 @@ const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecut
         <span class="truncate text-slate-900 font-bold text-sm">{{ pageTitle }}</span>
       </div>
     </div>
+
+    <nav v-if="isSessionRoute" class="hidden items-center gap-1 xl:flex" aria-label="Tahap riset">
+      <template v-for="(step, index) in journeySteps" :key="step.name">
+        <router-link
+          :to="step.to"
+          class="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
+          :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'bg-[#2F64A8] text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'"
+          :aria-current="route.name === step.name ? 'step' : undefined"
+        >
+          <span class="mr-1 font-mono text-[10px] opacity-70">0{{ index + 1 }}</span>{{ step.label }}
+        </router-link>
+        <ChevronRight v-if="index < journeySteps.length - 1" class="h-3 w-3 text-slate-300" />
+      </template>
+    </nav>
 
     <!-- Right: Subtle Status & Clean Action Button -->
     <div class="flex shrink-0 items-center gap-2">

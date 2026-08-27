@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchSession } from '../types'
 import { sessionStatusMeta } from '../utils/status'
+import DataProvenance from '../components/DataProvenance.vue'
 import { ArrowRight, Copy, FileText, Search, Trash2 } from '@lucide/vue'
 
 const store = useResearchStore()
@@ -16,17 +17,16 @@ const filteredSessions = computed(() => store.recentSessions.filter(session => {
   const matchesQuery = `${sessionTitle(session)} ${session.objective} ${session.id}`.toLowerCase().includes(query.value.trim().toLowerCase())
   const matchesStatus = statusFilter.value === 'all'
     || (statusFilter.value === 'completed' && session.status === 'COMPLETED')
-    || (statusFilter.value === 'active' && !['COMPLETED', 'FAILED', 'PARTIAL'].includes(session.status))
-    || (statusFilter.value === 'attention' && ['FAILED', 'PARTIAL'].includes(session.status))
+    || (statusFilter.value === 'active' && !['COMPLETED', 'FAILED', 'PARTIAL', 'CANCELLED', 'NEEDS_INPUT'].includes(session.status))
+    || (statusFilter.value === 'attention' && ['FAILED', 'PARTIAL', 'CANCELLED', 'NEEDS_INPUT'].includes(session.status))
   return matchesQuery && matchesStatus
 }))
 
 const sessionTitle = (session: ResearchSession) => store.presets.find(preset => preset.id === session.presetId)?.title || 'Riset khusus'
 const statusMeta = (session: ResearchSession) => sessionStatusMeta(session.status)
-const formatDate = (value: string) => new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-
 const duplicateSession = async (session: ResearchSession) => {
   store.setObjective(session.objective, session.presetId)
+  store.setResearchBrief(session.brief)
   await router.push('/research/new')
 }
 
@@ -60,15 +60,17 @@ const removeSession = (id: string) => {
 
     <section aria-labelledby="library-results-title">
       <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Tersimpan lokal</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p class="hidden text-xs text-slate-500 sm:block">Maksimal lima sesi pada mode demonstrasi</p></div>
+      <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mb-4" />
 
       <div v-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
         <article v-for="session in filteredSessions" :key="session.id" :data-testid="`library-session-${session.id}`" class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span class="status-badge" :class="statusMeta(session).className">{{ statusMeta(session).label }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} kandidat</span></div>
           <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ session.candidates.length ? `Peringkat teratas sesi ${session.candidates[0].symbol}, skor kualitas ${session.candidates[0].qualityScore}/100 (${session.candidates[0].qualityScore >= 90 ? 'sangat kuat dalam model' : 'kuat dalam model'}).` : 'Belum ada kandidat akhir yang tersedia.' }}</div>
-          <div class="mt-5 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-4 text-[11px] text-slate-500"><span>Diperbarui {{ formatDate(session.updatedAt) }}</span><span class="font-mono">{{ session.id }}</span></div>
+          <div class="mt-5 border-t border-slate-100 pt-4 font-mono text-[11px] text-slate-500">{{ session.id }}</div>
+          <DataProvenance source="prototype-fixture-v1" :generated-at="session.report.timestamp" compact class="mt-4" />
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <router-link :to="`/research/${session.id}`" class="button-primary">Buka riset <ArrowRight class="h-4 w-4" /></router-link>
-            <router-link v-if="session.status === 'COMPLETED'" :to="`/research/${session.id}/report`" class="button-secondary"><FileText class="h-4 w-4" /> Laporan</router-link>
+            <router-link v-if="session.status === 'COMPLETED' || (session.status === 'PARTIAL' && session.candidates.length)" :to="`/research/${session.id}/report`" class="button-secondary"><FileText class="h-4 w-4" /> {{ session.status === 'PARTIAL' ? 'Laporan parsial' : 'Laporan' }}</router-link>
             <button type="button" :data-testid="`library-duplicate-${session.id}`" class="button-secondary" @click="duplicateSession(session)"><Copy class="h-4 w-4" /> Gunakan sebagai template</button>
             <div v-if="pendingDeleteId === session.id" class="flex items-center gap-1"><button type="button" data-testid="library-confirm-delete" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="removeSession(session.id)">Hapus</button><button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600" @click="pendingDeleteId = null">Batal</button></div>
             <button v-else type="button" class="icon-button ml-auto disabled:opacity-35" :disabled="store.recentSessions.length <= 1" :aria-label="`Hapus ${sessionTitle(session)}`" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>

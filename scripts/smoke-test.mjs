@@ -16,6 +16,7 @@ const routes = [
   `/research/${sessionId}/company/BBCA`,
   '/company/BBCA',
   '/methodology',
+  '/glossary',
   '/screener',
   '/peers',
   '/activity',
@@ -31,6 +32,7 @@ const renderedChecks = [
   { route: `/research/${sessionId}/peers`, text: 'Bandingkan kekuatan dan tradeoff kandidat' },
   { route: `/research/${sessionId}/company/BBCA`, text: 'Lima faktor penilaian' },
   { route: `/research/${sessionId}/report`, text: 'Laporan riset' },
+  { route: '/glossary', text: 'Kamus Istilah Finansial' },
   { route: '/research/UNKNOWN/report', text: 'Halaman tidak ditemukan' }
 ]
 

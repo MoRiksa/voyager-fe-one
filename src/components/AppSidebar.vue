@@ -15,7 +15,8 @@ import {
   Search,
   ShieldCheck,
   History,
-  CircleDot
+  CircleDot,
+  Library
 } from '@lucide/vue'
 
 const route = useRoute()
@@ -38,6 +39,7 @@ const navItems = computed(() => [
     group: 'INFORMASI',
     items: [
       { names: ['methodology'], label: 'Cara penilaian', path: '/methodology', icon: BookOpen },
+      { names: ['glossary'], label: 'Kamus istilah', path: '/glossary', icon: Library },
       { names: ['research-activity'], label: 'Proses riset', path: `/research/${store.report.sessionId}/activity`, icon: Terminal },
       { names: ['research-trace'], label: 'Detail teknis', path: `/research/${store.report.sessionId}/trace`, icon: ShieldCheck },
     ]

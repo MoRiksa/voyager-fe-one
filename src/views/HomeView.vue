@@ -1,15 +1,40 @@
+<script lang="ts">
+const hadPersistedSessions = (() => {
+  if (typeof window === 'undefined') return false
+  try {
+    return localStorage.getItem('voyager-one-research-sessions-v1') !== null
+  } catch {
+    return false
+  }
+})()
+</script>
+
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
-import { ArrowRight, Clock3, FileText, Search, Sparkles, Activity, ChevronRight, Trash2 } from '@lucide/vue'
+import DataProvenance from '../components/DataProvenance.vue'
+import { ArrowRight, FileText, Search, Sparkles, Activity, ChevronRight, Trash2, Lightbulb, BookOpen, HelpCircle } from '@lucide/vue'
 
 const store = useResearchStore()
 const router = useRouter()
 const draftObjective = ref('')
 const pendingDeleteId = ref<string | null>(null)
+
+const isFirstTimeUser = !hadPersistedSessions
+
+const exampleObjectives = [
+  { text: 'Temukan bank Indonesia dengan ROE tinggi dan valuasi wajar', preset: 'obj-banking-moat' },
+  { text: 'Cari perusahaan consumer dengan margin stabil dan pertumbuhan konsisten', preset: 'obj-consumer-growth' },
+  { text: 'Identifikasi saham dengan dividen tinggi dan neraca kuat', preset: 'obj-dividend-fcf' }
+]
+
+const useExample = (example: typeof exampleObjectives[0]) => {
+  store.setObjective(example.text, example.preset)
+  router.push('/research/new')
+}
 
 const currentPillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedSteps = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
@@ -35,7 +60,7 @@ const removeSession = (id: string) => {
         <div>
           <div class="mb-4 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/8 px-2.5 py-1 text-xs font-semibold text-blue-100">
             <Sparkles class="h-3.5 w-3.5" />
-            Research workspace
+            Ruang kerja riset
           </div>
           <h1 class="max-w-3xl text-3xl font-bold tracking-[-0.035em] text-balance sm:text-4xl lg:text-5xl">
             Apa yang ingin Anda teliti hari ini?
@@ -63,6 +88,22 @@ const removeSession = (id: string) => {
               </button>
             </div>
           </form>
+
+          <!-- Quick Examples -->
+          <div class="mt-5">
+            <p class="mb-2 text-xs font-semibold text-blue-200">Atau coba contoh:</p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="example in exampleObjectives"
+                :key="example.preset"
+                type="button"
+                class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20"
+                @click="useExample(example)"
+              >
+                {{ example.text.slice(0, 45) }}{{ example.text.length > 45 ? '...' : '' }}
+              </button>
+            </div>
+          </div>
         </div>
 
         <aside class="rounded-2xl border border-white/12 bg-white/7 p-5 backdrop-blur-sm" aria-label="Ringkasan sesi terakhir">
@@ -74,6 +115,7 @@ const removeSession = (id: string) => {
             <span class="rounded-md bg-white/10 px-2 py-1 text-xs font-semibold text-blue-100">{{ sessionStatus }}</span>
           </div>
           <p class="mt-5 line-clamp-3 text-sm leading-6 text-slate-200">{{ store.report.objective }}</p>
+          <DataProvenance source="prototype-fixture-v1" :generated-at="store.report.timestamp" compact class="mt-4 border-white/15 bg-white/8 text-slate-300 [&_h2]:text-blue-100 [&_dt]:text-slate-400 [&_dd]:text-white" />
           <div class="mt-6 grid grid-cols-2 gap-3">
             <div class="rounded-xl bg-black/15 p-3">
               <span class="text-xs text-slate-400">Kandidat</span>
@@ -90,6 +132,54 @@ const removeSession = (id: string) => {
             <ChevronRight class="h-4 w-4" />
           </router-link>
         </aside>
+      </div>
+    </section>
+
+    <!-- Onboarding for First-Time Users -->
+    <section v-if="isFirstTimeUser" class="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 md:p-8">
+      <div class="flex items-start gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#2F64A8] text-white">
+          <Lightbulb class="h-6 w-6" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <h2 class="text-lg font-bold text-slate-900">Selamat datang di Voyager One</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-600">
+            Voyager One membantu Anda meneliti saham dengan pendekatan sistematis. Jelaskan tujuan riset, dan sistem akan menyaring kandidat berdasarkan kriteria fundamental.
+          </p>
+
+          <div class="mt-5 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-xl bg-white p-4 shadow-sm border border-slate-100">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm">1</span>
+              <h3 class="mt-3 font-semibold text-slate-900">Tentukan tujuan</h3>
+              <p class="mt-1 text-xs leading-5 text-slate-500">Jelaskan apa yang Anda cari, misalnya "bank dengan ROE tinggi".</p>
+            </div>
+            <div class="rounded-xl bg-white p-4 shadow-sm border border-slate-100">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 font-bold text-sm">2</span>
+              <h3 class="mt-3 font-semibold text-slate-900">Tinjau seleksi</h3>
+              <p class="mt-1 text-xs leading-5 text-slate-500">Lihat bagaimana kandidat disaring dan bandingkan metrik kunci.</p>
+            </div>
+            <div class="rounded-xl bg-white p-4 shadow-sm border border-slate-100">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 text-violet-700 font-bold text-sm">3</span>
+              <h3 class="mt-3 font-semibold text-slate-900">Baca laporan</h3>
+              <p class="mt-1 text-xs leading-5 text-slate-500">Dapatkan ringkasan temuan, risiko, dan hal yang perlu diverifikasi.</p>
+            </div>
+          </div>
+
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <router-link to="/research/new" class="button-primary">
+              Mulai riset pertama
+              <ArrowRight class="h-4 w-4" />
+            </router-link>
+            <router-link to="/methodology" class="text-link">
+              <BookOpen class="h-4 w-4" />
+              Pelajari metodologi
+            </router-link>
+            <router-link to="/glossary" class="text-link">
+              <HelpCircle class="h-4 w-4" />
+              Kamus istilah
+            </router-link>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -115,13 +205,13 @@ const removeSession = (id: string) => {
             </div>
              <span class="shrink-0 rounded-lg bg-slate-100 px-3 py-2 font-mono text-xs font-bold text-slate-700">{{ completedSteps }}/{{ store.pillars.length }} tahap</span>
           </div>
-          <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100" aria-label="Progress riset" role="progressbar" :aria-valuenow="completedSteps" aria-valuemin="0" :aria-valuemax="store.pillars.length">
+           <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100" aria-label="Progress riset" role="progressbar" :aria-valuenow="completedSteps" aria-valuemin="0" :aria-valuemax="store.pillars.length">
             <div class="h-full rounded-full bg-[#407EC9]" :style="{ width: `${store.pillars.length ? (completedSteps / store.pillars.length) * 100 : 0}%` }"></div>
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-4">
             <router-link :to="`/research/${store.report.sessionId}`" class="button-secondary">Buka riset</router-link>
-            <span class="inline-flex items-center gap-1.5 text-xs text-slate-500"><Clock3 class="h-3.5 w-3.5" /> Diperbarui {{ store.report.timestamp }}</span>
           </div>
+          <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mt-4" />
         </article>
 
         <article class="rounded-2xl bg-[#2F64A8] p-6 text-white shadow-[0_18px_45px_-25px_rgba(64,126,201,0.9)]">
@@ -143,9 +233,10 @@ const removeSession = (id: string) => {
         </div>
         <router-link :to="`/research/${store.report.sessionId}/screener`" class="text-link hidden sm:inline-flex">Lihat semua kandidat <ArrowRight class="h-4 w-4" /></router-link>
       </div>
-      <div class="grid gap-4 lg:grid-cols-3">
-        <CandidateCard v-for="candidate in store.candidates.slice(0, 3)" :key="candidate.symbol" :candidate="candidate" />
-      </div>
+       <div class="grid gap-4 lg:grid-cols-3">
+         <CandidateCard v-for="candidate in store.candidates.slice(0, 3)" :key="candidate.symbol" :candidate="candidate" />
+       </div>
+       <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mt-4" />
     </section>
 
     <section v-if="store.recentSessions.length" id="recent-sessions-title" aria-labelledby="recent-sessions-heading">

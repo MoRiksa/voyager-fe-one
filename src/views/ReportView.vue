@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
+import DataProvenance from '../components/DataProvenance.vue'
 import { 
   FileText, 
   Download, 
@@ -34,17 +35,31 @@ const activeSection = ref('summary')
 const selectedTicker = ref<string>(store.candidates[0]?.symbol || '')
 const copySuccess = ref(false)
 const copyError = ref('')
+const exportBusy = ref('')
+const exportError = ref('')
 const reportSections = [
   { id: 'summary', label: 'Ringkasan' },
+  { id: 'scope', label: 'Ruang lingkup' },
   { id: 'ranking', label: 'Ranking' },
   { id: 'candidates', label: 'Kandidat' },
-  { id: 'risks', label: 'Risiko' }
+  { id: 'peers', label: 'Pembanding' },
+  { id: 'evidence', label: 'Bukti & metode' },
+  { id: 'uncertainty', label: 'Ketidakpastian' }
 ]
+const reportTabs = ref<HTMLButtonElement[]>([])
 
 const activeCandidate = computed(() => {
   return store.candidates.find(c => c.symbol === selectedTicker.value) || store.candidates[0]
 })
 const analyticalHighlights = computed(() => store.candidates.slice(0, 3))
+const hasReportData = computed(() => store.screeningFunnel.length > 0 || store.candidates.length > 0)
+const compactSource = (source: string) => source.startsWith('Derived')
+  ? `Turunan · ${source.split('/').pop()}`
+  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
+const evidenceSources = computed(() => [...new Set(store.candidates.flatMap(candidate => candidate.evidenceCitations.map(citation => compactSource(citation.source))).filter(Boolean))])
+const financialPeriods = computed(() => [...new Set(store.candidates.map(candidate => candidate.financialPeriod).filter(Boolean))].join(', '))
+const priceDates = computed(() => [...new Set(store.candidates.map(candidate => candidate.priceAsOf).filter(Boolean))].join(', '))
+const evidenceTiming = (citation: { period?: string; asOf?: string }) => [citation.period && `Periode: ${citation.period}`, citation.asOf && `Per tanggal: ${citation.asOf}`].filter(Boolean).join(' | ')
 watch(() => store.report.sessionId, () => {
   selectedTicker.value = store.candidates[0]?.symbol || ''
   activeSection.value = 'summary'
@@ -55,13 +70,39 @@ const inspectCandidate = (symbol: string) => {
   activeSection.value = 'candidates'
 }
 
-const handlePrint = () => {
-  window.print()
+const handleTabKeydown = (event: KeyboardEvent, index: number) => {
+  let nextIndex: number | undefined
+  if (event.key === 'ArrowRight') nextIndex = (index + 1) % reportSections.length
+  else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + reportSections.length) % reportSections.length
+  else if (event.key === 'Home') nextIndex = 0
+  else if (event.key === 'End') nextIndex = reportSections.length - 1
+  if (nextIndex === undefined) return
+
+  event.preventDefault()
+  activeSection.value = reportSections[nextIndex].id
+  nextTick(() => reportTabs.value[nextIndex!]?.focus())
+}
+
+const handlePrint = async () => {
+  exportBusy.value = 'PDF'
+  exportError.value = ''
+  try {
+    viewMode.value = 'document'
+    await nextTick()
+    window.print()
+  } catch {
+    exportError.value = 'Laporan tidak dapat dibuka untuk dicetak. Coba lagi dari menu browser.'
+  } finally {
+    exportBusy.value = ''
+  }
 }
 
 const handleCopySummary = async () => {
   const summaryText = `VOYAGER ONE — RINGKASAN RISET
-Sesi: ${store.report.sessionId} | ${store.report.timestamp}
+Sesi: ${store.report.sessionId}
+Periode keuangan: ${financialPeriods.value || 'Tidak tersedia'}
+Harga per tanggal: ${priceDates.value || 'Tidak tersedia'}
+Laporan dibuat: ${store.report.timestamp}
 Tujuan: ${store.report.objective}
 
 KANDIDAT TERATAS:
@@ -75,6 +116,9 @@ ${store.report.peerComparisonNotes}
 
 KETERBATASAN:
 ${store.report.limitations.map(l => `- ${l}`).join('\n')}
+
+KETIDAKPASTIAN DAN PROVENANCE:
+${store.report.uncertaintyNotes}
 `
   try {
     await navigator.clipboard.writeText(summaryText)
@@ -88,10 +132,16 @@ ${store.report.limitations.map(l => `- ${l}`).join('\n')}
   }
 }
 
-const handleExportMarkdown = () => {
-  const content = `# Laporan Riset Finansial — Voyager One
+const handleExportMarkdown = async () => {
+  exportBusy.value = 'Markdown'
+  exportError.value = ''
+  await nextTick()
+  try {
+    const content = `# Laporan Riset Finansial — Voyager One
 **ID sesi:** ${store.report.sessionId}
 **Dibuat pada:** ${store.report.timestamp}
+**Periode keuangan:** ${financialPeriods.value || 'Tidak tersedia'}
+**Harga per tanggal:** ${priceDates.value || 'Tidak tersedia'}
 **Ruang lingkup:** ${store.report.universeSummary}
 **Sumber data:** Prototype fixture v1 (${store.screeningFunnel[0]?.retainedSymbols.join(', ') || 'tidak ada'})
 **Status:** ${store.status === 'COMPLETED' ? 'Selesai' : 'Hasil parsial'}
@@ -131,7 +181,7 @@ ${c.keyStrengths.map(s => `- ${s}`).join('\n')}
 ${c.potentialConcerns.map(r => `- ${r}`).join('\n')}
 
 #### Data pendukung:
-${c.evidenceCitations.map(e => `- **${e.metric}**: ${e.value} (Source: \`${e.source}\`) — ${e.context}`).join('\n')}
+${c.evidenceCitations.map(e => `- **${e.metric}**: ${e.value} (Sumber: \`${compactSource(e.source)}\`)${evidenceTiming(e) ? ` — ${evidenceTiming(e)}` : ''} — ${e.context}`).join('\n')}
 `).join('\n---\n\n')}
 
 ---
@@ -143,6 +193,13 @@ ${store.report.peerComparisonNotes}
 
 ## Keterbatasan dan ketidakpastian
 ${store.report.limitations.map(l => `- ${l}`).join('\n')}
+
+**Catatan ketidakpastian:** ${store.report.uncertaintyNotes}
+
+## Bukti dan provenance
+- **Dataset:** prototype-fixture-v1
+- **Dihasilkan:** ${store.report.timestamp}
+- **Sumber bukti:** ${evidenceSources.value.join(', ') || 'Tidak tersedia'}
 
 ---
 
@@ -157,18 +214,31 @@ ${store.report.disclaimer}
   link.click()
   URL.revokeObjectURL(url)
   store.notify('Laporan Markdown berhasil diunduh.', 'success')
+  } catch {
+    exportError.value = 'Laporan Markdown tidak dapat diunduh.'
+    store.notify(exportError.value, 'error')
+  } finally {
+    exportBusy.value = ''
+  }
 }
 
-const handleExportJson = () => {
-  const content = JSON.stringify({
+const handleExportJson = async () => {
+  exportBusy.value = 'JSON'
+  exportError.value = ''
+  await nextTick()
+  try {
+    const content = JSON.stringify({
     report: store.report,
     screeningFunnel: store.screeningFunnel,
     auditEvents: store.toolCalls,
-    provenance: {
-      sourceKind: 'prototype-fixture',
-      datasetId: 'prototype-fixture-v1',
-      inputSymbols: store.screeningFunnel[0]?.retainedSymbols || []
-    }
+     provenance: {
+       sourceKind: 'prototype-fixture',
+       datasetId: 'prototype-fixture-v1',
+       inputSymbols: store.screeningFunnel[0]?.retainedSymbols || [],
+       financialPeriods: financialPeriods.value ? financialPeriods.value.split(', ') : [],
+       priceAsOf: priceDates.value ? priceDates.value.split(', ') : [],
+       generatedAt: store.report.timestamp
+     }
   }, null, 2)
   const blob = new Blob([content], { type: 'application/json;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
@@ -178,6 +248,12 @@ const handleExportJson = () => {
   link.click()
   URL.revokeObjectURL(url)
   store.notify('Data laporan JSON berhasil diunduh.', 'success')
+  } catch {
+    exportError.value = 'Data JSON tidak dapat diunduh.'
+    store.notify(exportError.value, 'error')
+  } finally {
+    exportBusy.value = ''
+  }
 }
 
 const useAsTemplate = async () => {
@@ -188,7 +264,7 @@ const useAsTemplate = async () => {
 
 <template>
   <div class="page-shell space-y-7">
-    <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center print:hidden">
+    <section v-if="!hasReportData" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center print:hidden">
       <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Laporan belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Laporan tidak berhasil diselesaikan' : 'Laporan sedang disusun' }}</h1>
@@ -196,6 +272,7 @@ const useAsTemplate = async () => {
       <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
     </section>
     <template v-else>
+    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border p-4 text-sm print:border-slate-400 print:bg-white print:text-slate-900" :class="store.status === 'FAILED' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-amber-200 bg-amber-50 text-amber-900'"><strong>{{ store.status === 'FAILED' ? 'Laporan gagal sebelum selesai.' : 'Laporan ini masih parsial.' }}</strong> Bagian yang tersedia tetap ditampilkan; cakupan, ranking, dan kesimpulan dapat berubah.</section>
     <!-- Top Action & View Switcher Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm print:hidden">
       <!-- Left: Session Context -->
@@ -254,35 +331,20 @@ const useAsTemplate = async () => {
         <!-- Print PDF -->
         <button
           @click="handlePrint"
-          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
+          :disabled="Boolean(exportBusy)"
+          class="button-compact bg-[#2F64A8] text-white hover:bg-[#244F87] disabled:cursor-wait disabled:opacity-60"
         >
           <Printer class="w-3.5 h-3.5" />
-           <span>Unduh laporan</span>
+           <span>{{ exportBusy === 'PDF' ? 'Menyiapkan…' : 'Unduh laporan' }}</span>
         </button>
 
-        <!-- Export Markdown -->
-        <button
-          @click="handleExportMarkdown"
-          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
-        >
-          <Download class="w-3.5 h-3.5" />
-          <span>Markdown</span>
-        </button>
-
-        <!-- Export JSON -->
-        <button
-          @click="handleExportJson"
-          class="button-compact bg-[#2F64A8] text-white hover:bg-[#244F87]"
-        >
-          <Download class="w-3.5 h-3.5" />
-          <span>JSON</span>
-        </button>
+        <details class="relative"><summary class="button-compact cursor-pointer list-none bg-slate-100 text-slate-700 hover:bg-slate-200"><Download class="h-3.5 w-3.5" /> Format lain</summary><div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportMarkdown">{{ exportBusy === 'Markdown' ? 'Menyiapkan…' : 'Markdown' }}</button><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportJson">{{ exportBusy === 'JSON' ? 'Menyiapkan…' : 'JSON' }}</button></div></details>
       </div>
-      <p v-if="copyError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError }}</p>
+      <p v-if="copyError || exportError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError || exportError }}</p>
     </div>
 
-    <nav v-if="viewMode === 'interactive'" class="sticky top-16 z-10 hidden items-center gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur-md sm:flex print:hidden" aria-label="Bagian laporan" role="tablist">
-      <button v-for="section in reportSections" :id="`report-tab-${section.id}`" :key="section.id" type="button" role="tab" :aria-selected="activeSection === section.id" :aria-controls="`report-panel-${section.id}`" class="min-h-10 rounded-lg px-4 text-xs font-bold transition-colors" :class="activeSection === section.id ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'" @click="activeSection = section.id">{{ section.label }}</button>
+    <nav v-if="viewMode === 'interactive'" class="sticky top-16 z-10 hidden items-center gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-sm backdrop-blur-md sm:flex print:hidden" aria-label="Bagian laporan" role="tablist">
+      <button v-for="(section, index) in reportSections" :id="`report-tab-${section.id}`" :key="section.id" :ref="element => { if (element) reportTabs[index] = element as HTMLButtonElement }" type="button" role="tab" :tabindex="activeSection === section.id ? 0 : -1" :aria-selected="activeSection === section.id" :aria-controls="`report-panel-${section.id}`" class="min-h-10 rounded-lg px-4 text-xs font-bold transition-colors" :class="activeSection === section.id ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'" @click="activeSection = section.id" @keydown="handleTabKeydown($event, index)">{{ section.label }}</button>
     </nav>
     <label v-if="viewMode === 'interactive'" class="block text-xs font-bold text-slate-700 sm:hidden print:hidden">Tampilkan bagian
       <select v-model="activeSection" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm">
@@ -350,6 +412,12 @@ const useAsTemplate = async () => {
           </div>
         </div>
       </div>
+
+      <section v-if="activeSection === 'scope'" id="report-panel-scope" role="tabpanel" aria-labelledby="report-tab-scope" class="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div><p class="section-kicker">Mandat riset</p><h2 class="mt-1 text-xl font-bold text-slate-950">Ruang lingkup dan aturan seleksi</h2></div>
+        <dl class="grid gap-4 text-sm sm:grid-cols-2"><div class="rounded-xl bg-slate-50 p-4"><dt class="text-xs font-bold text-slate-500">Tujuan</dt><dd class="mt-2 leading-6 text-slate-800">{{ store.report.objective }}</dd></div><div class="rounded-xl bg-slate-50 p-4"><dt class="text-xs font-bold text-slate-500">Semesta data</dt><dd class="mt-2 leading-6 text-slate-800">{{ store.report.universeSummary }}</dd></div></dl>
+        <div><h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Kriteria yang diterapkan</h3><ol class="mt-3 space-y-2 text-sm text-slate-700"><li v-for="(criterion, index) in store.activePlan.criteria" :key="criterion" class="rounded-lg border border-slate-200 px-3 py-2"><span class="mr-2 font-mono font-bold text-[#2F64A8]">{{ index + 1 }}.</span>{{ criterion }}</li></ol></div>
+      </section>
 
       <!-- 2. Master Comparison Matrix Table (Institutional Bloomberg Style) -->
       <div v-if="activeSection === 'ranking'" id="report-panel-ranking" role="tabpanel" aria-labelledby="report-tab-ranking" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
@@ -560,7 +628,7 @@ const useAsTemplate = async () => {
 
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
                 <div class="flex justify-between text-xs">
-                  <span class="text-slate-600 font-medium">Solvency & Debt Health (20% Weight)</span>
+                  <span class="text-slate-600 font-medium">Solvabilitas dan kesehatan utang · bobot 20%</span>
                   <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.solvency }}/100</span>
                 </div>
                 <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -570,7 +638,7 @@ const useAsTemplate = async () => {
 
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
                 <div class="flex justify-between text-xs">
-                  <span class="text-slate-600 font-medium">Valuation Multiple (20% Weight)</span>
+                  <span class="text-slate-600 font-medium">Valuasi relatif · bobot 20%</span>
                   <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.valuation }}/100</span>
                 </div>
                 <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -580,7 +648,7 @@ const useAsTemplate = async () => {
 
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
                 <div class="flex justify-between text-xs">
-                  <span class="text-slate-600 font-medium">Growth Consistency (25% Weight)</span>
+                  <span class="text-slate-600 font-medium">Pertumbuhan · bobot 25%</span>
                   <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.growth }}/100</span>
                 </div>
                 <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -596,7 +664,7 @@ const useAsTemplate = async () => {
               Alasan pemilihan dan risiko
             </h4>
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 leading-relaxed">
-              <strong>Core Thesis:</strong> {{ activeCandidate.whySelected }}
+              <strong>Inti tesis:</strong> {{ activeCandidate.whySelected }}
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -604,7 +672,7 @@ const useAsTemplate = async () => {
               <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/70 space-y-2">
                 <span class="text-xs font-bold text-emerald-900 uppercase font-mono flex items-center gap-1.5">
                   <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
-                  Key Competitive Advantages (Moat)
+                  Keunggulan kompetitif utama
                 </span>
                 <ul class="space-y-1.5 text-xs text-slate-700">
                   <li v-for="(s, idx) in activeCandidate.keyStrengths" :key="idx" class="flex items-start gap-1.5">
@@ -618,7 +686,7 @@ const useAsTemplate = async () => {
               <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 space-y-2">
                 <span class="text-xs font-bold text-amber-900 uppercase font-mono flex items-center gap-1.5">
                   <AlertTriangle class="w-3.5 h-3.5 text-amber-600" />
-                  Potential Downside & Watch Items
+                  Risiko dan hal yang perlu dipantau
                 </span>
                 <ul class="space-y-1.5 text-xs text-slate-700">
                   <li v-for="(c, idx) in activeCandidate.potentialConcerns" :key="idx" class="flex items-start gap-1.5">
@@ -645,9 +713,11 @@ const useAsTemplate = async () => {
                   <div class="font-bold text-slate-800">{{ citation.metric }}: <span class="text-[#2F64A8]">{{ citation.value }}</span></div>
                   <div class="text-[10px] text-slate-500 font-sans mt-0.5">{{ citation.context }}</div>
                 </div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono shrink-0">
-                  {{ citation.source }}
-                </span>
+                <div class="shrink-0 text-right">
+                  <span class="block rounded bg-slate-200 px-1.5 py-0.5 text-[10px] text-slate-700" :title="citation.source">{{ compactSource(citation.source) }}</span>
+                  <span v-if="citation.period" class="mt-1 block text-[10px] text-slate-500">Periode: {{ citation.period }}</span>
+                  <span v-if="citation.asOf" class="mt-1 block text-[10px] text-slate-500">Per tanggal: {{ citation.asOf }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -656,20 +726,27 @@ const useAsTemplate = async () => {
       <div v-else-if="activeSection === 'candidates'" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.</p></div>
 
       <!-- 4. Macro & Comparative Peer Notes -->
-      <div v-if="activeSection === 'risks'" id="report-panel-risks" role="tabpanel" aria-labelledby="report-tab-risks" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
+      <div v-if="activeSection === 'peers'" id="report-panel-peers" role="tabpanel" aria-labelledby="report-tab-peers" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
-          Ringkasan lintas sektor
+          Konteks pembanding
         </h3>
         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
           {{ store.report.peerComparisonNotes }}
         </p>
       </div>
 
+      <section v-if="activeSection === 'evidence'" id="report-panel-evidence" role="tabpanel" aria-labelledby="report-tab-evidence" class="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div><p class="section-kicker">Jejak analisis</p><h2 class="mt-1 text-xl font-bold text-slate-950">Bukti dan metodologi</h2><p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{{ store.report.methodologyOverview }}</p></div>
+        <div class="grid gap-3 sm:grid-cols-2"><article v-for="candidate in store.candidates" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4"><h3 class="font-mono text-sm font-bold text-slate-900">{{ candidate.symbol }}</h3><ul class="mt-3 space-y-2 text-xs text-slate-600"><li v-for="citation in candidate.evidenceCitations" :key="`${citation.source}-${citation.metric}`"><strong class="text-slate-800">{{ citation.metric }}: {{ citation.value }}</strong><span class="block">{{ citation.context }}</span><span class="block font-mono text-[10px] text-slate-500" :title="citation.source">{{ compactSource(citation.source) }}</span><span v-if="citation.period" class="block text-[10px] text-slate-500">Periode: {{ citation.period }}</span><span v-if="citation.asOf" class="block text-[10px] text-slate-500">Per tanggal: {{ citation.asOf }}</span></li></ul></article></div>
+        <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :financial-period="financialPeriods || undefined" :price-as-of="priceDates || undefined" :generated-at="store.report.timestamp" />
+      </section>
+
       <!-- 5. Limitations & Regulatory Disclaimer -->
-      <div v-if="activeSection === 'risks'" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
+      <div v-if="activeSection === 'uncertainty'" id="report-panel-uncertainty" role="tabpanel" aria-labelledby="report-tab-uncertainty" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
-          Keterbatasan dan pemberitahuan penggunaan
+          Ketidakpastian, keterbatasan, dan provenance
         </h3>
+        <p class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">{{ store.report.uncertaintyNotes }}</p>
         <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5">
           <li v-for="(limitation, idx) in store.report.limitations" :key="idx">
             {{ limitation }}
@@ -679,6 +756,7 @@ const useAsTemplate = async () => {
         <div class="mt-4 p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] text-slate-500 leading-relaxed">
           <strong>Pemberitahuan:</strong> {{ store.report.disclaimer }}
         </div>
+        <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :financial-period="financialPeriods || undefined" :price-as-of="priceDates || undefined" :generated-at="store.report.timestamp" />
       </div>
 
       <section data-testid="report-next" class="grid gap-5 rounded-2xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center print:hidden">
@@ -695,52 +773,54 @@ const useAsTemplate = async () => {
       <div class="border-b-2 border-slate-900 pb-6 flex items-start justify-between gap-4">
         <div>
           <div class="text-[11px] font-mono font-bold uppercase text-slate-500 tracking-wider">
-            Sectors Hackathon 2026 • AI Autonomous Research Agent
+            Laporan riset pasar modal Indonesia
           </div>
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1">
-            Indonesian Equities Research Memorandum
+            Memorandum riset saham Indonesia
           </h1>
           <p class="text-xs text-slate-600 font-mono mt-1">
-            Session ID: {{ store.report.sessionId }} • Generated: {{ store.report.timestamp }}
+             ID sesi: {{ store.report.sessionId }} • Dibuat: {{ store.report.timestamp }}
           </p>
         </div>
 
         <div class="text-right font-mono text-xs text-slate-500 shrink-0">
           <div class="font-bold text-slate-900">VOYAGER.ONE</div>
-          <div>Derived Intelligence Engine</div>
+          <div>Mesin analisis turunan</div>
         </div>
       </div>
 
       <!-- Objective Statement -->
       <div class="space-y-2">
-        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">1. Mandate & Objective</h2>
+        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">1. Mandat, tujuan, dan ruang lingkup</h2>
         <div class="p-3 bg-slate-50 border-l-4 border-[#407EC9] text-xs italic text-slate-800">
           "{{ store.report.objective }}"
         </div>
         <p class="text-xs text-slate-600 leading-relaxed">
           {{ store.report.methodologyOverview }}
         </p>
+        <p class="text-xs text-slate-600"><strong>Ruang lingkup:</strong> {{ store.report.universeSummary }}</p>
       </div>
 
       <!-- Recommendation Table -->
       <div class="space-y-2">
-        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">2. Cross-Sectional Ranking Matrix</h2>
-        <table class="w-full text-left text-xs border border-slate-300 border-collapse">
+        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">2. Matriks peringkat lintas kandidat</h2>
+         <table class="w-full text-left text-xs border border-slate-300 border-collapse">
+          <caption class="sr-only">Matriks peringkat kandidat berdasarkan skor dan metrik keuangan utama</caption>
           <thead>
             <tr class="bg-slate-100 border-b border-slate-300 font-mono text-[11px]">
-              <th class="p-2 border-r border-slate-300">#</th>
-              <th class="p-2 border-r border-slate-300">Ticker</th>
-              <th class="p-2 border-r border-slate-300">Company</th>
-              <th class="p-2 border-r border-slate-300 text-center">Score</th>
-              <th class="p-2 border-r border-slate-300 text-right">ROE</th>
-              <th class="p-2 border-r border-slate-300 text-right">P/E</th>
-              <th class="p-2 border-r border-slate-300 text-right">D/E</th>
-              <th class="p-2 text-right">FCF Yield</th>
+              <th scope="col" class="p-2 border-r border-slate-300">#</th>
+              <th scope="col" class="p-2 border-r border-slate-300">Kode saham</th>
+              <th scope="col" class="p-2 border-r border-slate-300">Perusahaan</th>
+              <th scope="col" class="p-2 border-r border-slate-300 text-center">Skor</th>
+              <th scope="col" class="p-2 border-r border-slate-300 text-right">ROE</th>
+              <th scope="col" class="p-2 border-r border-slate-300 text-right">P/E</th>
+              <th scope="col" class="p-2 border-r border-slate-300 text-right">D/E</th>
+              <th scope="col" class="p-2 text-right">Imbal hasil FCF</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono">
             <tr v-for="c in store.candidates" :key="c.symbol">
-              <td class="p-2 border-r border-slate-200 font-bold">#{{ c.rank }}</td>
+              <th scope="row" class="p-2 border-r border-slate-200 font-bold">#{{ c.rank }}</th>
               <td class="p-2 border-r border-slate-200 font-bold text-[#2F64A8]">{{ c.symbol }}</td>
               <td class="p-2 border-r border-slate-200 font-sans">{{ c.name }}</td>
               <td class="p-2 border-r border-slate-200 text-center font-bold">{{ c.qualityScore }}/100</td>
@@ -756,31 +836,31 @@ const useAsTemplate = async () => {
 
       <!-- Candidate Profiles (Clean Print Layout) -->
       <div class="space-y-4">
-        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">3. Candidate Theses & DuPont Analysis</h2>
+        <h2 class="text-xs font-bold font-mono uppercase text-slate-900 tracking-wider">3. Tesis kandidat dan analisis DuPont</h2>
         
         <div v-for="c in store.candidates" :key="c.symbol" class="p-4 border border-slate-200 rounded-lg space-y-2 text-xs">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
             <div class="font-bold text-slate-900 font-mono text-sm">
               #{{ c.rank }} {{ c.symbol }} — {{ c.name }} ({{ c.subsector }})
             </div>
-            <span class="font-mono font-bold text-slate-900">Score: {{ c.qualityScore }}/100</span>
+            <span class="font-mono font-bold text-slate-900">Skor: {{ c.qualityScore }}/100</span>
           </div>
 
           <p class="text-slate-700 leading-relaxed">{{ c.whySelected }}</p>
 
           <div class="p-2 bg-slate-50 font-mono text-[11px] text-slate-700 rounded border border-slate-200">
-            <strong>DuPont ROE ({{ c.roePercent }}%):</strong> Net Margin {{ c.dupontAnalysis.netProfitMargin }}% × Asset Turnover {{ c.dupontAnalysis.assetTurnover }}x × Leverage {{ c.dupontAnalysis.equityMultiplier }}x.
+            <strong>ROE DuPont ({{ c.roePercent }}%):</strong> Margin laba {{ c.dupontAnalysis.netProfitMargin }}% × Perputaran aset {{ c.dupontAnalysis.assetTurnover }}x × Leverage {{ c.dupontAnalysis.equityMultiplier }}x.
           </div>
 
           <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
             <div>
-              <strong class="text-emerald-800">Strengths:</strong>
+              <strong class="text-emerald-800">Kekuatan:</strong>
               <ul class="list-disc pl-4 text-slate-600">
                 <li v-for="(s, idx) in c.keyStrengths" :key="idx">{{ s }}</li>
               </ul>
             </div>
             <div>
-              <strong class="text-amber-800">Risks:</strong>
+              <strong class="text-amber-800">Risiko:</strong>
               <ul class="list-disc pl-4 text-slate-600">
                 <li v-for="(r, idx) in c.potentialConcerns" :key="idx">{{ r }}</li>
               </ul>
@@ -789,10 +869,18 @@ const useAsTemplate = async () => {
         </div>
       </div>
 
-      <!-- Limitations & Sign-off -->
-      <div class="pt-4 border-t border-slate-300 space-y-2 text-xs text-slate-500">
-        <h2 class="font-bold font-mono uppercase text-slate-700 text-[11px]">4. Disclaimers & Regulatory Notice</h2>
-        <p>{{ store.report.disclaimer }}</p>
+      <div class="space-y-3 border-t border-slate-300 pt-4 text-xs text-slate-600">
+        <h2 class="font-bold font-mono uppercase text-slate-700 text-[11px]">4. Bukti, metodologi, dan asal-usul data</h2>
+        <p>{{ store.report.methodologyOverview }}</p>
+        <div v-for="c in store.candidates" :key="`evidence-${c.symbol}`"><strong>{{ c.symbol }}:</strong><ul class="mt-1 list-disc pl-4"><li v-for="citation in c.evidenceCitations" :key="`${c.symbol}-${citation.metric}`">{{ citation.metric }}: {{ citation.value }}. {{ citation.context }} Sumber: {{ compactSource(citation.source) }}<template v-if="citation.period">. Periode: {{ citation.period }}</template><template v-if="citation.asOf">. Per tanggal: {{ citation.asOf }}</template></li></ul></div>
+        <p><strong>Sumber data:</strong> prototype-fixture-v1 dan metrik turunan sesi. <strong>Periode keuangan:</strong> {{ financialPeriods || 'tidak tersedia' }}. <strong>Harga per tanggal:</strong> {{ priceDates || 'tidak tersedia' }}. <strong>Laporan dibuat:</strong> {{ store.report.timestamp }}.</p>
+      </div>
+
+      <div class="space-y-3 border-t border-slate-300 pt-4 text-xs text-slate-600">
+        <h2 class="font-bold font-mono uppercase text-slate-700 text-[11px]">5. Ketidakpastian, keterbatasan, dan pemberitahuan</h2>
+        <p><strong>Ketidakpastian:</strong> {{ store.report.uncertaintyNotes }}</p>
+        <ul class="list-disc space-y-1 pl-4"><li v-for="limitation in store.report.limitations" :key="limitation">{{ limitation }}</li></ul>
+        <p><strong>Pemberitahuan:</strong> {{ store.report.disclaimer }}</p>
       </div>
     </div>
     </template>

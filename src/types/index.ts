@@ -9,6 +9,9 @@ export type AgentStatus =
   | 'COMPARING' 
   | 'VALIDATING' 
   | 'REPORTING' 
+  | 'NEEDS_INPUT'
+  | 'PARTIAL'
+  | 'CANCELLED'
   | 'COMPLETED' 
   | 'FAILED'
 
@@ -32,6 +35,17 @@ export interface ResearchObjectivePreset {
   universe: string
   expectedCandidates: number
   tags: string[]
+}
+
+export interface ResearchBrief {
+  market: 'IDX' | 'SGX'
+  sectorScope: string
+  indexScope: string
+  candidateCount: number
+  researchDepth: 'Ringkas' | 'Standar' | 'Mendalam'
+  useSectorMetrics: boolean
+  optionalDimensions: string[]
+  clarificationNotes: string[]
 }
 
 export interface ResearchPlan {
@@ -79,6 +93,18 @@ export interface DuPontAnalysis {
   calculatedRoe: number   // %
 }
 
+export interface CandidatePresentationItem {
+  label: string
+  value: string
+  detail?: string
+}
+
+export interface CandidateTrend {
+  label: string
+  period?: string
+  value: number
+}
+
 export interface CandidateCompany {
   symbol: string
   name: string
@@ -113,9 +139,23 @@ export interface CandidateCompany {
     metric: string
     value: string
     context: string
+    asOf?: string
+    period?: string
   }[]
   dupontAnalysis: DuPontAnalysis
   peerRankInMemory: string
+
+  // Optional API-backed presentation data
+  priceAsOf?: string
+  financialPeriod?: string
+  indexMembership?: string[]
+  listingPerformance?: CandidatePresentationItem[]
+  forwardEstimates?: CandidatePresentationItem[]
+  segments?: CandidatePresentationItem[]
+  esg?: CandidatePresentationItem[]
+  ownershipManagement?: CandidatePresentationItem[]
+  dividendHistory?: CandidatePresentationItem[]
+  trends?: CandidateTrend[]
 }
 
 export interface ScreeningFunnelStep {
@@ -146,7 +186,9 @@ export interface ResearchSession {
   updatedAt: string
   objective: string
   presetId: string
-  status: AgentStatus | 'PARTIAL'
+  brief: ResearchBrief
+  status: AgentStatus
+  clarificationReturnStatus: AgentStatus
   plan: ResearchPlan
   pillars: PillarStep[]
   toolCalls: ToolCallLog[]

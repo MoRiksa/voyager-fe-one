@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
+import DataProvenance from './DataProvenance.vue'
 import { 
   X, 
   Award, 
@@ -20,8 +21,55 @@ import {
 
 const store = useResearchStore()
 const candidate = computed(() => store.selectedCompany)
+const modalRootRef = ref<HTMLElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
 let previousFocus: HTMLElement | null = null
+let inertedElements: HTMLElement[] = []
+
+type InertEntry = { count: number; wasInert: boolean }
+const globalState = globalThis as typeof globalThis & {
+  __voyagerModalInertRegistry?: Map<HTMLElement, InertEntry>
+}
+const inertRegistry = globalState.__voyagerModalInertRegistry ??= new Map<HTMLElement, InertEntry>()
+
+const restoreBackgroundInert = () => {
+  for (const element of inertedElements) {
+    const entry = inertRegistry.get(element)
+    if (!entry) continue
+
+    if (entry.count === 1) {
+      element.inert = entry.wasInert
+      inertRegistry.delete(element)
+    } else {
+      entry.count--
+    }
+  }
+  inertedElements = []
+}
+
+const setBackgroundInert = () => {
+  restoreBackgroundInert()
+  const modalRoot = modalRootRef.value
+  const parent = modalRoot?.parentElement
+  if (!modalRoot || !parent) return
+
+  inertedElements = Array.from(parent.children).filter(
+    (element): element is HTMLElement => element instanceof HTMLElement && element !== modalRoot,
+  )
+  for (const element of inertedElements) {
+    const entry = inertRegistry.get(element)
+    if (entry) {
+      entry.count++
+    } else {
+      inertRegistry.set(element, { count: 1, wasInert: element.inert })
+      element.inert = true
+    }
+  }
+}
+
+const compactSource = (source: string) => source.startsWith('Derived')
+  ? `Turunan · ${source.split('/').pop()}`
+  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
 
 const handleClose = () => {
   store.closeCandidateModal()
@@ -51,8 +99,10 @@ watch(() => store.isDetailModalOpen, async (isOpen) => {
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeydown)
     await nextTick()
+    setBackgroundInert()
     dialogRef.value?.focus()
   } else {
+    restoreBackgroundInert()
     document.body.style.overflow = ''
     window.removeEventListener('keydown', handleKeydown)
     previousFocus?.focus()
@@ -60,13 +110,15 @@ watch(() => store.isDetailModalOpen, async (isOpen) => {
 })
 
 onBeforeUnmount(() => {
+  restoreBackgroundInert()
   document.body.style.overflow = ''
   window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
 <template>
-  <div 
+  <div
+    ref="modalRootRef"
     v-if="store.isDetailModalOpen && candidate"
     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs"
     @click.self="handleClose"
@@ -117,6 +169,8 @@ onBeforeUnmount(() => {
       <!-- Modal Body (Scrollable) -->
       <div class="p-6 sm:p-8 overflow-y-auto space-y-6">
         <!-- 1. Executive Thesis Strip -->
+        <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :financial-period="candidate.financialPeriod" :price-as-of="candidate.priceAsOf" :generated-at="store.report.timestamp" compact />
+
         <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20">
           <h4 class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] mb-1.5 flex items-center gap-1.5">
             <ShieldCheck class="w-4 h-4" />
@@ -233,7 +287,7 @@ onBeforeUnmount(() => {
 
             <!-- Stage 3: Equity Multiplier -->
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-              <span class="text-xs text-slate-500 font-medium">Equity Multiplier</span>
+              <span class="text-xs text-slate-500 font-medium">Pengali Ekuitas</span>
               <p class="text-xl font-mono font-bold text-slate-900 mt-1">{{ candidate.dupontAnalysis.equityMultiplier }}x</p>
               <span class="text-xs text-slate-500">Pengaruh leverage ke pengembalian modal</span>
             </div>
@@ -302,9 +356,11 @@ onBeforeUnmount(() => {
                 <span class="font-mono font-bold text-[#2F64A8]">{{ evidence.value }}</span>
                 <p class="mt-1 text-xs text-slate-500">{{ evidence.context }}</p>
               </div>
-              <span class="shrink-0 self-start rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-mono text-slate-600 sm:self-center">
-                {{ evidence.source }}
-              </span>
+              <div class="shrink-0 self-start text-left sm:self-center sm:text-right">
+                <span class="block rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-mono text-slate-600" :title="evidence.source">{{ compactSource(evidence.source) }}</span>
+                <span v-if="evidence.period" class="mt-1 block text-[10px] text-slate-500">Periode: <span class="font-mono">{{ evidence.period }}</span></span>
+                <span v-if="evidence.asOf" class="mt-1 block text-[10px] text-slate-500">Per tanggal: <span class="font-mono">{{ evidence.asOf }}</span></span>
+              </div>
             </div>
           </div>
         </div>

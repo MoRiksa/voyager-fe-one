@@ -85,7 +85,7 @@ const store = useResearchStore()
         <div class="text-[11px] text-slate-600 pt-2 border-t border-[#407EC9]/20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-sans">
           <div>
             <strong class="text-slate-900 block">Profitabilitas (25%)</strong>
-            ROE, ROA, serta margin dibanding sektor.
+            ROE, ROA, dan margin dari nilai fixture; belum dinormalisasi terhadap sektor.
           </div>
           <div>
             <strong class="text-slate-900 block">Pertumbuhan (25%)</strong>
@@ -97,7 +97,7 @@ const store = useResearchStore()
           </div>
           <div>
             <strong class="text-slate-900 block">Valuasi (20%)</strong>
-            P/E, P/BV, dan EV/EBITDA relatif terhadap pembanding.
+            P/E, P/BV, dan EV/EBITDA berdasarkan nilai fixture dan ambang absolut.
           </div>
           <div>
             <strong class="text-slate-900 block">Konsistensi (10%)</strong>
@@ -110,7 +110,7 @@ const store = useResearchStore()
         <div v-for="band in [{ range: '90-100', label: 'Sangat kuat', text: 'Profil menonjol dalam ruang lingkup yang dievaluasi.' }, { range: '80-89', label: 'Kuat', text: 'Fundamental baik dengan tradeoff yang perlu diperiksa.' }, { range: '70-79', label: 'Campuran', text: 'Memerlukan analisis tambahan sebelum diprioritaskan.' }, { range: '<70', label: 'Tidak diprioritaskan', text: 'Tidak memenuhi kombinasi kriteria sesi saat ini.' }]" :key="band.range" class="rounded-xl border border-slate-200 p-4"><span class="font-mono text-sm font-bold text-[#2F64A8]">{{ band.range }}</span><h3 class="mt-2 text-sm font-bold text-slate-900">{{ band.label }}</h3><p class="mt-1 text-xs leading-5 text-slate-500">{{ band.text }}</p></div>
       </div>
       <p class="rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-950">Skor digunakan untuk memprioritaskan riset, bukan untuk memprediksi return. Bank dan perusahaan non-finansial juga memerlukan metrik sektoral yang berbeda.</p>
-      <p class="rounded-xl bg-blue-50 p-4 text-xs leading-5 text-blue-950">Pada mode demonstrasi, komponen skor adalah nilai fixture model, bukan skor pasar terstandarisasi. Konteks sektor atau histori hanya digunakan jika tersedia pada data pendukung kandidat.</p>
+      <p class="rounded-xl bg-blue-50 p-4 text-xs leading-5 text-blue-950">Formula di atas adalah formula target metodologi. Pada mode demonstrasi, komponen dan skor akhir merupakan nilai fixture model yang ditampilkan apa adanya, bukan hasil perhitungan ulang atau skor pasar terstandarisasi.</p>
     </div>
 
     <!-- Scoring Limitations -->
@@ -149,7 +149,7 @@ const store = useResearchStore()
 
       <div class="rounded-xl bg-blue-50 border border-blue-200 p-4">
         <h4 class="text-xs font-bold text-blue-900">Rencana peningkatan</h4>
-        <p class="mt-1 text-xs leading-5 text-blue-800">Integrasi dengan API data pasar akan menambahkan: perbandingan peer sektor, momentum harga, data historis kuartalan, keanggotaan indeks, dan estimasi forward. Target akurasi scoring: 9/10.</p>
+        <p class="mt-1 text-xs leading-5 text-blue-800">Data yang lebih lengkap dapat menambahkan perbandingan sektor, momentum harga, histori kuartalan, keanggotaan indeks, dan estimasi ke depan. Kualitas model harus diukur melalui metode validasi yang terdokumentasi, bukan skor akurasi subjektif.</p>
       </div>
     </div>
 
@@ -185,31 +185,32 @@ const store = useResearchStore()
 
       <div class="overflow-x-auto">
         <table class="w-full text-xs">
+          <caption class="sr-only">Perbandingan sumber dan cakupan data mode demonstrasi dengan target produksi</caption>
           <thead>
             <tr class="border-b border-slate-200 text-left">
-              <th class="pb-3 pr-4 font-bold text-slate-700">Aspek</th>
-              <th class="pb-3 pr-4 font-bold text-slate-700">Mode Demonstrasi</th>
-              <th class="pb-3 font-bold text-slate-700">Target Produksi</th>
+              <th scope="col" class="pb-3 pr-4 font-bold text-slate-700">Aspek</th>
+              <th scope="col" class="pb-3 pr-4 font-bold text-slate-700">Mode Demonstrasi</th>
+              <th scope="col" class="pb-3 font-bold text-slate-700">Target Produksi</th>
             </tr>
           </thead>
           <tbody class="text-slate-600">
             <tr class="border-b border-slate-100">
-              <td class="py-3 pr-4 font-medium text-slate-900">Universe</td>
+              <th scope="row" class="py-3 pr-4 text-left font-medium text-slate-900">Universe</th>
               <td class="py-3 pr-4">8 perusahaan (fixture)</td>
               <td class="py-3">900+ perusahaan IDX</td>
             </tr>
             <tr class="border-b border-slate-100">
-              <td class="py-3 pr-4 font-medium text-slate-900">Kesegaran data</td>
+              <th scope="row" class="py-3 pr-4 text-left font-medium text-slate-900">Kesegaran data</th>
               <td class="py-3 pr-4">Statis</td>
               <td class="py-3">Update harian/kuartalan</td>
             </tr>
             <tr class="border-b border-slate-100">
-              <td class="py-3 pr-4 font-medium text-slate-900">Sumber</td>
+              <th scope="row" class="py-3 pr-4 text-left font-medium text-slate-900">Sumber</th>
               <td class="py-3 pr-4 font-mono text-[11px]">sectorsUniverse.ts</td>
               <td class="py-3">Sectors API v1</td>
             </tr>
             <tr>
-              <td class="py-3 pr-4 font-medium text-slate-900">Validasi</td>
+              <th scope="row" class="py-3 pr-4 text-left font-medium text-slate-900">Validasi</th>
               <td class="py-3 pr-4">Manual</td>
               <td class="py-3">API-verified</td>
             </tr>

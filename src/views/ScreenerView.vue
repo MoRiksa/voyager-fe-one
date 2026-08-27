@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
+import DataProvenance from '../components/DataProvenance.vue'
 import { 
   ArrowRight,
   CheckCircle2,
@@ -10,25 +11,59 @@ import {
 const store = useResearchStore()
 const selectedStage = ref(store.screeningFunnel.length - 1)
 const resultMode = ref<'retained' | 'excluded'>('retained')
+const sortBy = ref<'rank' | 'score' | 'symbol'>('rank')
+const sortLabel = computed(() => ({ rank: 'peringkat', score: 'skor tertinggi', symbol: 'ticker A-Z' })[sortBy.value])
 const activeStep = computed(() => store.screeningFunnel[selectedStage.value])
-const retainedCompanies = computed(() => store.companyUniverse.filter(company => activeStep.value?.retainedSymbols.includes(company.symbol)))
+const isFinalStage = computed(() => selectedStage.value === store.screeningFunnel.length - 1)
+const retainedCompanies = computed(() => (isFinalStage.value ? store.candidates : store.companyUniverse).filter(company => activeStep.value?.retainedSymbols.includes(company.symbol)))
 const excludedCompanies = computed(() => {
   if (selectedStage.value === 0) return []
   const previousSymbols = store.screeningFunnel[selectedStage.value - 1]?.retainedSymbols || []
   return store.companyUniverse.filter(company => previousSymbols.includes(company.symbol) && !activeStep.value?.retainedSymbols.includes(company.symbol))
 })
-const visibleCompanies = computed(() => resultMode.value === 'retained' ? retainedCompanies.value : excludedCompanies.value)
+const visibleCompanies = computed(() => [...(resultMode.value === 'retained' ? retainedCompanies.value : excludedCompanies.value)].sort((a, b) => {
+  if (sortBy.value === 'score') return (Number.isFinite(b.qualityScore) ? b.qualityScore : -Infinity) - (Number.isFinite(a.qualityScore) ? a.qualityScore : -Infinity) || a.symbol.localeCompare(b.symbol)
+  if (sortBy.value === 'symbol') return a.symbol.localeCompare(b.symbol)
+  return (Number.isFinite(a.rank) ? a.rank : Infinity) - (Number.isFinite(b.rank) ? b.rank : Infinity) || a.symbol.localeCompare(b.symbol)
+}))
 const initialCount = computed(() => store.screeningFunnel[0]?.count || 0)
+const hasScreeningData = computed(() => store.screeningFunnel.length > 0)
+const previousCount = computed(() => selectedStage.value > 0 ? store.screeningFunnel[selectedStage.value - 1]?.count || 0 : initialCount.value)
+const excludedCount = computed(() => Math.max(0, previousCount.value - (activeStep.value?.count || 0)))
+const exclusionImpact = computed(() => previousCount.value ? (excludedCount.value / previousCount.value) * 100 : 0)
+const requiredMetrics = [['Kapitalisasi', 'marketCapTrillionIdr'], ['ROE', 'roePercent'], ['Debt/Equity', 'debtToEquity'], ['FCF yield', 'freeCashFlowYieldPercent'], ['Skor kualitas', 'qualityScore']] as const
+const missingMetrics = (company: Record<string, unknown>) => requiredMetrics.filter(([, key]) => typeof company[key] !== 'number' || !Number.isFinite(company[key])).map(([label]) => label)
+const exclusionReasons = (company: Record<string, any>) => {
+  if (selectedStage.value === 1) return missingMetrics(company).map(metric => `${metric} tidak tersedia`)
+  if (selectedStage.value === 2) {
+    if (store.activePresetId === 'obj-banking-moat') return company.roePercent <= 15 ? ['ROE tidak di atas 15%'] : []
+    if (store.activePresetId === 'obj-consumer-growth') return [company.debtToEquity >= 0.8 ? 'Debt/Equity tidak di bawah 0,8x' : '', company.freeCashFlowYieldPercent <= 0 ? 'FCF yield tidak positif' : ''].filter(Boolean)
+    if (store.activePresetId === 'obj-dividend-fcf') return [company.dividendYieldPercent <= 6 ? 'Dividend yield tidak di atas 6%' : '', company.freeCashFlowYieldPercent <= 0 ? 'FCF yield tidak positif' : '', company.currentRatio <= 1 ? 'Current ratio tidak di atas 1x' : ''].filter(Boolean)
+    return [company.roePercent <= 12 ? 'ROE tidak di atas 12%' : '', company.debtToEquity >= 1.5 ? 'Debt/Equity tidak di bawah 1,5x' : ''].filter(Boolean)
+  }
+  if (selectedStage.value === 3) return company.qualityScore < 80 ? ['Skor kualitas di bawah 80/100'] : []
+  if (selectedStage.value === 4) return ['Di luar batas kandidat berperingkat tertinggi']
+  return []
+}
+const reasonCounts = computed(() => {
+  const counts = new Map<string, number>()
+  excludedCompanies.value.flatMap(company => exclusionReasons(company)).forEach(reason => counts.set(reason, (counts.get(reason) || 0) + 1))
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+})
+const metric = (value: number, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
 
 watch(() => store.report.sessionId, () => {
   selectedStage.value = Math.max(0, store.screeningFunnel.length - 1)
   resultMode.value = 'retained'
 })
+watch(() => store.screeningFunnel.length, length => {
+  if (length && (selectedStage.value < 0 || selectedStage.value >= length)) selectedStage.value = length - 1
+})
 </script>
 
 <template>
   <div class="page-shell space-y-7">
-    <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
+    <section v-if="!hasScreeningData" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
       <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Tahap seleksi tidak selesai' : 'Kandidat sedang diseleksi' }}</h1>
@@ -36,6 +71,7 @@ watch(() => store.report.sessionId, () => {
       <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
     </section>
     <template v-else>
+    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border p-4 text-sm" :class="store.status === 'FAILED' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-amber-200 bg-amber-50 text-amber-900'"><strong>{{ store.status === 'FAILED' ? 'Penyaringan gagal sebelum selesai.' : 'Hasil penyaringan masih parsial.' }}</strong> Data tahap yang sudah tersedia tetap ditampilkan dan belum merupakan hasil akhir.</section>
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
@@ -100,8 +136,14 @@ watch(() => store.report.sessionId, () => {
         <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'retained' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'retained'" @click="resultMode = 'retained'">Lolos · {{ retainedCompanies.length }} contoh</button>
         <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'excluded' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'excluded'" @click="resultMode = 'excluded'">Tidak lolos · {{ excludedCompanies.length }} contoh</button>
       </div>
+      <div v-if="selectedStage > 0" class="mt-4 grid gap-3 sm:grid-cols-[auto_1fr]">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs"><span class="text-slate-500">Dampak tahap</span><strong class="mt-1 block font-mono text-slate-900">{{ excludedCount }} dari {{ previousCount }} dikeluarkan ({{ exclusionImpact.toFixed(1) }}%)</strong></div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs"><span class="text-slate-500">Alasan pada sampel tersedia</span><div v-if="reasonCounts.length" class="mt-2 flex flex-wrap gap-2"><span v-for="([reason, count]) in reasonCounts" :key="reason" class="rounded-md border border-slate-200 bg-white px-2 py-1">{{ reason }} · <strong>{{ count }}</strong></span></div><p v-else class="mt-1 text-slate-700">Tidak ada rincian alasan yang dapat diturunkan.</p></div>
+      </div>
         <p class="mt-3 text-xs text-slate-500">Hasil ini berasal dari {{ initialCount }} perusahaan fixture pada dataset prototype. Produksi nanti menggunakan membership tahap yang dikirim screening engine.</p>
     </section>
+
+    <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" />
 
     <!-- Shortlisted Companies Preview Table -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
@@ -110,9 +152,7 @@ watch(() => store.report.sessionId, () => {
            <h3 class="text-lg font-bold text-slate-900">{{ resultMode === 'retained' ? 'Perusahaan yang lolos tahap ini' : 'Perusahaan yang tidak lolos tahap ini' }}</h3>
            <p class="text-xs text-slate-500 mt-0.5">{{ resultMode === 'retained' ? 'Perusahaan yang tetap berada dalam proses' : 'Perusahaan yang gugur tepat pada tahap ini' }}</p>
         </div>
-        <div class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-           Data sesi {{ store.report.sessionId }}
-        </div>
+        <div class="flex flex-wrap items-center gap-2"><label class="text-xs font-bold text-slate-700">Urutkan <select v-model="sortBy" class="ml-1 min-h-10 rounded-lg border border-slate-300 bg-white px-2 font-sans font-normal"><option value="rank">Peringkat</option><option value="score">Skor tertinggi</option><option value="symbol">Ticker A-Z</option></select></label><div class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">Data sesi {{ store.report.sessionId }}</div></div>
       </div>
 
       <div v-if="visibleCompanies.length === 0" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
@@ -125,18 +165,19 @@ watch(() => store.report.sessionId, () => {
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
             <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 min-w-11 rounded-lg font-mono text-base font-bold text-[#2F64A8] hover:bg-[#F4F8FD]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
-            <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ candidate.qualityScore }}/100</span>
+            <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ metric(candidate.qualityScore, '/100') }}</span>
           </div>
-          <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ candidate.roePercent }}%</dd></div><div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold">{{ candidate.peRatio }}x</dd></div><div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold">{{ candidate.freeCashFlowYieldPercent }}%</dd></div></dl>
+          <div v-if="missingMetrics(candidate).length" class="mt-3 flex flex-wrap gap-1"><span v-for="missing in missingMetrics(candidate)" :key="missing" class="rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-900">Data hilang: {{ missing }}</span></div>
+          <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.roePercent, '%') }}</dd></div><div><dt class="text-slate-500">P/E</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.peRatio, 'x') }}</dd></div><div><dt class="text-slate-500">FCF yield</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.freeCashFlowYieldPercent, '%') }}</dd></div></dl>
           <p class="mt-3 text-[11px] leading-5 text-slate-500">Skor 80+ lolos ambang kualitas. Rasio keuangan tetap perlu dibandingkan dalam sektor yang sama.</p>
-          <div class="mt-4 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" :class="resultMode === 'retained' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'"><CheckCircle2 v-if="resultMode === 'retained'" class="mt-0.5 h-3.5 w-3.5 shrink-0" /><XCircle v-else class="mt-0.5 h-3.5 w-3.5 shrink-0" />{{ resultMode === 'retained' ? 'Lolos berdasarkan kriteria tahap ini.' : `Tidak memenuhi: ${activeStep.filterCriteria}.` }}</div>
+          <div class="mt-4 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" :class="resultMode === 'retained' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'"><CheckCircle2 v-if="resultMode === 'retained'" class="mt-0.5 h-3.5 w-3.5 shrink-0" /><XCircle v-else class="mt-0.5 h-3.5 w-3.5 shrink-0" />{{ resultMode === 'retained' ? 'Lolos berdasarkan kriteria tahap ini.' : exclusionReasons(candidate).join('; ') || `Tidak memenuhi: ${activeStep.filterCriteria}.` }}</div>
         </article>
       </div>
 
       <div v-if="visibleCompanies.length > 0" class="hidden overflow-x-auto md:block">
         <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. ROE mengukur laba terhadap modal; P/E harga terhadap laba; Debt/Equity utang terhadap modal; FCF yield kas bebas relatif terhadap nilai perusahaan. Skor 80/100 adalah ambang kualitas, bukan rekomendasi membeli.</p>
         <table class="w-full text-left text-xs">
-          <caption class="sr-only">Kandidat yang lolos seluruh tahap penyaringan</caption>
+          <caption class="sr-only">{{ resultMode === 'retained' ? `Perusahaan yang lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` : `Perusahaan yang tidak lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` }}</caption>
           <thead>
             <tr class="border-b border-slate-200 bg-slate-50 text-slate-600 uppercase font-mono font-semibold">
                <th scope="col" class="pb-3 pr-4">Peringkat</th>
@@ -156,7 +197,7 @@ watch(() => store.report.sessionId, () => {
               :key="candidate.symbol"
               class="hover:bg-slate-50/80 transition-colors"
             >
-              <td class="py-3.5 pr-4 font-bold text-slate-900">#{{ candidate.rank }}</td>
+               <td class="py-3.5 pr-4 font-bold text-slate-900">{{ Number.isFinite(candidate.rank) ? `#${candidate.rank}` : 'Tidak tersedia' }}</td>
                <th scope="row" class="py-3.5 pr-4 font-bold text-[#2F64A8]">
                  <button
                    :data-testid="`candidate-${candidate.symbol}`"
@@ -167,14 +208,14 @@ watch(() => store.report.sessionId, () => {
                 </button>
                </th>
               <td class="py-3.5 pr-4 font-sans text-slate-700">{{ candidate.sector }}</td>
-              <td class="py-3.5 pr-4 text-right text-slate-800">IDR {{ candidate.marketCapTrillionIdr }}T</td>
-              <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ candidate.roePercent }}%</td>
-              <td class="py-3.5 pr-4 text-right text-slate-800">{{ candidate.peRatio }}x</td>
-              <td class="py-3.5 pr-4 text-right text-slate-800">{{ candidate.debtToEquity }}x</td>
-              <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ candidate.freeCashFlowYieldPercent }}%</td>
+               <td class="py-3.5 pr-4 text-right text-slate-800"><span v-if="Number.isFinite(candidate.marketCapTrillionIdr)">IDR {{ candidate.marketCapTrillionIdr }}T</span><span v-else class="rounded bg-amber-100 px-1.5 py-1 font-sans text-[10px] font-bold text-amber-900">Data hilang</span></td>
+               <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ metric(candidate.roePercent, '%') }}</td>
+               <td class="py-3.5 pr-4 text-right text-slate-800">{{ metric(candidate.peRatio, 'x') }}</td>
+               <td class="py-3.5 pr-4 text-right text-slate-800">{{ metric(candidate.debtToEquity, 'x') }}</td>
+               <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ metric(candidate.freeCashFlowYieldPercent, '%') }}</td>
               <td class="py-3.5 text-right font-bold text-[#2F64A8]">
                 <span class="px-2 py-1 rounded bg-[#407EC9]/10 border border-[#407EC9]/20">
-                  {{ candidate.qualityScore }}/100
+                   {{ metric(candidate.qualityScore, '/100') }}
                 </span>
               </td>
             </tr>

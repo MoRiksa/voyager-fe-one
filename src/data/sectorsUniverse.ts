@@ -47,6 +47,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Commercial Banks',
     marketCapTrillionIdr: 1220.5,
     priceIdr: 9900,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 22.4,
     pbvRatio: 4.6,
     evToEbitda: 14.8,
@@ -84,20 +87,49 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
         source: 'Prototype fixture: /companies/BBCA/financials',
         metric: 'Return on Equity (ROE)',
         value: '21.8%',
-        context: 'Peringkat pertama di antara bank komersial besar; median sektor 14.2%'
+        context: 'Peringkat pertama di antara bank komersial besar; median sektor 14.2%',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       },
       {
         source: 'Prototype fixture: /companies/BBCA/ratios',
         metric: 'Net Interest Margin (NIM)',
         value: '5.8%',
-        context: 'Didukung rasio CASA di atas 81%'
+        context: 'Didukung rasio CASA di atas 81%',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       },
       {
         source: 'Derived fixture: /scoring/dupont',
         metric: '3-Stage DuPont ROE',
         value: '21.8%',
-        context: 'Net margin 36.4% x asset turnover 0.058x x leverage 10.3x'
+        context: 'Net margin 36.4% x asset turnover 0.058x x leverage 10.3x',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       }
+    ],
+    listingPerformance: [
+      { label: 'Harga referensi', value: 'Rp9.900', detail: 'Fixture demo per 30 Desember 2024; bukan kuotasi pasar langsung.' },
+      { label: 'Kinerja 1 tahun', value: '+5,3%', detail: 'Sampel ilustratif fixture untuk menguji tampilan historis.' }
+    ],
+    forwardEstimates: [
+      { label: 'Pertumbuhan pendapatan FY 2025E', value: '10,0%', detail: 'Estimasi ilustratif fixture, diturunkan konservatif dari CAGR historis 12,4%; bukan proyeksi resmi.' },
+      { label: 'Pertumbuhan laba FY 2025E', value: '12,0%', detail: 'Estimasi ilustratif fixture, di bawah CAGR historis 16,2%; bukan proyeksi resmi.' }
+    ],
+    ownershipManagement: [
+      { label: 'Konteks pengelolaan', value: 'Bank swasta', detail: 'Deskripsi kategori fixture demo; tidak memuat klaim kepemilikan rinci.' },
+      { label: 'Fokus manajemen', value: 'Kualitas aset dan dana murah', detail: 'Ringkasan fixture dari narasi kandidat yang sudah tersedia.' }
+    ],
+    dividendHistory: [
+      { label: 'FY 2022', value: '2,4%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2023', value: '2,6%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2024', value: '2,8%', detail: 'Fixture demo yang konsisten dengan metrik kandidat.' }
+    ],
+    trends: [
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2021', value: 100 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2022', value: 112.4 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2023', value: 126.3 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2024', value: 142 }
     ],
     dupontAnalysis: {
       netProfitMargin: 36.4,
@@ -114,6 +146,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Commercial Banks',
     marketCapTrillionIdr: 642.0,
     priceIdr: 6875,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 11.8,
     pbvRatio: 2.2,
     evToEbitda: 9.4,
@@ -151,14 +186,33 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
         source: 'Prototype fixture: /companies/BMRI/financials',
         metric: '3-Year Net Income CAGR',
         value: '+21.5%',
-        context: 'Di atas rata-rata bank BUMN pembanding sebesar 15.8%'
+        context: 'Di atas rata-rata bank BUMN pembanding sebesar 15.8%',
+        asOf: '31 Desember 2024',
+        period: 'FY 2022-FY 2024'
       },
       {
         source: 'Prototype fixture: /companies/BMRI/valuation',
         metric: 'P/E Ratio vs PBV',
         value: '11.8x / 2.2x',
-        context: 'Di bawah rata-rata historis lima tahun sebesar 13.5x'
+        context: 'Di bawah rata-rata historis lima tahun sebesar 13.5x',
+        asOf: '30 Desember 2024',
+        period: 'FY 2024'
       }
+    ],
+    listingPerformance: [
+      { label: 'Harga referensi', value: 'Rp6.875', detail: 'Fixture demo per 30 Desember 2024; bukan kuotasi pasar langsung.' },
+      { label: 'Kinerja 1 tahun', value: '+8,7%', detail: 'Sampel ilustratif fixture untuk menguji tampilan historis.' }
+    ],
+    dividendHistory: [
+      { label: 'FY 2022', value: '4,6%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2023', value: '5,0%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2024', value: '5,4%', detail: 'Fixture demo yang konsisten dengan metrik kandidat.' }
+    ],
+    trends: [
+      { label: 'Indeks laba bersih (fixture ilustratif)', period: 'FY 2021', value: 100 },
+      { label: 'Indeks laba bersih (fixture ilustratif)', period: 'FY 2022', value: 121.5 },
+      { label: 'Indeks laba bersih (fixture ilustratif)', period: 'FY 2023', value: 147.6 },
+      { label: 'Indeks laba bersih (fixture ilustratif)', period: 'FY 2024', value: 179.3 }
     ],
     dupontAnalysis: {
       netProfitMargin: 32.1,
@@ -175,6 +229,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Processed Food & Beverage',
     marketCapTrillionIdr: 134.1,
     priceIdr: 11500,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 14.6,
     pbvRatio: 2.8,
     evToEbitda: 9.8,
@@ -212,14 +269,31 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
         source: 'Prototype fixture: /companies/ICBP/financials',
         metric: 'Gross Profit Margin',
         value: '36.8%',
-        context: 'Tertinggi di antara perusahaan makanan olahan pembanding'
+        context: 'Tertinggi di antara perusahaan makanan olahan pembanding',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       },
       {
         source: 'Derived fixture: /scoring/cashflow',
         metric: 'Free Cash Flow Yield',
         value: '7.4%',
-        context: 'FCF tahunan melebihi IDR 9.8 triliun'
+        context: 'FCF tahunan melebihi IDR 9.8 triliun',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       }
+    ],
+    segments: [
+      { label: 'Makanan bermerek', value: 'Kontributor utama', detail: 'Klasifikasi fixture demo berdasarkan narasi Indomie; tanpa angka segmen baru.' },
+      { label: 'Operasi internasional', value: 'Pinehill', detail: 'Klasifikasi fixture demo dari narasi diversifikasi geografis yang tersedia.' }
+    ],
+    esg: [
+      { label: 'Topik lingkungan', value: 'Bahan baku dan kemasan', detail: 'Penanda topik fixture demo, bukan skor atau penilaian ESG.' },
+      { label: 'Status data', value: 'Belum diverifikasi', detail: 'Fixture prototipe tidak memuat klaim kinerja ESG tambahan.' }
+    ],
+    dividendHistory: [
+      { label: 'FY 2022', value: '2,9%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2023', value: '3,1%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2024', value: '3,4%', detail: 'Fixture demo yang konsisten dengan metrik kandidat.' }
     ],
     dupontAnalysis: {
       netProfitMargin: 13.8,
@@ -236,6 +310,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Heavy Equipment & Mining Contracting',
     marketCapTrillionIdr: 96.8,
     priceIdr: 26000,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 5.2,
     pbvRatio: 1.1,
     evToEbitda: 3.1,
@@ -273,14 +350,38 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
         source: 'Prototype fixture: /companies/UNTR/ratios',
         metric: 'P/E Multiple',
         value: '5.2x',
-        context: 'Diskon terhadap median historis sepuluh tahun sebesar 7.8x'
+        context: 'Diskon terhadap median historis sepuluh tahun sebesar 7.8x',
+        asOf: '30 Desember 2024',
+        period: 'FY 2024'
       },
       {
         source: 'Prototype fixture: /companies/UNTR/dividends',
         metric: 'Dividend Yield',
         value: '8.6%',
-        context: 'Termasuk kelompok dividend yield tertinggi dalam IDX30'
+        context: 'Termasuk kelompok dividend yield tertinggi dalam IDX30',
+        asOf: '30 Desember 2024',
+        period: 'FY 2024'
       }
+    ],
+    segments: [
+      { label: 'Alat berat', value: 'Komatsu', detail: 'Kategori fixture demo dari narasi kandidat; tanpa angka kontribusi baru.' },
+      { label: 'Kontraktor tambang', value: 'PAMA', detail: 'Kategori fixture demo dari narasi model usaha terintegrasi.' },
+      { label: 'Diversifikasi mineral', value: 'Emas dan nikel', detail: 'Kategori fixture demo dari narasi diversifikasi yang tersedia.' }
+    ],
+    esg: [
+      { label: 'Risiko transisi', value: 'Eksposur batu bara termal', detail: 'Ringkasan fixture dari kekhawatiran kandidat yang sudah tersedia.' },
+      { label: 'Arah diversifikasi', value: 'Emas dan nikel', detail: 'Konteks fixture demo; bukan skor atau target ESG.' }
+    ],
+    dividendHistory: [
+      { label: 'FY 2022', value: '7,8%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2023', value: '8,2%', detail: 'Yield historis ilustratif fixture untuk demonstrasi UI.' },
+      { label: 'FY 2024', value: '8,6%', detail: 'Fixture demo yang konsisten dengan metrik kandidat.' }
+    ],
+    trends: [
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2021', value: 100 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2022', value: 118.5 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2023', value: 140.4 },
+      { label: 'Indeks pendapatan (fixture ilustratif)', period: 'FY 2024', value: 166.4 }
     ],
     dupontAnalysis: {
       netProfitMargin: 16.2,
@@ -297,6 +398,8 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Food Retail & Convenience',
     marketCapTrillionIdr: 128.5,
     priceIdr: 3090,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
     peRatio: 32.4,
     pbvRatio: 7.8,
     evToEbitda: 16.2,
@@ -334,14 +437,26 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
         source: 'Prototype fixture: /companies/AMRT/financials',
         metric: 'Return on Equity (ROE)',
         value: '24.8%',
-        context: 'Pengembalian modal tertinggi di antara operator ritel pembanding'
+        context: 'Pengembalian modal tertinggi di antara operator ritel pembanding',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       },
       {
         source: 'Prototype fixture: /companies/AMRT/ratios',
         metric: 'Asset Turnover',
         value: '2.84x',
-        context: 'Menjadi penggerak utama efisiensi ROE DuPont'
+        context: 'Menjadi penggerak utama efisiensi ROE DuPont',
+        asOf: '31 Desember 2024',
+        period: 'FY 2024'
       }
+    ],
+    listingPerformance: [
+      { label: 'Harga referensi', value: 'Rp3.090', detail: 'Fixture demo per 30 Desember 2024; bukan kuotasi pasar langsung.' },
+      { label: 'Kinerja 1 tahun', value: '+11,2%', detail: 'Sampel ilustratif fixture untuk menguji tampilan historis.' }
+    ],
+    forwardEstimates: [
+      { label: 'Pertumbuhan pendapatan FY 2025E', value: '10,0%', detail: 'Estimasi ilustratif fixture, di bawah CAGR historis 12,8%; bukan proyeksi resmi.' },
+      { label: 'Pertumbuhan laba FY 2025E', value: '15,0%', detail: 'Estimasi ilustratif fixture, di bawah CAGR historis 22,4%; bukan proyeksi resmi.' }
     ],
     dupontAnalysis: {
       netProfitMargin: 3.8,
@@ -358,6 +473,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Micro & Ultra-Micro Banking',
     marketCapTrillionIdr: 710.0,
     priceIdr: 4720,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 12.1,
     pbvRatio: 2.3,
     evToEbitda: 8.9,
@@ -382,7 +500,7 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'Pemimpin dunia dalam pembiayaan mikro dengan jaringan AgenBRILink nasional. Aset beryield tinggi menghasilkan margin bunga bersih yang substansial.',
     keyStrengths: ['Keunggulan tak tertandingi dalam pembiayaan mikro dan ultra-mikro', 'Dividend yield tinggi >6,8%', 'Ekosistem AgenBRILink menggerakkan likuiditas berbiaya rendah'],
     potentialConcerns: ['Sensitivitas kualitas aset kredit mikro terhadap daya beli masyarakat akar rumput'],
-    evidenceCitations: [{ source: 'Prototype fixture: /companies/BBRI/financials', metric: 'Dividend Yield', value: '6,8%', context: 'Peringkat atas di antara bank global' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/BBRI/financials', metric: 'Dividend Yield', value: '6,8%', context: 'Peringkat atas di antara bank global', asOf: '30 Desember 2024', period: 'FY 2024' }],
     dupontAnalysis: { netProfitMargin: 28.5, assetTurnover: 0.055, equityMultiplier: 12.63, calculatedRoe: 19.8 },
     peerRankInMemory: '#3 of 4 Big Banks'
   },
@@ -393,6 +511,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Integrated Telecoms',
     marketCapTrillionIdr: 282.0,
     priceIdr: 2850,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 12.4,
     pbvRatio: 2.0,
     evToEbitda: 4.8,
@@ -417,7 +538,11 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'Tulang punggung infrastruktur digital telekomunikasi nasional dengan Telkomsel dan bisnis Hyperscale Data Center yang terus berkembang.',
     keyStrengths: ['Jangkauan fiber optik komprehensif', 'Kepemimpinan pasar Telkomsel', 'FCF yield kuat >9%'],
     potentialConcerns: ['Penurunan pendapatan voice/SMS legacy dan persaingan harga broadband tetap'],
-    evidenceCitations: [{ source: 'Prototype fixture: /companies/TLKM/financials', metric: 'FCF Yield', value: '9,1%', context: 'Generasi kas defensif seperti utilitas' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/TLKM/financials', metric: 'FCF Yield', value: '9,1%', context: 'Generasi kas defensif seperti utilitas', asOf: '31 Desember 2024', period: 'FY 2024' }],
+    segments: [
+      { label: 'Konektivitas seluler', value: 'Telkomsel', detail: 'Kategori fixture demo dari narasi kandidat; tanpa angka segmen baru.' },
+      { label: 'Infrastruktur digital', value: 'Fiber dan pusat data', detail: 'Kategori fixture demo dari narasi kandidat yang tersedia.' }
+    ],
     dupontAnalysis: { netProfitMargin: 16.4, assetTurnover: 0.52, equityMultiplier: 1.93, calculatedRoe: 16.5 },
     peerRankInMemory: '#1 in Telecommunications'
   },
@@ -428,6 +553,9 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     subsector: 'Automotive & Multi-Industry',
     marketCapTrillionIdr: 202.4,
     priceIdr: 5000,
+    priceAsOf: '30 Desember 2024 (fixture prototipe)',
+    financialPeriod: 'FY 2024 (fixture prototipe)',
+    indexMembership: ['LQ45', 'IDX30', 'IDX80'],
     peRatio: 6.4,
     pbvRatio: 1.0,
     evToEbitda: 4.2,
@@ -452,7 +580,11 @@ export const ALL_COMPANIES_DATABASE: CandidateCompany[] = [
     whySelected: 'Konglomerat utama Indonesia dengan pangsa pasar dominan di 4W (54%) dan 2W (78%), didukung oleh alat berat dan jasa keuangan.',
     keyStrengths: ['Jaringan penjualan dan distribusi otomotif tak tertandingi', 'P/E multiple di bawah 6,5x', 'Pembayaran dividen tinggi'],
     potentialConcerns: ['Kecepatan adopsi EV dan persaingan dari produsen otomotif China'],
-    evidenceCitations: [{ source: 'Prototype fixture: /companies/ASII/valuation', metric: 'P/E Multiple', value: '6,4x', context: 'Diskon terendah dalam 10 tahun' }],
+    evidenceCitations: [{ source: 'Prototype fixture: /companies/ASII/valuation', metric: 'P/E Multiple', value: '6,4x', context: 'Diskon terendah dalam 10 tahun', asOf: '30 Desember 2024', period: 'FY 2024' }],
+    ownershipManagement: [
+      { label: 'Konteks pengelolaan', value: 'Konglomerat multi-industri', detail: 'Deskripsi kategori fixture demo dari narasi kandidat.' },
+      { label: 'Fokus alokasi modal', value: 'Otomotif, alat berat, jasa keuangan', detail: 'Ringkasan fixture dari segmen yang sudah disebutkan; bukan panduan manajemen.' }
+    ],
     dupontAnalysis: { netProfitMargin: 9.8, assetTurnover: 0.74, equityMultiplier: 2.23, calculatedRoe: 16.2 },
     peerRankInMemory: '#1 Conglomerate'
   }

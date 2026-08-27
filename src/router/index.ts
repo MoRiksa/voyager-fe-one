@@ -101,6 +101,12 @@ const router = createRouter({
       meta: { title: 'Metodologi Penilaian' }
     },
     {
+      path: '/glossary',
+      name: 'glossary',
+      component: () => import('../views/GlossaryView.vue'),
+      meta: { title: 'Kamus Istilah Finansial' }
+    },
+    {
       path: '/report',
       name: 'report',
       component: () => import('../views/ReportView.vue'),
