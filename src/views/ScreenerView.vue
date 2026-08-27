@@ -50,14 +50,14 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
               0{{ idx + 1 }}
             </span>
              <span class="text-xs font-mono font-bold text-[#2F64A8] bg-[#407EC9]/10 px-2 py-0.5 rounded">
-              {{ ((step.count / 914) * 100).toFixed(1) }}% Retained
+              {{ ((step.count / 914) * 100).toFixed(1) }}% tersisa
             </span>
           </div>
 
           <h3 class="text-sm font-bold text-slate-900">{{ step.stage }}</h3>
           <div class="text-2xl font-mono font-bold text-slate-900 my-2 tabular-nums">
             {{ step.count.toLocaleString() }}
-            <span class="text-xs font-sans text-slate-400 font-normal">tickers</span>
+            <span class="text-xs font-sans text-slate-500 font-normal">emiten</span>
           </div>
 
           <p class="text-xs text-slate-500 leading-relaxed">{{ step.description }}</p>
@@ -96,7 +96,13 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
         </div>
       </div>
 
-      <div class="grid gap-3 md:hidden">
+      <div v-if="visibleCompanies.length === 0" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <h3 class="text-base font-bold text-slate-900">Tidak ada sampel pada kategori ini</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Data prototype tidak memiliki contoh perusahaan untuk kombinasi tahap dan status yang dipilih. Pilih tahap lain atau kembali ke perusahaan yang lolos.</p>
+        <button type="button" class="button-secondary mt-5" @click="resultMode = 'retained'">Lihat perusahaan yang lolos</button>
+      </div>
+
+      <div v-else class="grid gap-3 md:hidden">
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
             <div><button class="min-h-11 font-mono text-base font-bold text-[#2F64A8]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
@@ -107,20 +113,20 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
         </article>
       </div>
 
-      <div class="hidden overflow-x-auto md:block">
+      <div v-if="visibleCompanies.length > 0" class="hidden overflow-x-auto md:block">
         <table class="w-full text-left text-xs">
           <caption class="sr-only">Kandidat yang lolos seluruh tahap penyaringan</caption>
           <thead>
             <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
-               <th scope="col" class="pb-3 pr-4">Rank</th>
-               <th scope="col" class="pb-3 pr-4">Symbol</th>
-               <th scope="col" class="pb-3 pr-4">Sector</th>
-               <th scope="col" class="pb-3 pr-4 text-right">Market Cap</th>
+               <th scope="col" class="pb-3 pr-4">Peringkat</th>
+               <th scope="col" class="pb-3 pr-4">Ticker</th>
+               <th scope="col" class="pb-3 pr-4">Sektor</th>
+               <th scope="col" class="pb-3 pr-4 text-right">Kapitalisasi</th>
                <th scope="col" class="pb-3 pr-4 text-right">ROE</th>
-               <th scope="col" class="pb-3 pr-4 text-right">P/E Ratio</th>
+               <th scope="col" class="pb-3 pr-4 text-right">P/E</th>
                <th scope="col" class="pb-3 pr-4 text-right">Debt/Equity</th>
-               <th scope="col" class="pb-3 pr-4 text-right">FCF Yield</th>
-               <th scope="col" class="pb-3 text-right">Quality Score</th>
+               <th scope="col" class="pb-3 pr-4 text-right">FCF yield</th>
+               <th scope="col" class="pb-3 text-right">Skor kualitas</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-mono">
