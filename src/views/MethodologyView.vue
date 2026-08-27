@@ -22,24 +22,24 @@ const store = useResearchStore()
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono">Derived Intelligence Architecture</span>
+         <span class="section-kicker">Metodologi</span>
         <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
-          Qualifying Test Compliance
+           Transparansi skor
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-        Methodology & Financial Scoring Logic
+         Cara skor dihitung
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-        Complete mathematical and architectural breakdown of the Derived Intelligence layer. Voyager One combines deterministic quantitative algorithms with autonomous multi-step agent reasoning.
+         Pahami lima faktor penilaian, cara membaca hasil, dan batas penggunaan skor dalam proses riset.
       </p>
     </div>
 
     <!-- The 5 Pillars Diagram & Architecture Card -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
-      <h2 class="text-lg font-bold text-slate-900">1. The 5 Core Pillars Architecture</h2>
+       <h2 class="text-lg font-bold text-slate-900">1. Cara riset disusun</h2>
       <p class="text-xs text-slate-600 leading-relaxed max-w-3xl">
-        As required by the Sectors Hackathon 2026 specification, the product is built upon five interconnected pillars forming a complete autonomous research loop:
+         Setiap tujuan melewati lima tahap agar proses penyaringan dan hasil akhirnya dapat ditinjau kembali.
       </p>
 
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3 font-mono text-xs">
@@ -73,9 +73,9 @@ const store = useResearchStore()
 
     <!-- Scoring Formula Details -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
-      <h2 class="text-lg font-bold text-slate-900">2. Proprietary 5-Factor Quality Scoring Model</h2>
+       <h2 class="text-lg font-bold text-slate-900">2. Lima faktor penilaian</h2>
       <p class="text-xs text-slate-600 leading-relaxed">
-        The Quality Score (0 to 100) is deterministically computed from 18 underlying Sectors metrics across 5 normalized dimensions:
+         Skor kualitas merangkum profitabilitas, pertumbuhan, solvabilitas, valuasi, dan konsistensi pada skala 0 sampai 100.
       </p>
 
       <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20 font-mono text-xs text-slate-800 space-y-2">

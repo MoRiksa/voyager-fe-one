@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   X, 
@@ -13,15 +14,55 @@ import {
 } from 'lucide-vue-next'
 
 const store = useResearchStore()
+const dialogRef = ref<HTMLElement | null>(null)
+let previousFocus: HTMLElement | null = null
+
+const close = () => store.closeMethodology()
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') close()
+  if (event.key !== 'Tab' || !dialogRef.value) return
+
+  const focusable = Array.from(dialogRef.value.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+  if (!focusable.length) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+watch(() => store.isMethodologyModalOpen, async (isOpen) => {
+  if (isOpen) {
+    previousFocus = document.activeElement as HTMLElement
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeydown)
+    await nextTick()
+    dialogRef.value?.focus()
+  } else {
+    document.body.style.overflow = ''
+    window.removeEventListener('keydown', handleKeydown)
+    previousFocus?.focus()
+  }
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
   <div 
     v-if="store.isMethodologyModalOpen"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-    @click.self="store.closeMethodology"
+    @click.self="close"
   >
-    <div class="bg-white w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div ref="dialogRef" role="dialog" aria-modal="true" aria-labelledby="methodology-dialog-title" tabindex="-1" class="bg-white w-full max-w-3xl max-h-[90dvh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden outline-none">
       <!-- Modal Header -->
       <div class="p-6 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -29,14 +70,15 @@ const store = useResearchStore()
             <Calculator class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-xl font-bold text-slate-900">Derived Intelligence Methodology</h2>
-            <p class="text-xs text-slate-500">Sectors Hackathon 2026 Qualifying Test Compliance</p>
+             <h2 id="methodology-dialog-title" class="text-xl font-bold text-slate-900">Cara skor dihitung</h2>
+             <p class="text-xs text-slate-500">Lima faktor penilaian dan batas penggunaannya</p>
           </div>
         </div>
 
         <button
-          @click="store.closeMethodology"
-          class="p-2 rounded-xl hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+           @click="close"
+           aria-label="Tutup metodologi"
+           class="icon-button"
         >
           <X class="w-5 h-5" />
         </button>
@@ -48,7 +90,7 @@ const store = useResearchStore()
         <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20">
           <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] mb-1 flex items-center gap-1.5">
             <ShieldCheck class="w-4 h-4" />
-            Hackathon Mandatory Requirement: Derived Intelligence
+             Metodologi yang dapat ditelusuri
           </h4>
           <p class="text-xs text-slate-700 leading-relaxed">
             The project does not merely re-render raw Sectors API data on a dashboard. It executes a proprietary 5-factor scoring model, 3-stage DuPont decomposition, and multi-tier universe screening directly on retrieved market metrics.
@@ -127,10 +169,10 @@ const store = useResearchStore()
       <!-- Modal Footer -->
       <div class="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 flex justify-end">
         <button
-          @click="store.closeMethodology"
+           @click="close"
           class="px-5 py-2 text-xs font-bold text-white bg-[#407EC9] hover:bg-[#2F64A8] rounded-xl transition-colors cursor-pointer"
         >
-          Understood
+           Tutup
         </button>
       </div>
     </div>

@@ -2,17 +2,10 @@
 import { ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
-  Terminal, 
   Coins, 
-  CheckCircle2, 
   Clock, 
-  HardDrive, 
-  Database,
-  Filter,
   ChevronDown,
-  ChevronUp,
-  Cpu,
-  Layers
+  ChevronUp
 } from 'lucide-vue-next'
 
 const store = useResearchStore()
@@ -28,16 +21,16 @@ const toggleExpand = (id: string) => {
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono">Pillar 4: State & Observability</span>
+         <span class="section-kicker">Aktivitas dan audit</span>
         <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
-          Audit Trail
+           Detail teknis tersedia
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-        Agent Tool Trace & Observability
+         Riwayat aktivitas riset
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-        Complete high-level execution trace and API audit log. Every query, derived intelligence score, and validation step is observable and reproducible without exposing private LLM chain-of-thought.
+         Lihat langkah yang telah dijalankan. Buka detail teknis hanya ketika Anda memerlukan input, durasi, dan payload suatu operasi.
       </p>
     </div>
 
@@ -72,11 +65,11 @@ const toggleExpand = (id: string) => {
     <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
       <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Execution Events & Tool Payload History</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Click any tool call to inspect raw JSON input and output summary</p>
+           <h3 class="text-lg font-bold text-slate-900">Langkah yang telah dijalankan</h3>
+           <p class="text-xs text-slate-500 mt-0.5">Pilih aktivitas untuk membuka detail teknis</p>
         </div>
         <span class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-          Live Session: {{ store.report.sessionId }}
+           Sesi {{ store.report.sessionId }}
         </span>
       </div>
 
@@ -88,15 +81,17 @@ const toggleExpand = (id: string) => {
           :class="expandedLogId === call.id ? 'bg-slate-50/70 ring-1 ring-[#407EC9]/30' : 'bg-white hover:bg-slate-50/40'"
         >
           <!-- Log Item Header -->
-          <button
-            @click="toggleExpand(call.id)"
+           <button
+             @click="toggleExpand(call.id)"
+             :aria-expanded="expandedLogId === call.id"
+             :aria-controls="`trace-${call.id}`"
             class="w-full p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left cursor-pointer"
           >
             <div class="flex items-start gap-3">
               <span class="w-2 h-2 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
               <div>
-                <div class="flex items-center gap-2">
-                  <span class="font-mono font-bold text-xs text-slate-900">{{ call.toolName }}</span>
+                 <div class="flex flex-wrap items-center gap-2">
+                   <span class="text-sm font-bold text-slate-900">{{ call.outputSummary }}</span>
                   <span 
                     class="text-[10px] font-semibold px-2 py-0.5 rounded border"
                     :class="call.category === 'Sectors API' ? 'bg-[#407EC9]/10 text-[#407EC9] border-[#407EC9]/20' : 'bg-slate-100 text-slate-700 border-slate-200'"
@@ -105,7 +100,7 @@ const toggleExpand = (id: string) => {
                   </span>
                   <span class="text-[11px] font-mono text-slate-400">{{ call.timestamp }}</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-1">{{ call.outputSummary }}</p>
+                 <p class="text-xs text-slate-500 mt-1 font-mono">{{ call.toolName }}</p>
               </div>
             </div>
 
@@ -123,8 +118,9 @@ const toggleExpand = (id: string) => {
           </button>
 
           <!-- Expanded Payload Details -->
-          <div 
-            v-if="expandedLogId === call.id"
+           <div
+             v-if="expandedLogId === call.id"
+             :id="`trace-${call.id}`"
             class="p-4 bg-slate-900 text-slate-100 font-mono text-xs border-t border-slate-200/80 rounded-b-xl overflow-x-auto space-y-3"
           >
             <div>

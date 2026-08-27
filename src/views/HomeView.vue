@@ -1,178 +1,140 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import ResearchInputConsole from '../components/ResearchInputConsole.vue'
-import PillarsWorkflowDAG from '../components/PillarsWorkflowDAG.vue'
-import ScreeningFunnelCard from '../components/ScreeningFunnelCard.vue'
 import CandidateCard from '../components/CandidateCard.vue'
-import CandidateDetailModal from '../components/CandidateDetailModal.vue'
-import MethodologyModal from '../components/MethodologyModal.vue'
-import { 
-  Award, 
-  Sparkles, 
-  TrendingUp, 
-  BarChart3, 
-  Download, 
-  FileText, 
-  ExternalLink,
-  ChevronRight,
-  ShieldCheck,
-  Terminal,
-  Layers,
-  HelpCircle,
-  AlertCircle
-} from 'lucide-vue-next'
+import { ArrowRight, Clock3, FileText, Search, Sparkles, Activity, ChevronRight } from 'lucide-vue-next'
 
 const store = useResearchStore()
-const activeTab = ref<'all' | 'financials' | 'consumer' | 'industrials'>('all')
+const router = useRouter()
+const draftObjective = ref('')
 
-const filteredCandidates = computed(() => {
-  if (activeTab.value === 'all') return store.candidates
-  if (activeTab.value === 'financials') return store.candidates.filter(c => c.sector === 'Financials')
-  if (activeTab.value === 'consumer') return store.candidates.filter(c => c.sector.includes('Consumer'))
-  if (activeTab.value === 'industrials') return store.candidates.filter(c => c.sector === 'Industrials')
-  return store.candidates
-})
+const currentPillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
+const completedSteps = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
+
+const startDraft = () => {
+  if (draftObjective.value.trim()) store.setObjective(draftObjective.value.trim())
+  router.push('/research/new')
+}
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-    <!-- 1. Executive Objective Console -->
-    <ResearchInputConsole />
-
-    <!-- 2. 5-Pillars Workflow Visualizer -->
-    <PillarsWorkflowDAG />
-
-    <!-- 3. Main Analytical Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <!-- Left Column: Top Candidates Shortlist (7 cols on large screens) -->
-      <div class="lg:col-span-8 space-y-6">
-        <!-- Section Header with Filter Tabs -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono">
-                Pillar 5: Derived Output
-              </span>
-              <span class="px-2 py-0.5 text-[10px] font-bold bg-[#407EC9]/10 text-[#407EC9] rounded">
-                {{ filteredCandidates.length }} Ranked Targets
-              </span>
-            </div>
-            <h2 class="text-xl font-bold text-slate-900 mt-0.5">Top Validated Research Candidates</h2>
+  <div class="mx-auto max-w-7xl space-y-10 px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+    <section class="overflow-hidden rounded-3xl border border-[#407EC9]/20 bg-[#102138] text-white shadow-[0_24px_70px_-35px_rgba(16,33,56,0.8)]">
+      <div class="grid gap-8 px-6 py-8 sm:px-9 sm:py-10 lg:grid-cols-[1.25fr_0.75fr] lg:px-12 lg:py-12">
+        <div>
+          <div class="mb-4 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/8 px-2.5 py-1 text-xs font-semibold text-blue-100">
+            <Sparkles class="h-3.5 w-3.5" />
+            Research workspace
           </div>
-
-          <!-- Sector Filter Tabs -->
-          <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs font-medium self-start sm:self-auto">
-            <button
-              @click="activeTab = 'all'"
-              class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-              :class="activeTab === 'all' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-            >
-              All Sectors
-            </button>
-            <button
-              @click="activeTab = 'financials'"
-              class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-              :class="activeTab === 'financials' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-            >
-              Banking
-            </button>
-            <button
-              @click="activeTab = 'consumer'"
-              class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-              :class="activeTab === 'consumer' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-            >
-              Consumer
-            </button>
-            <button
-              @click="activeTab = 'industrials'"
-              class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-              :class="activeTab === 'industrials' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-            >
-              Industrials
-            </button>
-          </div>
-        </div>
-
-        <!-- Candidate Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <CandidateCard
-            v-for="candidate in filteredCandidates"
-            :key="candidate.symbol"
-            :candidate="candidate"
-          />
-        </div>
-      </div>
-
-      <!-- Right Column: Screener Funnel & Live Tool Activity Stream (4 cols) -->
-      <div class="lg:col-span-4 space-y-6">
-        <!-- Funnel Card -->
-        <ScreeningFunnelCard />
-
-        <!-- Executive Summary Snapshot -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              Research Synthesis Memo
-            </h3>
-            <span class="text-[10px] font-mono text-slate-400">Pillar 5 Output</span>
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            {{ store.report.peerComparisonNotes }}
+          <h1 class="max-w-3xl text-3xl font-bold tracking-[-0.035em] text-balance sm:text-4xl lg:text-5xl">
+            Apa yang ingin Anda teliti hari ini?
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            Jelaskan tujuan riset Anda. Voyager One akan menyusun ruang lingkup, menyeleksi kandidat, dan merangkum temuan beserta risiko yang perlu diperiksa.
           </p>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <router-link
-              to="/report"
-              class="text-xs font-bold text-[#407EC9] hover:underline flex items-center gap-1.5"
-            >
-              <FileText class="w-3.5 h-3.5" />
-              <span>Open Executive Report</span>
-              <ChevronRight class="w-3.5 h-3.5" />
-            </router-link>
-
-            <span class="text-[10px] text-slate-400 font-mono">
-              Session: {{ store.report.sessionId }}
-            </span>
-          </div>
+          <form class="mt-7 rounded-2xl border border-white/15 bg-white p-2 shadow-xl" @submit.prevent="startDraft">
+            <label for="dashboard-objective" class="sr-only">Tujuan riset</label>
+            <textarea
+              id="dashboard-objective"
+              v-model="draftObjective"
+              rows="2"
+              class="block w-full resize-none rounded-xl px-4 py-3 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-[#407EC9]"
+              placeholder="Contoh: Temukan perusahaan consumer Indonesia dengan margin stabil dan valuasi yang wajar."
+            ></textarea>
+            <div class="flex flex-col gap-2 border-t border-slate-100 px-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
+              <router-link to="/research/new" class="inline-flex min-h-11 items-center px-2 text-xs font-semibold text-slate-600 hover:text-slate-950">
+                Gunakan template riset
+              </router-link>
+              <button type="submit" class="button-primary w-full sm:w-auto">
+                Susun riset
+                <ArrowRight class="h-4 w-4" />
+              </button>
+            </div>
+          </form>
         </div>
 
-        <!-- Recent Sectors Tool Trace Widget -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-            <div class="flex items-center gap-2">
-              <Terminal class="w-4 h-4 text-[#407EC9]" />
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-                Recent Sectors Tool Calls
-              </h3>
+        <aside class="rounded-2xl border border-white/12 bg-white/7 p-5 backdrop-blur-sm" aria-label="Ringkasan sesi terakhir">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold text-blue-200">Sesi terakhir</p>
+              <h2 class="mt-1 font-mono text-sm font-bold">{{ store.report.sessionId }}</h2>
             </div>
-            <router-link 
-              to="/trace" 
-              class="text-xs text-[#407EC9] hover:underline font-semibold"
-            >
-              Full Trace
-            </router-link>
+            <span class="rounded-md bg-emerald-400/15 px-2 py-1 text-xs font-semibold text-emerald-200">Selesai</span>
           </div>
-
-          <div class="space-y-2 font-mono text-[11px]">
-            <div 
-              v-for="call in store.toolCalls.slice(-4)" 
-              :key="call.id"
-              class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-start justify-between gap-2"
-            >
-              <div>
-                <div class="font-bold text-slate-800 text-[11px]">{{ call.toolName }}</div>
-                <div class="text-[10px] text-slate-500 line-clamp-1 font-sans mt-0.5">{{ call.outputSummary }}</div>
-              </div>
-              <span class="text-[10px] text-slate-400 shrink-0">{{ call.durationMs }}ms</span>
+          <p class="mt-5 line-clamp-3 text-sm leading-6 text-slate-200">{{ store.report.objective }}</p>
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <div class="rounded-xl bg-black/15 p-3">
+              <span class="text-xs text-slate-400">Kandidat</span>
+              <strong class="mt-1 block font-mono text-xl">{{ store.candidates.length }}</strong>
+            </div>
+            <div class="rounded-xl bg-black/15 p-3">
+              <span class="text-xs text-slate-400">Skor tertinggi</span>
+              <strong class="mt-1 block font-mono text-xl">{{ store.candidates[0]?.qualityScore }}/100</strong>
             </div>
           </div>
-        </div>
+          <router-link :to="`/research/${store.report.sessionId}`" class="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-white hover:text-blue-100">
+            Buka sesi riset
+            <ChevronRight class="h-4 w-4" />
+          </router-link>
+        </aside>
       </div>
-    </div>
+    </section>
 
-    <!-- Modals -->
-    <CandidateDetailModal />
-    <MethodologyModal />
+    <section aria-labelledby="active-research-title">
+      <div class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <p class="section-kicker">Riset aktif</p>
+          <h2 id="active-research-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Lanjutkan dari konteks terakhir</h2>
+        </div>
+        <router-link :to="`/research/${store.report.sessionId}`" class="text-link hidden sm:inline-flex">Lihat sesi <ArrowRight class="h-4 w-4" /></router-link>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-[1fr_0.38fr]">
+        <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div class="max-w-3xl">
+              <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <Activity class="h-4 w-4 text-[#407EC9]" />
+                {{ currentPillar ? currentPillar.name : 'Laporan siap ditinjau' }}
+              </div>
+              <h3 class="mt-2 text-lg font-bold text-slate-950">{{ store.report.objective }}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-600">{{ currentPillar?.subtitle || 'Seluruh tahap selesai. Kandidat dan laporan dapat dibuka kembali kapan saja.' }}</p>
+            </div>
+            <span class="shrink-0 rounded-lg bg-slate-100 px-3 py-2 font-mono text-xs font-bold text-slate-700">{{ completedSteps }}/5 tahap</span>
+          </div>
+          <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100" aria-label="Progress riset" role="progressbar" :aria-valuenow="completedSteps" aria-valuemin="0" aria-valuemax="5">
+            <div class="h-full rounded-full bg-[#407EC9]" :style="{ width: `${(completedSteps / 5) * 100}%` }"></div>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center gap-4">
+            <router-link :to="`/research/${store.report.sessionId}`" class="button-secondary">Buka riset</router-link>
+            <span class="inline-flex items-center gap-1.5 text-xs text-slate-500"><Clock3 class="h-3.5 w-3.5" /> Diperbarui {{ store.report.timestamp }}</span>
+          </div>
+        </article>
+
+        <article class="rounded-2xl bg-[#407EC9] p-6 text-white shadow-[0_18px_45px_-25px_rgba(64,126,201,0.9)]">
+          <FileText class="h-5 w-5 text-blue-100" />
+          <h3 class="mt-5 text-lg font-bold">Laporan tersedia</h3>
+          <p class="mt-2 text-sm leading-6 text-blue-100">Tinjau ranking, analisis kandidat, risiko, dan keterbatasan riset.</p>
+          <router-link to="/report" class="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-white">
+            Buka laporan <ArrowRight class="h-4 w-4" />
+          </router-link>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="latest-findings-title">
+      <div class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <p class="section-kicker">Temuan terbaru</p>
+          <h2 id="latest-findings-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Tiga kandidat teratas</h2>
+        </div>
+        <router-link to="/screener" class="text-link hidden sm:inline-flex">Lihat semua kandidat <ArrowRight class="h-4 w-4" /></router-link>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-3">
+        <CandidateCard v-for="candidate in store.candidates.slice(0, 3)" :key="candidate.symbol" :candidate="candidate" />
+      </div>
+    </section>
   </div>
 </template>

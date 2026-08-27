@@ -31,10 +31,110 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgba(64, 126, 201, 0.45);
+    outline-offset: 3px;
+  }
+
   /* Tabular figures for all financial and metric displays */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+}
+
+@layer components {
+  .button-primary {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    background: #407EC9;
+    padding: 0.625rem 1rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: background-color 150ms ease, transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .button-primary:hover { background: #2F64A8; }
+  .button-primary:active { transform: scale(0.97); }
+
+  .button-secondary {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 0.75rem;
+    background: white;
+    padding: 0.625rem 1rem;
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: border-color 150ms ease, background-color 150ms ease, transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .button-secondary:hover { border-color: #94A3B8; background: #F8FAFC; }
+  .button-secondary:active { transform: scale(0.97); }
+
+  .icon-button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    color: #64748B;
+    transition: background-color 150ms ease, color 150ms ease, transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .icon-button:hover { background: #F1F5F9; color: #0F172A; }
+  .icon-button:active { transform: scale(0.95); }
+
+  .text-link {
+    align-items: center;
+    gap: 0.375rem;
+    color: #2F64A8;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .section-kicker {
+    color: #2F64A8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: 0.75rem;
+    background: #102138;
+    padding: 0.75rem 1rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .skip-link:focus { transform: translateY(0); }
 }
 
 /* Custom subtle scrollbar */
@@ -73,4 +173,28 @@
 
 .animate-scanline {
   animation: scanline 8s linear infinite;
+}
+
+@media print {
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main { padding: 0 !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

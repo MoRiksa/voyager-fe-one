@@ -2,16 +2,12 @@
 import { ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
-  GitCompare, 
-  Award, 
-  TrendingUp, 
-  BarChart3, 
-  ShieldCheck,
-  ChevronRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-vue-next'
 
 const store = useResearchStore()
+const leftTicker = ref(store.candidates[0]?.symbol || '')
+const rightTicker = ref(store.candidates[1]?.symbol || '')
 </script>
 
 <template>
@@ -19,36 +15,44 @@ const store = useResearchStore()
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono">Pillar 3: Research Engine</span>
+         <span class="section-kicker">Perbandingan kandidat</span>
         <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
-          Cross-Sectional Benchmark
+           Peer benchmark
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-        Peer Group Comparison Matrix
+         Bandingkan kekuatan dan tradeoff kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-        Automated comparative analysis across shortlisted candidates and industry peer benchmarks to validate competitive moats, valuation dispersion, and capital efficiency.
+         Pilih kandidat dan lihat perbedaan profitabilitas, pertumbuhan, valuasi, serta kesehatan neracanya.
       </p>
     </div>
 
     <!-- Comparative Table -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm overflow-hidden">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Multi-Candidate Peer Benchmarking</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Metrics normalized and computed directly via Derived Intelligence Engine</p>
+           <h3 class="text-lg font-bold text-slate-900">Metrik utama kandidat</h3>
+           <p class="text-xs text-slate-500 mt-0.5">Gunakan tabel desktop atau perbandingan dua kandidat di mobile</p>
         </div>
         <div class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-          Source: Sectors API /companies/compare
+           {{ store.candidates.length }} kandidat
         </div>
       </div>
 
-      <div class="overflow-x-auto">
+      <div class="md:hidden">
+        <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2"><label class="text-xs font-bold text-slate-700">Kandidat A<select v-model="leftTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label><span class="pb-3 text-xs text-slate-400">vs</span><label class="text-xs font-bold text-slate-700">Kandidat B<select v-model="rightTicker" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 font-mono text-sm"><option v-for="candidate in store.candidates" :key="candidate.symbol" :value="candidate.symbol">{{ candidate.symbol }}</option></select></label></div>
+        <div class="mt-5 divide-y divide-slate-100 rounded-xl border border-slate-200">
+          <div v-for="metric in [{ label: 'Skor kualitas', key: 'qualityScore', suffix: '' }, { label: 'ROE', key: 'roePercent', suffix: '%' }, { label: 'P/E', key: 'peRatio', suffix: 'x' }, { label: '3Y revenue CAGR', key: 'revenue3yCagrPercent', suffix: '%' }, { label: 'FCF yield', key: 'freeCashFlowYieldPercent', suffix: '%' }]" :key="metric.key" class="grid grid-cols-3 gap-2 p-3 text-center text-xs"><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === leftTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span><span class="text-slate-500">{{ metric.label }}</span><span class="font-mono font-bold text-slate-900">{{ store.candidates.find(c => c.symbol === rightTicker)?.[metric.key as keyof typeof store.candidates[number]] }}{{ metric.suffix }}</span></div>
+        </div>
+      </div>
+
+      <div class="hidden overflow-x-auto md:block">
         <table class="w-full text-left text-xs">
+          <caption class="sr-only">Perbandingan metrik kandidat terpilih</caption>
           <thead>
             <tr class="border-b border-slate-200 text-slate-400 uppercase font-mono font-semibold">
-              <th class="pb-3 pr-4">Candidate</th>
+               <th scope="col" class="pb-3 pr-4">Candidate</th>
               <th class="pb-3 pr-4 text-center">Quality Score</th>
               <th class="pb-3 pr-4 text-right">ROE (%)</th>
               <th class="pb-3 pr-4 text-right">ROA (%)</th>

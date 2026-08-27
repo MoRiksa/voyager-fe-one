@@ -1,10 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import ScreenerView from '../views/ScreenerView.vue'
-import PeersView from '../views/PeersView.vue'
-import TraceView from '../views/TraceView.vue'
-import MethodologyView from '../views/MethodologyView.vue'
-import ReportView from '../views/ReportView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,42 +11,59 @@ const router = createRouter({
       meta: { title: 'Research Workspace' }
     },
     {
+      path: '/research/new',
+      name: 'research-new',
+      component: () => import('../views/NewResearchView.vue'),
+      meta: { title: 'Riset Baru' }
+    },
+    {
+      path: '/research/:id',
+      name: 'research-session',
+      component: () => import('../views/ResearchSessionView.vue'),
+      meta: { title: 'Sesi Riset' }
+    },
+    {
       path: '/screener',
       name: 'screener',
-      component: ScreenerView,
+      component: () => import('../views/ScreenerView.vue'),
       meta: { title: 'Autonomous Screener' }
     },
     {
       path: '/peers',
       name: 'peers',
-      component: PeersView,
+      component: () => import('../views/PeersView.vue'),
       meta: { title: 'Peer Comparison Matrix' }
     },
     {
       path: '/trace',
       name: 'trace',
-      component: TraceView,
+      component: () => import('../views/TraceView.vue'),
       meta: { title: 'Tool Trace & Observability' }
     },
     {
       path: '/methodology',
       name: 'methodology',
-      component: MethodologyView,
+      component: () => import('../views/MethodologyView.vue'),
       meta: { title: 'Derived Intelligence Scoring' }
     },
     {
       path: '/report',
       name: 'report',
-      component: ReportView,
+      component: () => import('../views/ReportView.vue'),
       meta: { title: 'Final Research Report' }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+      meta: { title: 'Halaman Tidak Ditemukan' }
     }
   ],
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
-    } else {
-      return { top: 0 }
     }
+    return { top: 0 }
   }
 })
 

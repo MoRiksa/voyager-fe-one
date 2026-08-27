@@ -30,6 +30,7 @@ const store = useResearchStore()
 const viewMode = ref<'interactive' | 'document'>('interactive')
 const selectedTicker = ref<string>(store.candidates[0]?.symbol || 'BBCA')
 const copySuccess = ref(false)
+const copyError = ref('')
 
 const activeCandidate = computed(() => {
   return store.candidates.find(c => c.symbol === selectedTicker.value) || store.candidates[0]
@@ -53,9 +54,14 @@ ${store.report.peerComparisonNotes}
 LIMITATIONS:
 ${store.report.limitations.map(l => `- ${l}`).join('\n')}
 `
-  await navigator.clipboard.writeText(summaryText)
-  copySuccess.value = true
-  setTimeout(() => { copySuccess.value = false }, 2000)
+  try {
+    await navigator.clipboard.writeText(summaryText)
+    copyError.value = ''
+    copySuccess.value = true
+    setTimeout(() => { copySuccess.value = false }, 2000)
+  } catch {
+    copyError.value = 'Ringkasan tidak dapat disalin. Periksa izin clipboard browser Anda.'
+  }
 }
 
 const handleExportMarkdown = () => {
@@ -121,6 +127,7 @@ ${store.report.disclaimer}
   link.setAttribute('href', url)
   link.setAttribute('download', `VoyagerOne-ExecutiveReport-${store.report.sessionId}.md`)
   link.click()
+  URL.revokeObjectURL(url)
 }
 
 const handleExportJson = () => {
@@ -131,6 +138,7 @@ const handleExportJson = () => {
   link.setAttribute('href', url)
   link.setAttribute('download', `VoyagerOne-Report-${store.report.sessionId}.json`)
   link.click()
+  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -145,9 +153,9 @@ const handleExportJson = () => {
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-base font-bold text-slate-900 font-mono">Executive Research Dossier</h1>
+             <h1 class="text-base font-bold text-slate-900 font-mono">Laporan riset</h1>
             <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              VERIFIED
+               SIAP DITINJAU
             </span>
           </div>
           <p class="text-xs text-slate-500 font-mono">
@@ -159,20 +167,22 @@ const handleExportJson = () => {
       <!-- Right: View Mode Toggle & Export Actions -->
       <div class="flex flex-wrap items-center gap-2.5">
         <!-- Mode Switcher -->
-        <div class="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+         <div class="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
           <button
-            @click="viewMode = 'interactive'"
+             @click="viewMode = 'interactive'"
+             :aria-pressed="viewMode === 'interactive'"
             class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
             :class="viewMode === 'interactive' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
           >
-            Interactive Dossier
+             Interaktif
           </button>
           <button
-            @click="viewMode = 'document'"
+             @click="viewMode = 'document'"
+             :aria-pressed="viewMode === 'document'"
             class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
             :class="viewMode === 'document' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
           >
-            Printable Sheet (A4)
+             Dokumen A4
           </button>
         </div>
 
@@ -195,7 +205,7 @@ const handleExportJson = () => {
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
         >
           <Printer class="w-3.5 h-3.5" />
-          <span>Print / PDF</span>
+           <span>Unduh laporan</span>
         </button>
 
         <!-- Export Markdown -->
@@ -216,6 +226,7 @@ const handleExportJson = () => {
           <span>JSON</span>
         </button>
       </div>
+      <p v-if="copyError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError }}</p>
     </div>
 
     <!-- ========================================================================= -->
@@ -228,13 +239,13 @@ const handleExportJson = () => {
           <div>
             <div class="inline-flex items-center gap-1.5 text-xs font-bold font-mono uppercase tracking-wider text-[#407EC9] mb-1.5">
               <ShieldCheck class="w-4 h-4" />
-              Autonomous Investment Synthesis
+               Ringkasan riset
             </div>
             <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              Indonesian Capital Markets Research Dossier
+               Riset pasar modal Indonesia
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-              Deterministic screening and 5-factor quality deconstruction across 914 IDX-listed equities.
+               Hasil penyaringan dan analisis lima faktor terhadap perusahaan tercatat di BEI.
             </p>
           </div>
 
@@ -251,8 +262,8 @@ const handleExportJson = () => {
             </div>
             <span class="text-slate-300">•</span>
             <div>
-              <span class="text-[10px] text-slate-400 font-mono uppercase block">Sectors API</span>
-              <strong class="text-[#407EC9] font-mono">Verified</strong>
+               <span class="text-[10px] text-slate-500 font-mono uppercase block">Status</span>
+               <strong class="text-[#407EC9] font-mono">Selesai</strong>
             </div>
           </div>
         </div>
@@ -315,12 +326,13 @@ const handleExportJson = () => {
           <span class="text-xs text-slate-400 font-mono">Sorted by Derived Quality Score</span>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
+         <div class="overflow-x-auto">
+           <table class="w-full text-left text-xs border-collapse">
+             <caption class="sr-only">Perbandingan kandidat riset berdasarkan skor dan metrik utama</caption>
             <thead>
               <tr class="bg-slate-50 text-slate-500 font-mono text-[11px] border-b border-slate-200">
-                <th class="py-3 px-4 font-bold">RANK</th>
-                <th class="py-3 px-4 font-bold">TICKER & COMPANY</th>
+                 <th scope="col" class="py-3 px-4 font-bold">RANK</th>
+                 <th scope="col" class="py-3 px-4 font-bold">TICKER & COMPANY</th>
                 <th class="py-3 px-4 font-bold">SECTOR</th>
                 <th class="py-3 px-4 font-bold text-center">QUALITY SCORE</th>
                 <th class="py-3 px-4 font-bold text-right">ROE</th>
@@ -336,8 +348,7 @@ const handleExportJson = () => {
               <tr 
                 v-for="c in store.candidates" 
                 :key="c.symbol"
-                @click="selectedTicker = c.symbol"
-                class="hover:bg-[#407EC9]/5 transition-colors cursor-pointer"
+                 class="hover:bg-[#407EC9]/5 transition-colors"
                 :class="selectedTicker === c.symbol ? 'bg-[#407EC9]/10 font-bold' : ''"
               >
                 <td class="py-3.5 px-4 font-bold text-slate-900">#{{ c.rank }}</td>
@@ -362,10 +373,13 @@ const handleExportJson = () => {
                   </span>
                 </td>
                 <td class="py-3.5 px-4 text-center font-sans">
-                  <button 
-                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#407EC9] hover:bg-[#407EC9] hover:text-white transition-colors cursor-pointer"
+                   <button
+                     type="button"
+                     @click="selectedTicker = c.symbol"
+                     :aria-pressed="selectedTicker === c.symbol"
+                     class="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#407EC9] hover:bg-[#407EC9] hover:text-white transition-colors cursor-pointer"
                   >
-                    Select
+                     Pilih
                   </button>
                 </td>
               </tr>
@@ -391,7 +405,8 @@ const handleExportJson = () => {
             <button
               v-for="c in store.candidates"
               :key="c.symbol"
-              @click="selectedTicker = c.symbol"
+               @click="selectedTicker = c.symbol"
+               :aria-pressed="selectedTicker === c.symbol"
               class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               :class="selectedTicker === c.symbol 
                 ? 'bg-[#407EC9] text-white shadow-xs' 

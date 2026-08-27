@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   X, 
@@ -20,19 +20,58 @@ import {
 
 const store = useResearchStore()
 const candidate = computed(() => store.selectedCompany)
+const dialogRef = ref<HTMLElement | null>(null)
+let previousFocus: HTMLElement | null = null
 
 const handleClose = () => {
   store.closeCandidateModal()
 }
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') handleClose()
+  if (event.key !== 'Tab' || !dialogRef.value) return
+
+  const focusable = Array.from(dialogRef.value.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+  if (!focusable.length) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+watch(() => store.isDetailModalOpen, async (isOpen) => {
+  if (isOpen) {
+    previousFocus = document.activeElement as HTMLElement
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeydown)
+    await nextTick()
+    dialogRef.value?.focus()
+  } else {
+    document.body.style.overflow = ''
+    window.removeEventListener('keydown', handleKeydown)
+    previousFocus?.focus()
+  }
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = ''
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
   <div 
     v-if="store.isDetailModalOpen && candidate"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 lg:p-8 bg-slate-900/60 backdrop-blur-xs"
     @click.self="handleClose"
   >
-    <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div ref="dialogRef" role="dialog" aria-modal="true" aria-labelledby="candidate-dialog-title" tabindex="-1" class="bg-white w-full max-w-4xl h-[94dvh] sm:h-auto sm:max-h-[90dvh] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden outline-none">
       <!-- Modal Header -->
       <div class="p-6 border-b border-slate-200/80 bg-slate-50/70 flex items-start justify-between gap-4">
         <div class="flex items-start gap-4">
@@ -41,7 +80,7 @@ const handleClose = () => {
           </div>
           <div>
             <div class="flex items-center gap-2.5">
-              <h2 class="text-2xl font-bold font-mono text-slate-900">{{ candidate.symbol }}</h2>
+               <h2 id="candidate-dialog-title" class="text-2xl font-bold font-mono text-slate-900">{{ candidate.symbol }}</h2>
               <span class="px-2.5 py-0.5 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-md">
                 {{ candidate.sector }} • {{ candidate.subsector }}
               </span>
@@ -64,9 +103,10 @@ const handleClose = () => {
             <div class="text-[10px] text-slate-500 font-medium mt-0.5">Derived Quality Score</div>
           </div>
 
-          <button
+           <button
             @click="handleClose"
-            class="p-2 rounded-xl hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+             aria-label="Tutup analisis perusahaan"
+             class="icon-button"
           >
             <X class="w-5 h-5" />
           </button>
@@ -79,7 +119,7 @@ const handleClose = () => {
         <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20">
           <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] mb-1.5 flex items-center gap-1.5">
             <ShieldCheck class="w-4 h-4" />
-            Agent Research Selection Rationale
+             Mengapa perusahaan ini dipilih
           </h4>
           <p class="text-sm text-slate-800 leading-relaxed font-normal">
             {{ candidate.whySelected }}
@@ -243,10 +283,10 @@ const handleClose = () => {
             <div class="flex items-center gap-2">
               <Database class="w-4 h-4 text-[#407EC9]" />
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Sectors API Data Evidence Trail
+               Data pendukung
               </h4>
             </div>
-            <span class="text-xs text-slate-400 font-mono">Zero Hallucinations Verified</span>
+             <span class="text-xs text-slate-500 font-mono">Sumber dan konteks metrik</span>
           </div>
 
           <div class="space-y-2">
@@ -271,14 +311,14 @@ const handleClose = () => {
       <!-- Modal Footer -->
       <div class="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
         <span class="text-xs text-slate-500">
-          Peer Rank Context: <strong class="text-slate-800">{{ candidate.peerRankInMemory }}</strong>
+           Posisi terhadap perusahaan sejenis: <strong class="text-slate-800">{{ candidate.peerRankInMemory }}</strong>
         </span>
 
         <button
           @click="handleClose"
           class="px-5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
         >
-          Close Dossier
+           Tutup analisis
         </button>
       </div>
     </div>
