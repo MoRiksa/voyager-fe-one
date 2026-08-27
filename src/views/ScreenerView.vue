@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
+  ArrowRight,
   CheckCircle2,
   XCircle
 } from '@lucide/vue'
@@ -171,5 +172,15 @@ watch(() => store.report.sessionId, () => {
         </table>
       </div>
     </div>
+
+    <section data-testid="screener-next" class="grid gap-5 rounded-2xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div><p class="text-xs font-bold uppercase tracking-wider text-blue-200">Langkah berikutnya</p><h2 class="mt-2 text-xl font-bold">{{ store.candidates.length >= 2 ? `${store.candidates.length} kandidat siap dibandingkan` : store.candidates.length === 1 ? 'Satu kandidat siap ditinjau' : 'Sesuaikan kriteria untuk mencari kandidat lain' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{{ store.candidates.length >= 2 ? 'Bandingkan kualitas, valuasi, dan pertumbuhan seluruh kandidat yang lolos tahap akhir.' : store.candidates.length === 1 ? 'Buka analisis lengkap untuk memahami kekuatan, risiko, dan bukti pendukungnya.' : 'Gunakan tujuan riset ini sebagai titik awal, lalu longgarkan atau ubah kriteria seleksi.' }}</p></div>
+      <div class="flex flex-wrap gap-2">
+        <router-link v-if="store.candidates.length >= 2" data-testid="screener-primary-next" :to="`/research/${store.report.sessionId}/peers`" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link>
+        <router-link v-else-if="store.candidates.length === 1" data-testid="screener-primary-next" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Buka analisis <ArrowRight class="h-4 w-4" /></router-link>
+        <router-link v-else data-testid="screener-primary-next" to="/research/new" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Ubah kriteria <ArrowRight class="h-4 w-4" /></router-link>
+        <router-link :to="`/research/${store.report.sessionId}/report`" class="inline-flex min-h-11 items-center px-3 text-sm font-bold text-white">Buka laporan</router-link>
+      </div>
+    </section>
   </div>
 </template>

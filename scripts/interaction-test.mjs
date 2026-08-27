@@ -28,7 +28,7 @@ let commandId = 0
 const pending = new Map()
 
 const waitFor = async (check, message) => {
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     if (await check()) return
     await delay(100)
   }
@@ -95,6 +95,10 @@ try {
     document.querySelector('[data-testid="research-form"]').requestSubmit()
   })()`)
   await waitFor(() => evaluate('location.pathname.startsWith("/research/RES-")'), 'Valid research form did not create a session')
+  await waitFor(() => evaluate(`(() => {
+    const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
+    return payload.sessions.find(item => item.id === location.pathname.split('/')[2])?.status === 'COMPLETED'
+  })()`), 'Research session did not complete')
   const sessionResult = await evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
     const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
@@ -121,7 +125,10 @@ try {
     throw new Error(`Session screening invariants failed: ${JSON.stringify(sessionResult)}`)
   }
 
-  await navigate(`/research/${sessionResult.id}/screener`)
+  await navigate(`/research/${sessionResult.id}`)
+  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=session-next]"))'), 'Session next action did not render')
+  await evaluate(`document.querySelector('[data-testid="session-next"]').click()`)
+  await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/screener'`), 'Session did not guide to screener')
   const desktopNavigation = await evaluate(`({
     summaryHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Ringkasan')?.getAttribute('href'),
     activeLabel: document.querySelector('nav a[aria-current="page"]')?.textContent.trim(),
@@ -144,7 +151,8 @@ try {
   await waitFor(() => evaluate('!document.querySelector("[data-testid=candidate-dialog]")'), 'Candidate dialog did not close with Escape')
   await waitFor(() => evaluate('document.activeElement?.dataset?.testid?.startsWith("candidate-")'), 'Focus did not return to the candidate trigger')
 
-  await navigate(`/research/${sessionResult.id}/peers`)
+  await evaluate(`document.querySelector('[data-testid="screener-primary-next"]').click()`)
+  await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/peers'`), 'Screener did not guide to comparison')
   await waitFor(() => evaluate(`document.querySelectorAll('[data-testid^="comparison-row-"]').length === ${sessionResult.symbols.length}`), 'Peer comparison rows did not render')
   const comparisonState = await evaluate(`({
     rows: Array.from(document.querySelectorAll('[data-testid^="comparison-row-"]')).map(row => row.dataset.testid.replace('comparison-row-', '')),
@@ -161,7 +169,12 @@ try {
   })()`)
   await waitFor(() => evaluate('Array.from(document.querySelectorAll("th")).some(cell => cell.textContent.includes("P/BV"))'), 'Metric view did not change comparison columns')
 
-  await navigate('/research')
+  await evaluate(`document.querySelector('[data-testid="peers-primary-next"]').click()`)
+  await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/report'`), 'Comparison did not guide to report')
+  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
+  await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)
+  await waitFor(() => evaluate('location.pathname === "/research"'), 'Report did not return to research library')
+
   const libraryNavigation = await evaluate(`({
     cards: document.querySelectorAll('[data-testid^="library-session-"]').length,
     desktopHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Pustaka riset')?.getAttribute('href')

@@ -46,7 +46,12 @@ const askFollowUp = () => {
           <div class="mt-4 max-w-4xl rounded-xl bg-slate-50 p-4"><span class="text-xs font-bold text-slate-500">Tujuan riset</span><p class="mt-1 text-sm leading-6 text-slate-700">{{ store.currentObjective }}</p></div>
           <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || (store.status === 'FAILED' ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.' : 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.') }}</p>
         </div>
-        <router-link v-if="store.status === 'COMPLETED'" :to="`/research/${store.report.sessionId}/report`" class="button-primary shrink-0">Buka laporan <ArrowRight class="h-4 w-4" /></router-link>
+        <div v-if="store.status === 'COMPLETED'" class="flex shrink-0 flex-wrap gap-2">
+          <router-link v-if="store.candidates.length >= 2" data-testid="session-next" :to="`/research/${store.report.sessionId}/screener`" class="button-primary">Lihat cara kandidat dipilih <ArrowRight class="h-4 w-4" /></router-link>
+          <router-link v-else-if="store.candidates.length === 1" data-testid="session-next" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-primary">Buka analisis kandidat <ArrowRight class="h-4 w-4" /></router-link>
+          <router-link v-else data-testid="session-next" to="/research/new" class="button-primary">Ubah kriteria riset <ArrowRight class="h-4 w-4" /></router-link>
+          <router-link :to="`/research/${store.report.sessionId}/report`" class="button-secondary">Buka laporan</router-link>
+        </div>
       </div>
       <div class="mt-7">
         <div class="mb-2 flex items-center justify-between text-xs font-semibold text-slate-600"><span>{{ activePillar?.name || 'Riset selesai' }}</span><span class="font-mono">{{ progress }}%</span></div>
@@ -74,7 +79,7 @@ const askFollowUp = () => {
         <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
           <div class="mb-4 flex items-end justify-between"><div><p class="section-kicker">Hasil sementara</p><h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas</h2></div><router-link :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link></div>
           <div v-if="store.candidates.length" class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
-          <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur dan kriterianya.</p></div>
+          <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur, lalu gunakan riset ini sebagai template untuk menyesuaikan kriteria.</p><div class="mt-5 flex flex-wrap justify-center gap-2"><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau tahap seleksi</router-link><router-link to="/research/new" class="button-primary">Ubah kriteria</router-link></div></div>
         </section>
 
         <section v-show="activePanel === 'activity'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:hidden">
@@ -83,8 +88,8 @@ const askFollowUp = () => {
         </section>
 
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div class="flex items-center gap-2"><MessageSquare class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Tanyakan hal lanjutan</h2></div>
-          <p class="mt-1 text-xs leading-5 text-slate-500">Gunakan konteks sesi ini untuk mempersempit hasil atau meminta perbandingan tambahan.</p>
+          <div class="flex items-center gap-2"><MessageSquare class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Catatan lanjutan</h2></div>
+          <p class="mt-1 text-xs leading-5 text-slate-500">Simpan pertanyaan atau ide untuk riset berikutnya. Catatan tidak menghitung ulang hasil sesi ini.</p>
           <form class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="askFollowUp"><label for="follow-up" class="sr-only">Pertanyaan lanjutan</label><input id="follow-up" v-model="followUp" class="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 text-sm outline-none focus:border-[#407EC9] focus:ring-4 focus:ring-[#407EC9]/10" placeholder="Contoh: Bandingkan tiga kandidat teratas dari sisi risiko." /><button type="submit" class="button-primary"><Send class="h-4 w-4" /> Kirim</button></form>
           <p v-if="followUpResponse" role="status" class="mt-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-900">{{ followUpResponse }}</p>
         </section>

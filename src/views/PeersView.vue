@@ -127,5 +127,10 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">{{ highlight.company.whySelected }}</p>
       </div>
     </div>
+
+    <section data-testid="peers-next" class="grid gap-5 rounded-2xl border border-[#407EC9]/20 bg-[#407EC9]/5 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div><p class="section-kicker">Lanjutkan riset</p><h2 class="mt-2 text-xl font-bold text-slate-950">{{ comparisonCandidates.length >= 2 ? 'Baca kesimpulan lengkap dan keterbatasannya' : 'Tinjau kembali hasil seleksi' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ comparisonCandidates.length >= 2 ? 'Laporan merangkum ranking, alasan pemilihan, risiko, sumber data, dan batas analisis untuk seluruh kandidat.' : 'Perbandingan membutuhkan sedikitnya dua kandidat. Lihat tahap seleksi untuk memahami hasil sesi ini.' }}</p></div>
+      <div class="flex flex-wrap gap-2"><router-link v-if="comparisonCandidates.length >= 2" data-testid="peers-primary-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan riset <ArrowRight class="h-4 w-4" /></router-link><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Kembali ke tahap seleksi</router-link></div>
+    </section>
   </div>
 </template>

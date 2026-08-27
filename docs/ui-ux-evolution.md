@@ -22,6 +22,8 @@ Navigation treats the active research session as the parent workspace. Global ac
 
 The Research Library at `/research` is the canonical destination for saved sessions. It supports search by title, objective, or session ID; status filtering; result summaries; direct access to sessions and reports; duplication into an editable new-research draft; and confirmed deletion. The dashboard only previews recent work and links to the library.
 
+Completed research follows an explicit in-page journey: session summary to candidate-selection rationale, then complete candidate comparison, then the final report. Each page provides one primary next action plus a secondary escape route. The report closes the loop by returning to the Research Library or creating an editable draft from the same objective without modifying the saved result.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   FileText, 
@@ -25,6 +26,7 @@ import {
 } from '@lucide/vue'
 
 const store = useResearchStore()
+const router = useRouter()
 
 // View Mode: 'interactive' (Rich Dossier) or 'document' (Formal Printable Document)
 const viewMode = ref<'interactive' | 'document'>('interactive')
@@ -163,6 +165,11 @@ const handleExportJson = () => {
   link.click()
   URL.revokeObjectURL(url)
   store.notify('Data laporan JSON berhasil diunduh.', 'success')
+}
+
+const useAsTemplate = async () => {
+  store.setObjective(store.currentObjective, store.activePresetId)
+  await router.push('/research/new')
 }
 </script>
 
@@ -632,6 +639,11 @@ const handleExportJson = () => {
           <strong>Pemberitahuan:</strong> {{ store.report.disclaimer }}
         </div>
       </div>
+
+      <section data-testid="report-next" class="grid gap-5 rounded-2xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center print:hidden">
+        <div><p class="text-xs font-bold uppercase tracking-wider text-blue-200">Riset selesai</p><h2 class="mt-2 text-xl font-bold">Laporan tersimpan di Pustaka Riset</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Kembali ke pustaka untuk membuka riset lain, atau gunakan tujuan ini sebagai template tanpa mengubah hasil yang sudah tersimpan.</p></div>
+        <div class="flex flex-wrap gap-2"><router-link to="/research" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Kembali ke pustaka <ChevronRight class="h-4 w-4" /></router-link><button type="button" data-testid="report-use-template" class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 px-4 text-sm font-bold text-white hover:bg-white/10" @click="useAsTemplate"><Copy class="h-4 w-4" /> Gunakan sebagai template</button><router-link :to="`/research/${store.report.sessionId}/peers`" class="inline-flex min-h-11 items-center px-3 text-sm font-bold text-white">Kembali ke perbandingan</router-link></div>
+      </section>
     </div>
 
     <!-- ========================================================================= -->
