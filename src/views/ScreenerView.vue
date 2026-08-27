@@ -28,6 +28,13 @@ watch(() => store.report.sessionId, () => {
 
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
+      <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
+      <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Tahap seleksi tidak selesai' : 'Kandidat sedang diseleksi' }}</h1>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? 'Kembali ke ringkasan sesi untuk melihat status dan hasil yang sempat tersimpan.' : 'Voyager One sedang mengevaluasi ruang lingkup dan kriteria. Hasil tahap seleksi akan muncul setelah riset selesai.' }}</p>
+      <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
+    </section>
+    <template v-else>
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
@@ -182,5 +189,6 @@ watch(() => store.report.sessionId, () => {
         <router-link :to="`/research/${store.report.sessionId}/report`" class="inline-flex min-h-11 items-center px-3 text-sm font-bold text-white">Buka laporan</router-link>
       </div>
     </section>
+    </template>
   </div>
 </template>

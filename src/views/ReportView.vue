@@ -175,6 +175,13 @@ const useAsTemplate = async () => {
 
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center print:hidden">
+      <span class="section-kicker">{{ store.status === 'FAILED' ? 'Laporan belum lengkap' : 'Riset sedang berjalan' }}</span>
+      <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Laporan tidak berhasil diselesaikan' : 'Laporan sedang disusun' }}</h1>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? 'Kembali ke ringkasan sesi untuk meninjau status proses.' : 'Ranking, analisis kandidat, risiko, dan keterbatasan akan tersedia setelah seluruh tahap selesai.' }}</p>
+      <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
+    </section>
+    <template v-else>
     <!-- Top Action & View Switcher Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm print:hidden">
       <!-- Left: Session Context -->
@@ -753,5 +760,6 @@ const useAsTemplate = async () => {
         <p>{{ store.report.disclaimer }}</p>
       </div>
     </div>
+    </template>
   </div>
 </template>

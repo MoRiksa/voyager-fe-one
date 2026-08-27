@@ -201,6 +201,20 @@ export const useResearchStore = defineStore('research', () => {
     report.value.uncertaintyNotes = 'Provenance: prototype-fixture-v1. Hasil memvalidasi alur seleksi dan tidak mewakili cakupan atau keyakinan data pasar produksi.'
   }
 
+  const preparePendingSession = (results: ReturnType<typeof deriveSessionResults>) => {
+    const artifacts = deriveSessionArtifacts(results)
+    activePlan.value = artifacts.plan
+    pillars.value = artifacts.pillars.map(pillar => ({ ...pillar, status: 'pending' }))
+    toolCalls.value = []
+    screeningFunnel.value = []
+    candidates.value = []
+    report.value.screeningFunnel = []
+    report.value.topCandidates = []
+    report.value.universeSummary = 'Ruang lingkup sudah disiapkan. Hasil tersedia setelah proses riset selesai.'
+    report.value.peerComparisonNotes = 'Menunggu hasil seleksi kandidat.'
+    report.value.uncertaintyNotes = 'Riset sedang berjalan. Belum ada hasil akhir yang dapat ditinjau.'
+  }
+
   // Final Report
   const report = ref<ResearchReport>({
     sessionId: 'RES-2026-IDX-0941',
@@ -294,6 +308,11 @@ export const useResearchStore = defineStore('research', () => {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as { version?: number; sessions?: ResearchSession[] } | null
       if ((parsed?.version === 1 || parsed?.version === STORAGE_VERSION) && Array.isArray(parsed.sessions)) {
         sessions.value = parsed.sessions.map(session => {
+          if (parsed.version === STORAGE_VERSION) {
+            return session.status === 'COMPLETED' || session.status === 'FAILED' || session.status === 'PARTIAL'
+              ? session
+              : { ...session, status: 'PARTIAL' }
+          }
           const results = deriveSessionResults(session.presetId)
           const normalizedStatus = session.status === 'COMPLETED' || session.status === 'FAILED' ? session.status : 'PARTIAL'
           const artifacts = deriveSessionArtifacts(results, session.objective, session.pillars)
@@ -359,9 +378,8 @@ export const useResearchStore = defineStore('research', () => {
     report.value.sessionId = id
     report.value.objective = currentObjective.value
     report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
-    pillars.value.forEach(pillar => { pillar.status = 'pending' })
-    applyResults(results)
-    selectedSymbol.value = candidates.value[0]?.symbol || ''
+    preparePendingSession(results)
+    selectedSymbol.value = ''
     saveCurrentSession('IDLE')
     return id
   }

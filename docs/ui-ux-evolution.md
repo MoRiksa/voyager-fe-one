@@ -24,6 +24,8 @@ The Research Library at `/research` is the canonical destination for saved sessi
 
 Completed research follows an explicit in-page journey: session summary to candidate-selection rationale, then complete candidate comparison, then the final report. Each page provides one primary next action plus a secondary escape route. The report closes the loop by returning to the Research Library or creating an editable draft from the same objective without modifying the saved result.
 
+New sessions begin without final screening stages, candidates, audit results, or report recommendations. While status is not `COMPLETED`, result routes show a progress gate and return users to the session summary. Final artifacts become visible atomically at completion; this visibility rule is part of the backend handoff contract, not presentation-only behavior.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

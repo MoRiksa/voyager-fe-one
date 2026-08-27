@@ -13,12 +13,20 @@ const followUpResponse = ref('')
 const sessionFound = ref(true)
 
 watch(() => String(route.params.id), id => {
-  sessionFound.value = store.loadSession(id) || id === store.report.sessionId
+  sessionFound.value = id === store.report.sessionId || store.sessions.some(session => session.id === id)
 }, { immediate: true })
 
 const activePillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedCount = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
 const progress = computed(() => Math.round((completedCount.value / store.pillars.length) * 100))
+const sessionDescription = computed(() => activePillar.value?.subtitle || (store.isExecuting
+  ? 'Riset sedang berjalan. Hasil akan tersedia setelah seluruh tahap selesai.'
+  : store.status === 'FAILED'
+    ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.'
+    : store.status === 'COMPLETED'
+      ? 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.'
+      : 'Riset sudah disiapkan dan akan segera dimulai.'))
+const progressLabel = computed(() => activePillar.value?.name || (store.status === 'COMPLETED' ? 'Riset selesai' : store.status === 'FAILED' ? 'Proses terputus' : 'Menyiapkan riset'))
 
 const askFollowUp = () => {
   if (!followUp.value.trim()) return
@@ -44,7 +52,7 @@ const askFollowUp = () => {
           </div>
           <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Riset khusus Anda' }}</h1>
           <div class="mt-4 max-w-4xl rounded-xl bg-slate-50 p-4"><span class="text-xs font-bold text-slate-500">Tujuan riset</span><p class="mt-1 text-sm leading-6 text-slate-700">{{ store.currentObjective }}</p></div>
-          <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || (store.status === 'FAILED' ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.' : 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.') }}</p>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ sessionDescription }}</p>
         </div>
         <div v-if="store.status === 'COMPLETED'" class="flex shrink-0 flex-wrap gap-2">
           <router-link v-if="store.candidates.length >= 2" data-testid="session-next" :to="`/research/${store.report.sessionId}/screener`" class="button-primary">Lihat cara kandidat dipilih <ArrowRight class="h-4 w-4" /></router-link>
@@ -54,7 +62,7 @@ const askFollowUp = () => {
         </div>
       </div>
       <div class="mt-7">
-        <div class="mb-2 flex items-center justify-between text-xs font-semibold text-slate-600"><span>{{ activePillar?.name || 'Riset selesai' }}</span><span class="font-mono">{{ progress }}%</span></div>
+         <div class="mb-2 flex items-center justify-between text-xs font-semibold text-slate-600"><span>{{ progressLabel }}</span><span class="font-mono">{{ progress }}%</span></div>
         <div class="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"><div class="h-full rounded-full bg-[#407EC9] transition-[width] duration-300" :style="{ width: `${progress}%` }"></div></div>
       </div>
     </header>
@@ -77,9 +85,10 @@ const askFollowUp = () => {
         </section>
 
         <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
-          <div class="mb-4 flex items-end justify-between"><div><p class="section-kicker">Hasil sementara</p><h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas</h2></div><router-link :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link></div>
+           <div class="mb-4 flex items-end justify-between"><div><p class="section-kicker">{{ store.status === 'COMPLETED' ? 'Hasil akhir' : 'Menunggu hasil' }}</p><h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas</h2></div><router-link v-if="store.status === 'COMPLETED'" :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link></div>
           <div v-if="store.candidates.length" class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
-          <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur, lalu gunakan riset ini sebagai template untuk menyesuaikan kriteria.</p><div class="mt-5 flex flex-wrap justify-center gap-2"><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau tahap seleksi</router-link><router-link to="/research/new" class="button-primary">Ubah kriteria</router-link></div></div>
+           <div v-else-if="store.status === 'COMPLETED'" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur, lalu gunakan riset ini sebagai template untuk menyesuaikan kriteria.</p><div class="mt-5 flex flex-wrap justify-center gap-2"><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau tahap seleksi</router-link><router-link to="/research/new" class="button-primary">Ubah kriteria</router-link></div></div>
+           <div v-else class="rounded-2xl border border-blue-200 bg-blue-50 p-8 text-center"><Clock3 class="mx-auto h-5 w-5 text-[#407EC9]" /><h3 class="mt-3 font-bold text-slate-900">Kandidat belum tersedia</h3><p class="mt-2 text-sm text-slate-600">Hasil akhir akan muncul otomatis setelah proses riset selesai.</p></div>
         </section>
 
         <section v-show="activePanel === 'activity'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:hidden">

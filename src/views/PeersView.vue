@@ -34,6 +34,13 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
 
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <section v-if="store.status !== 'COMPLETED'" data-testid="results-pending" class="mx-auto flex min-h-[60dvh] max-w-2xl flex-col items-center justify-center text-center">
+      <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
+      <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Perbandingan belum tersedia' : 'Menunggu kandidat akhir' }}</h1>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">Perbandingan tersedia setelah proses seleksi menghasilkan kandidat akhir. Kembali ke sesi untuk mengikuti progress riset.</p>
+      <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
+    </section>
+    <template v-else>
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
@@ -132,5 +139,6 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
       <div><p class="section-kicker">Lanjutkan riset</p><h2 class="mt-2 text-xl font-bold text-slate-950">{{ comparisonCandidates.length >= 2 ? 'Baca kesimpulan lengkap dan keterbatasannya' : 'Tinjau kembali hasil seleksi' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ comparisonCandidates.length >= 2 ? 'Laporan merangkum ranking, alasan pemilihan, risiko, sumber data, dan batas analisis untuk seluruh kandidat.' : 'Perbandingan membutuhkan sedikitnya dua kandidat. Lihat tahap seleksi untuk memahami hasil sesi ini.' }}</p></div>
       <div class="flex flex-wrap gap-2"><router-link v-if="comparisonCandidates.length >= 2" data-testid="peers-primary-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan riset <ArrowRight class="h-4 w-4" /></router-link><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Kembali ke tahap seleksi</router-link></div>
     </section>
+    </template>
   </div>
 </template>

@@ -95,9 +95,24 @@ try {
     document.querySelector('[data-testid="research-form"]').requestSubmit()
   })()`)
   await waitFor(() => evaluate('location.pathname.startsWith("/research/RES-")'), 'Valid research form did not create a session')
+  const runningSession = await evaluate(`(() => {
+    const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
+    const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
+    return { id: session.id, status: session.status, candidates: session.candidates.length, stages: session.screeningFunnel.length, reportCandidates: session.report.topCandidates.length }
+  })()`)
+  if (runningSession.status === 'COMPLETED' || runningSession.candidates || runningSession.stages || runningSession.reportCandidates) {
+    throw new Error(`Running session exposed final results: ${JSON.stringify(runningSession)}`)
+  }
+  for (const resultPath of ['screener', 'peers', 'report']) {
+    await evaluate(`Array.from(document.querySelectorAll('a')).find(link => link.getAttribute('href') === '/research/${runningSession.id}/${resultPath}').click()`)
+    await waitFor(() => evaluate(`location.pathname === '/research/${runningSession.id}/${resultPath}'`), `${resultPath} route did not open`)
+    await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=results-pending]"))'), `${resultPath} did not gate running results`)
+    await evaluate(`document.querySelector('[data-testid="results-pending"] a').click()`)
+    await waitFor(() => evaluate(`location.pathname === '/research/${runningSession.id}'`), `${resultPath} did not return to progress`)
+  }
   await waitFor(() => evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
-    return payload.sessions.find(item => item.id === location.pathname.split('/')[2])?.status === 'COMPLETED'
+    return payload.sessions.find(item => item.id === '${runningSession.id}')?.status === 'COMPLETED'
   })()`), 'Research session did not complete')
   const sessionResult = await evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
