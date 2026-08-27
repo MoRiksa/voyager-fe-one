@@ -42,8 +42,9 @@ const askFollowUp = () => {
             <span class="text-[#2F64A8]">Sesi {{ store.report.sessionId }}</span>
              <span class="rounded-md px-2 py-1" :class="store.isExecuting ? 'bg-blue-50 text-blue-700' : store.status === 'FAILED' ? 'bg-amber-50 text-amber-700' : store.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'">{{ store.isExecuting ? 'Sedang berjalan' : store.status === 'FAILED' ? 'Hasil parsial' : store.status === 'COMPLETED' ? 'Selesai' : 'Disiapkan' }}</span>
           </div>
-          <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.currentObjective }}</h1>
-          <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || (store.status === 'FAILED' ? 'Eksekusi sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.' : 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.') }}</p>
+          <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Riset khusus Anda' }}</h1>
+          <div class="mt-4 max-w-4xl rounded-xl bg-slate-50 p-4"><span class="text-xs font-bold text-slate-500">Tujuan riset</span><p class="mt-1 text-sm leading-6 text-slate-700">{{ store.currentObjective }}</p></div>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ activePillar?.subtitle || (store.status === 'FAILED' ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.' : 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.') }}</p>
         </div>
         <router-link v-if="store.status === 'COMPLETED'" :to="`/research/${store.report.sessionId}/report`" class="button-primary shrink-0">Buka laporan <ArrowRight class="h-4 w-4" /></router-link>
       </div>

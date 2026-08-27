@@ -122,6 +122,14 @@ try {
   }
 
   await navigate(`/research/${sessionResult.id}/screener`)
+  const desktopNavigation = await evaluate(`({
+    summaryHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Ringkasan')?.getAttribute('href'),
+    activeLabel: document.querySelector('nav a[aria-current="page"]')?.textContent.trim(),
+    hasSessionGroup: Array.from(document.querySelectorAll('nav')).some(nav => nav.textContent.includes('SESI AKTIF'))
+  })`)
+  if (desktopNavigation.summaryHref !== `/research/${sessionResult.id}` || desktopNavigation.activeLabel !== 'Cara kandidat dipilih' || !desktopNavigation.hasSessionGroup) {
+    throw new Error(`Session navigation hierarchy failed: ${JSON.stringify(desktopNavigation)}`)
+  }
   const persistedSymbols = await evaluate(`JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}').candidates.map(company => company.symbol)`)
   if (JSON.stringify(persistedSymbols) !== JSON.stringify(sessionResult.symbols)) throw new Error('Candidate results changed after reload')
 

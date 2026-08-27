@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { Home, Search, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal } from '@lucide/vue'
+import { Home, Layers, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal, Search, History } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
@@ -10,19 +10,21 @@ const isMoreOpen = ref(false)
 
 const primaryItems = computed(() => [
   { label: 'Beranda', to: '/', icon: Home, names: ['home'] },
-  { label: 'Riset', to: '/research/new', icon: Search, names: ['research-new', 'research-session'] },
+  { label: 'Sesi', to: `/research/${store.report.sessionId}`, icon: Layers, names: ['research-session'] },
   { label: 'Laporan', to: `/research/${store.report.sessionId}/report`, icon: FileText, names: ['report', 'research-report'] }
 ])
 
 const moreItems = computed(() => [
-  { label: 'Proses penyaringan', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
-  { label: 'Perbandingan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
-  { label: 'Metodologi', to: '/methodology', icon: BookOpen },
-  { label: 'Riwayat aktivitas', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
-  { label: 'Audit teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
+  { label: 'Cara kandidat dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
+  { label: 'Bandingkan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
+  { label: 'Riset baru', to: '/research/new', icon: Search },
+  { label: 'Riwayat riset', to: '/#recent-sessions-title', icon: History },
+  { label: 'Cara penilaian', to: '/methodology', icon: BookOpen },
+  { label: 'Proses riset', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
+  { label: 'Detail teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
 ])
 
-const moreIsActive = computed(() => ['screener', 'research-screener', 'peers', 'research-peers', 'methodology', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
+const moreIsActive = computed(() => ['research-new', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
 </script>
 
 <template>
@@ -35,7 +37,7 @@ const moreIsActive = computed(() => ['screener', 'research-screener', 'peers', '
       class="fixed inset-x-3 bottom-20 z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl"
     >
       <div class="flex items-center justify-between px-2 pb-2">
-        <h2 class="text-sm font-bold text-slate-900">Menu lainnya</h2>
+        <div><h2 class="text-sm font-bold text-slate-900">Menu lainnya</h2><p class="mt-0.5 text-xs text-slate-500">Sesi {{ store.report.sessionId }}</p></div>
         <button class="icon-button" type="button" aria-label="Tutup menu" @click="isMoreOpen = false">
           <X class="h-5 w-5" />
         </button>

@@ -3,8 +3,8 @@ import type { CandidateCompany, ResearchObjectivePreset } from '../types'
 export const OBJECTIVE_PRESETS: ResearchObjectivePreset[] = [
   {
     id: 'obj-banking-moat',
-    title: 'Top Indonesian Tier-1 Banking Quality & ROE',
-    objective: 'Discover 5 Indonesian listed financial institutions demonstrating exceptional return on equity (ROE > 15%), strong capital adequacy, low non-performing loans, and consistent 3-year net interest margin stability.',
+    title: 'Bank berkualitas dengan ROE unggul',
+    objective: 'Temukan bank Indonesia dengan ROE di atas 15%, kualitas modal yang kuat, kredit bermasalah yang rendah, dan margin bunga bersih yang stabil.',
     category: 'Quality & Moat',
     universe: 'Indonesian Financial & Banking Sector (98 Listed Companies)',
     expectedCandidates: 5,
@@ -12,8 +12,8 @@ export const OBJECTIVE_PRESETS: ResearchObjectivePreset[] = [
   },
   {
     id: 'obj-consumer-growth',
-    title: 'High-Moat Consumer Goods Compounders',
-    objective: 'Identify Indonesian consumer non-cyclical leaders with strong pricing power, gross margin > 30%, debt-to-equity < 0.8x, and positive free cash flow generation over a 5-year cycle.',
+    title: 'Pemimpin consumer dengan keunggulan kuat',
+    objective: 'Temukan perusahaan consumer Indonesia dengan pricing power kuat, margin kotor di atas 30%, Debt-to-Equity di bawah 0.8x, dan arus kas bebas positif.',
     category: 'Growth Compounders',
     universe: 'Consumer Staples & Discretionary (142 Listed Companies)',
     expectedCandidates: 5,
@@ -21,8 +21,8 @@ export const OBJECTIVE_PRESETS: ResearchObjectivePreset[] = [
   },
   {
     id: 'obj-broad-fundamental',
-    title: 'Indonesian Fundamental Compounders with Fair Valuation',
-    objective: 'Find 5 Indonesian companies worth researching further based on strong fundamentals, healthy financials, reasonable valuation, and consistent earnings growth across all IDX sectors.',
+    title: 'Perusahaan fundamental dengan valuasi wajar',
+    objective: 'Temukan lima perusahaan Indonesia dengan fundamental kuat, keuangan sehat, valuasi wajar, dan pertumbuhan laba konsisten dari berbagai sektor BEI.',
     category: 'Growth Compounders',
     universe: 'Entire Indonesia Stock Exchange (914 Listed Companies)',
     expectedCandidates: 5,
@@ -30,8 +30,8 @@ export const OBJECTIVE_PRESETS: ResearchObjectivePreset[] = [
   },
   {
     id: 'obj-dividend-fcf',
-    title: 'High Free-Cash-Flow Yield with Sustainable Dividends',
-    objective: 'Screen for resilient cash-generative industrial and commodity infrastructure companies with dividend yield > 6%, interest coverage > 5x, and robust working capital management.',
+    title: 'Arus kas kuat dan dividen berkelanjutan',
+    objective: 'Temukan perusahaan industri dan infrastruktur dengan arus kas kuat, dividend yield di atas 6%, serta pengelolaan modal kerja yang sehat.',
     category: 'Valuation & Dividends',
     universe: 'Energy, Basic Materials & Infrastructure (210 Listed Companies)',
     expectedCandidates: 5,

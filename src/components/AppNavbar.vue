@@ -3,12 +3,13 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import { 
-  ChevronRight, 
-  Building2
+  ChevronRight
 } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
+const isSessionRoute = computed(() => String(route.name).startsWith('research-') && route.name !== 'research-new')
+const sessionTitle = computed(() => store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Sesi riset')
 
 const pageTitle = computed(() => {
   switch (route.name) {
@@ -55,16 +56,11 @@ const statusBadge = computed(() => {
     <!-- Left: Context & Breadcrumb -->
     <div class="flex min-w-0 items-center gap-3">
       <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
-        <span class="hidden lg:inline text-slate-400">Voyager One</span>
+        <span v-if="route.name === 'research-session'" class="hidden max-w-52 truncate text-slate-500 lg:inline">{{ sessionTitle }}</span>
+        <router-link v-else-if="isSessionRoute" :to="`/research/${store.report.sessionId}`" class="hidden max-w-52 truncate text-slate-500 hover:text-slate-900 lg:inline">{{ sessionTitle }}</router-link>
+        <span v-else class="hidden lg:inline text-slate-400">Voyager One</span>
         <ChevronRight class="hidden lg:block w-3.5 h-3.5 text-slate-300" />
         <span class="truncate text-slate-900 font-bold text-sm">{{ pageTitle }}</span>
-      </div>
-
-      <span class="hidden sm:inline text-slate-200">|</span>
-
-      <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200/60">
-        <Building2 class="w-3.5 h-3.5 text-slate-400" />
-        <span>Referensi produksi: <strong class="text-slate-800 font-mono">914 emiten</strong></span>
       </div>
     </div>
 

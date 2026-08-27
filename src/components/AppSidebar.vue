@@ -4,43 +4,50 @@ import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   Compass, 
+  Home,
   Layers, 
   Filter, 
   GitCompare, 
   Terminal, 
   BookOpen, 
   FileSpreadsheet,
-  Coins,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  History,
+  CircleDot
 } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
 
-const currentRouteName = computed(() => route.name)
-
-const creditPercentage = computed(() => {
-  return Math.round((store.creditsRemaining / store.totalCredits) * 100)
-})
+const currentRouteName = computed(() => String(route.name))
+const sessionTitle = computed(() => store.presets.find(preset => preset.id === store.activePresetId)?.title || `${store.currentObjective.slice(0, 42)}${store.currentObjective.length > 42 ? '…' : ''}`)
+const sessionStatus = computed(() => store.isExecuting ? 'Sedang berjalan' : store.status === 'COMPLETED' ? 'Selesai' : store.status === 'FAILED' ? 'Hasil parsial' : 'Disiapkan')
 
 const navItems = computed(() => [
   {
-    group: 'RISET UTAMA',
+    group: 'UTAMA',
     items: [
-      { name: 'home', label: 'Beranda', path: '/', icon: Layers },
-      { name: 'research-new', label: 'Riset Baru', path: '/research/new', icon: Search },
-      { name: 'research-screener', label: 'Penyaringan', path: `/research/${store.report.sessionId}/screener`, icon: Filter },
-      { name: 'research-peers', label: 'Perbandingan', path: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
+      { names: ['home'], label: 'Beranda', path: '/', icon: Home },
+      { names: [], label: 'Riwayat riset', path: '/#recent-sessions-title', icon: History },
+      { names: ['research-new'], label: 'Riset baru', path: '/research/new', icon: Search },
     ]
   },
   {
-    group: 'AUDIT DAN METODOLOGI',
+    group: 'SESI AKTIF',
     items: [
-      { name: 'research-activity', label: 'Aktivitas', path: `/research/${store.report.sessionId}/activity`, icon: Terminal },
-      { name: 'research-trace', label: 'Audit Teknis', path: `/research/${store.report.sessionId}/trace`, icon: ShieldCheck },
-      { name: 'methodology', label: 'Metodologi', path: '/methodology', icon: BookOpen },
-      { name: 'research-report', label: 'Laporan', path: `/research/${store.report.sessionId}/report`, icon: FileSpreadsheet },
+      { names: ['research-session'], label: 'Ringkasan', path: `/research/${store.report.sessionId}`, icon: Layers },
+      { names: ['research-screener', 'research-company'], label: 'Cara kandidat dipilih', path: `/research/${store.report.sessionId}/screener`, icon: Filter },
+      { names: ['research-peers'], label: 'Bandingkan kandidat', path: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
+      { names: ['research-report'], label: 'Laporan', path: `/research/${store.report.sessionId}/report`, icon: FileSpreadsheet },
+    ]
+  },
+  {
+    group: 'INFORMASI',
+    items: [
+      { names: ['methodology'], label: 'Cara penilaian', path: '/methodology', icon: BookOpen },
+      { names: ['research-activity'], label: 'Proses riset', path: `/research/${store.report.sessionId}/activity`, icon: Terminal },
+      { names: ['research-trace'], label: 'Detail teknis', path: `/research/${store.report.sessionId}/trace`, icon: ShieldCheck },
     ]
   }
 ])
@@ -63,11 +70,10 @@ const navItems = computed(() => [
           </div>
         </router-link>
 
-        <div class="mt-4 flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px]">
-            <span class="text-slate-500 font-medium">Mode kerja</span>
-          <span class="font-mono font-bold text-[#407EC9] text-[10px] bg-[#407EC9]/10 px-1.5 py-0.5 rounded">
-            RISET
-          </span>
+        <div class="mt-4 rounded-xl border border-[#407EC9]/20 bg-[#407EC9]/5 p-3">
+          <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
+          <p class="mt-2 line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
+          <p class="mt-1 text-[11px] text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
         </div>
       </div>
 
@@ -80,10 +86,10 @@ const navItems = computed(() => [
           <div class="space-y-1">
             <router-link
               v-for="item in section.items"
-              :key="item.name"
+              :key="item.path"
               :to="item.path"
               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150"
-              :class="currentRouteName === item.name 
+              :class="item.names.includes(currentRouteName)
                 ? 'bg-[#407EC9] text-white shadow-sm shadow-[#407EC9]/25 font-bold' 
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
             >
@@ -95,40 +101,10 @@ const navItems = computed(() => [
       </nav>
     </div>
 
-    <!-- Bottom Credits & System Health -->
-    <div class="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
-      <!-- API Credit Bar -->
-      <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-500 font-medium flex items-center gap-1.5">
-            <Coins class="w-3.5 h-3.5 text-[#407EC9]" />
-             Kredit riset
-          </span>
-          <span class="font-mono font-bold text-slate-800 tabular-nums">
-            {{ store.creditsRemaining.toLocaleString() }}
-          </span>
-        </div>
-
-        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div 
-            class="h-full bg-[#407EC9] transition-all duration-500 rounded-full" 
-            :style="{ width: `${creditPercentage}%` }"
-          ></div>
-        </div>
-
-        <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-          <span>{{ creditPercentage }}% remaining</span>
-          <span>10,000 cap</span>
-        </div>
-      </div>
-
-      <!-- Gateway Status -->
-      <div class="flex items-center justify-between px-3 py-2 text-[11px] text-slate-500">
-        <span class="flex items-center gap-2 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-           Layanan tersedia
-        </span>
-        <span class="font-mono text-[10px] text-slate-400">{{ store.report.sessionId }}</span>
+    <div class="border-t border-slate-100 bg-slate-50/50 p-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-3 text-[11px] leading-5 text-slate-500">
+        <strong class="block text-xs text-slate-800">Mode demonstrasi</strong>
+        Data contoh untuk mencoba seluruh alur riset.
       </div>
     </div>
   </aside>

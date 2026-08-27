@@ -18,6 +18,8 @@ Session activity and technical trace use the same result provenance. Prototype r
 
 Peer Comparison consumes the complete final candidate list from the active screening session. It does not maintain a second stock filter or default to a fixed subset; the only page-level control changes the metric columns. Mobile narrows the presentation to two distinct candidates at a time without changing the underlying result set.
 
+Navigation treats the active research session as the parent workspace. Global actions, session results, and supporting information occupy separate groups; desktop and mobile both provide a direct route back to the session summary. User-facing labels prioritize tasks such as choosing and comparing candidates, while technical trace remains available as secondary detail.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---
