@@ -91,23 +91,35 @@ try {
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=objective-error]"))'), 'Research validation error was not shown')
 
   await evaluate(`(() => {
-    const field = document.querySelector('[data-testid="research-objective"]')
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set
-    setter.call(field, 'Temukan perusahaan Indonesia dengan pertumbuhan laba konsisten dan valuasi yang wajar.')
-    field.dispatchEvent(new Event('input', { bubbles: true }))
+    document.querySelector('[data-testid="preset-obj-banking-moat"]').click()
     document.querySelector('[data-testid="research-form"]').requestSubmit()
   })()`)
   await waitFor(() => evaluate('location.pathname.startsWith("/research/RES-")'), 'Valid research form did not create a session')
+  const sessionResult = await evaluate(`(() => {
+    const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
+    const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
+    const stagesAreSubsets = session.screeningFunnel.every((stage, index, stages) => index === 0 || stage.retainedSymbols.every(symbol => stages[index - 1].retainedSymbols.includes(symbol)))
+    const countsMatch = session.screeningFunnel.every(stage => stage.count === stage.retainedSymbols.length)
+    const candidateSymbols = session.candidates.map(company => company.symbol)
+    const finalSymbols = session.screeningFunnel.at(-1).retainedSymbols
+    const reportSymbols = session.report.topCandidates.map(company => company.symbol)
+    return {
+      version: payload.version,
+      id: session.id,
+      symbols: candidateSymbols,
+      valid: countsMatch && stagesAreSubsets && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
+    }
+  })()`)
+  if (sessionResult.version !== 2 || !sessionResult.valid || sessionResult.symbols.length !== 3 || sessionResult.symbols.some(symbol => !['BBCA', 'BMRI', 'BBRI'].includes(symbol))) {
+    throw new Error(`Session screening invariants failed: ${JSON.stringify(sessionResult)}`)
+  }
 
-  await navigate('/')
-  await evaluate(`Array.from(document.querySelectorAll('[data-testid="delete-session"]')).find(button => !button.disabled).click()`)
-  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=confirm-delete-session]"))'), 'Delete confirmation was not shown')
-  await evaluate(`document.querySelector('[data-testid="confirm-delete-session"]').click()`)
-  await waitFor(() => evaluate('document.querySelector("[data-testid=toast]")?.textContent.includes("dihapus")'), 'Session deletion toast was not shown')
+  await navigate(`/research/${sessionResult.id}/screener`)
+  const persistedSymbols = await evaluate(`JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}').candidates.map(company => company.symbol)`)
+  if (JSON.stringify(persistedSymbols) !== JSON.stringify(sessionResult.symbols)) throw new Error('Candidate results changed after reload')
 
-  await navigate('/research/RES-2026-IDX-0941/screener')
   await evaluate(`(() => {
-    const trigger = Array.from(document.querySelectorAll('[data-testid="candidate-BBCA"]')).find(element => element.offsetParent !== null)
+    const trigger = Array.from(document.querySelectorAll('[data-testid^="candidate-"]')).find(element => element.offsetParent !== null)
     trigger.focus()
     trigger.click()
   })()`)
@@ -115,13 +127,19 @@ try {
   await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' })
   await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' })
   await waitFor(() => evaluate('!document.querySelector("[data-testid=candidate-dialog]")'), 'Candidate dialog did not close with Escape')
-  await waitFor(() => evaluate('document.activeElement?.dataset?.testid === "candidate-BBCA"'), 'Focus did not return to the candidate trigger')
+  await waitFor(() => evaluate('document.activeElement?.dataset?.testid?.startsWith("candidate-")'), 'Focus did not return to the candidate trigger')
 
-  await navigate('/research/RES-2026-IDX-0941/peers')
-  await evaluate(`document.querySelector('[data-testid="peer-BMRI"]').click(); document.querySelector('[data-testid="peer-ICBP"]').click()`)
+  await navigate(`/research/${sessionResult.id}/peers`)
+  await evaluate(`Array.from(document.querySelectorAll('[data-testid^="peer-"]')).slice(0, 2).forEach(input => input.click())`)
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=peers-empty]"))'), 'Peer comparison empty state was not shown')
 
-  console.log('Interaction test passed: form validation, session deletion, dialog focus, and peer empty state')
+  await navigate('/')
+  await evaluate(`Array.from(document.querySelectorAll('[data-testid="delete-session"]')).find(button => !button.disabled).click()`)
+  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=confirm-delete-session]"))'), 'Delete confirmation was not shown')
+  await evaluate(`document.querySelector('[data-testid="confirm-delete-session"]').click()`)
+  await waitFor(() => evaluate('document.querySelector("[data-testid=toast]")?.textContent.includes("dihapus")'), 'Session deletion toast was not shown')
+
+  console.log('Interaction test passed: screening invariants, persistence, dialog focus, peer empty state, and session deletion')
 } finally {
   socket?.close()
   browser.kill('SIGTERM')

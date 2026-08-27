@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   ArrowRight
@@ -11,6 +11,20 @@ const rightTicker = ref(store.candidates[1]?.symbol || '')
 const selectedTickers = ref(store.candidates.slice(0, 3).map(candidate => candidate.symbol))
 const metricGroup = ref<'quality' | 'valuation' | 'growth'>('quality')
 const selectedCandidates = computed(() => store.candidates.filter(candidate => selectedTickers.value.includes(candidate.symbol)))
+const comparisonHighlights = computed(() => {
+  if (!selectedCandidates.value.length) return []
+  const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...selectedCandidates.value].sort((a, b) => b[key] - a[key])[0]
+  return [
+    { label: 'Pengembalian modal tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
+    { label: 'Arus kas bebas tertinggi', company: highest('freeCashFlowYieldPercent'), metric: `${highest('freeCashFlowYieldPercent').freeCashFlowYieldPercent}% FCF yield` },
+    { label: 'Skor kualitas tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
+  ]
+})
+watch(() => store.report.sessionId, () => {
+  selectedTickers.value = store.candidates.slice(0, 3).map(candidate => candidate.symbol)
+  leftTicker.value = store.candidates[0]?.symbol || ''
+  rightTicker.value = store.candidates[1]?.symbol || ''
+})
 const toggleCandidate = (symbol: string) => {
   if (selectedTickers.value.includes(symbol)) {
     selectedTickers.value = selectedTickers.value.filter(item => item !== symbol)
@@ -114,34 +128,10 @@ const groupColumns = computed(() => metricGroup.value === 'valuation'
 
     <!-- Comparative Synthesis Cards -->
     <div v-if="selectedCandidates.length >= 2" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Pengembalian modal tertinggi
-        </h4>
-        <div class="text-xl font-bold font-mono text-slate-900">AMRT (24.8% ROE)</div>
-        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Didukung perputaran aset 2.84x dan jaringan gerai yang luas.
-        </p>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Valuasi dan arus kas
-        </h4>
-        <div class="text-xl font-bold font-mono text-slate-900">UNTR (12.8% FCF Yield)</div>
-        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Diperdagangkan pada P/E 5.2x dengan posisi kas bersih dan dividend yield 8.6%.
-        </p>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">
-          Skor kualitas tertinggi
-        </h4>
-        <div class="text-xl font-bold font-mono text-slate-900">BBCA (skor 94/100)</div>
-        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-          Basis dana murah CASA 81.4% mendukung ROE 21.8% dan kualitas kredit yang kuat.
-        </p>
+      <div v-for="highlight in comparisonHighlights" :key="highlight.label" class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-[#407EC9] font-mono mb-2">{{ highlight.label }}</h4>
+        <div class="text-xl font-bold font-mono text-slate-900">{{ highlight.company.symbol }} ({{ highlight.metric }})</div>
+        <p class="text-xs text-slate-600 mt-2 leading-relaxed">{{ highlight.company.whySelected }}</p>
       </div>
     </div>
   </div>

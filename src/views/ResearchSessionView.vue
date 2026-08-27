@@ -23,7 +23,7 @@ const progress = computed(() => Math.round((completedCount.value / store.pillars
 const askFollowUp = () => {
   if (!followUp.value.trim()) return
   store.addFollowUp(followUp.value.trim())
-  followUpResponse.value = 'Pertanyaan lanjutan telah dicatat pada sesi ini. Dalam prototype ini, hasil tetap menggunakan kandidat yang tersedia.'
+  followUpResponse.value = 'Pertanyaan lanjutan telah dicatat pada sesi ini. Dataset prototype tidak dihitung ulang oleh pertanyaan lanjutan.'
   followUp.value = ''
 }
 </script>
@@ -72,7 +72,8 @@ const askFollowUp = () => {
 
         <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
           <div class="mb-4 flex items-end justify-between"><div><p class="section-kicker">Hasil sementara</p><h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas</h2></div><router-link :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link></div>
-          <div class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
+          <div v-if="store.candidates.length" class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
+          <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur dan kriterianya.</p></div>
         </section>
 
         <section v-show="activePanel === 'activity'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:hidden">

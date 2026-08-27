@@ -64,7 +64,7 @@ const statusBadge = computed(() => {
 
       <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200/60">
         <Building2 class="w-3.5 h-3.5 text-slate-400" />
-        <span>IDX Universe: <strong class="text-slate-800 font-mono">914 Companies</strong></span>
+        <span>Referensi produksi: <strong class="text-slate-800 font-mono">914 emiten</strong></span>
       </div>
     </div>
 

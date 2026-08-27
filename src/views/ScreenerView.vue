@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   CheckCircle2,
@@ -10,9 +10,19 @@ const store = useResearchStore()
 const selectedStage = ref(store.screeningFunnel.length - 1)
 const resultMode = ref<'retained' | 'excluded'>('retained')
 const activeStep = computed(() => store.screeningFunnel[selectedStage.value])
-const retainedCompanies = computed(() => selectedStage.value === store.screeningFunnel.length - 1 ? store.candidates : store.companyUniverse.slice(0, Math.min(store.companyUniverse.length, selectedStage.value + 4)))
-const excludedCompanies = computed(() => store.companyUniverse.filter(company => !retainedCompanies.value.some(retained => retained.symbol === company.symbol)))
+const retainedCompanies = computed(() => store.companyUniverse.filter(company => activeStep.value?.retainedSymbols.includes(company.symbol)))
+const excludedCompanies = computed(() => {
+  if (selectedStage.value === 0) return []
+  const previousSymbols = store.screeningFunnel[selectedStage.value - 1]?.retainedSymbols || []
+  return store.companyUniverse.filter(company => previousSymbols.includes(company.symbol) && !activeStep.value?.retainedSymbols.includes(company.symbol))
+})
 const visibleCompanies = computed(() => resultMode.value === 'retained' ? retainedCompanies.value : excludedCompanies.value)
+const initialCount = computed(() => store.screeningFunnel[0]?.count || 0)
+
+watch(() => store.report.sessionId, () => {
+  selectedStage.value = Math.max(0, store.screeningFunnel.length - 1)
+  resultMode.value = 'retained'
+})
 </script>
 
 <template>
@@ -22,11 +32,11 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
       <div class="flex items-center gap-2 mb-2">
          <span class="section-kicker">Proses penyaringan</span>
         <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200">
-           5 tahap
+           {{ store.screeningFunnel.length }} tahap
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-         Dari 914 perusahaan menjadi 5 kandidat
+          Dari {{ initialCount }} perusahaan menjadi {{ store.candidates.length }} kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
          Tinjau kriteria yang digunakan pada setiap tahap dan perusahaan yang dipilih untuk analisis lebih lanjut.
@@ -50,7 +60,7 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
               0{{ idx + 1 }}
             </span>
              <span class="text-xs font-mono font-bold text-[#2F64A8] bg-[#407EC9]/10 px-2 py-0.5 rounded">
-              {{ ((step.count / 914) * 100).toFixed(1) }}% tersisa
+               {{ initialCount ? ((step.count / initialCount) * 100).toFixed(1) : '0.0' }}% tersisa
             </span>
           </div>
 
@@ -81,7 +91,7 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
         <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'retained' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'retained'" @click="resultMode = 'retained'">Lolos · {{ retainedCompanies.length }} contoh</button>
         <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'excluded' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'excluded'" @click="resultMode = 'excluded'">Tidak lolos · {{ excludedCompanies.length }} contoh</button>
       </div>
-      <p class="mt-3 text-xs text-slate-500">Daftar di bawah adalah sampel perusahaan yang tersedia pada prototype, bukan seluruh {{ activeStep.count.toLocaleString() }} perusahaan di tahap ini.</p>
+        <p class="mt-3 text-xs text-slate-500">Hasil ini berasal dari {{ initialCount }} perusahaan fixture pada dataset prototype. Produksi nanti menggunakan membership tahap yang dikirim screening engine.</p>
     </section>
 
     <!-- Shortlisted Companies Preview Table -->
@@ -89,7 +99,7 @@ const visibleCompanies = computed(() => resultMode.value === 'retained' ? retain
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
         <div>
            <h3 class="text-lg font-bold text-slate-900">{{ resultMode === 'retained' ? 'Perusahaan yang lolos tahap ini' : 'Perusahaan yang tidak lolos tahap ini' }}</h3>
-           <p class="text-xs text-slate-500 mt-0.5">{{ resultMode === 'retained' ? 'Sampel perusahaan yang tetap berada dalam proses' : 'Sampel perusahaan yang dihentikan pada atau sebelum tahap ini' }}</p>
+           <p class="text-xs text-slate-500 mt-0.5">{{ resultMode === 'retained' ? 'Perusahaan yang tetap berada dalam proses' : 'Perusahaan yang gugur tepat pada tahap ini' }}</p>
         </div>
         <div class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
            Data sesi {{ store.report.sessionId }}

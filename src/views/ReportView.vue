@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   FileText, 
@@ -28,7 +28,7 @@ const store = useResearchStore()
 
 // View Mode: 'interactive' (Rich Dossier) or 'document' (Formal Printable Document)
 const viewMode = ref<'interactive' | 'document'>('interactive')
-const selectedTicker = ref<string>(store.candidates[0]?.symbol || 'BBCA')
+const selectedTicker = ref<string>(store.candidates[0]?.symbol || '')
 const copySuccess = ref(false)
 const copyError = ref('')
 const reportSections = [
@@ -43,6 +43,8 @@ const goToSection = (id: string) => document.getElementById(id)?.scrollIntoView(
 const activeCandidate = computed(() => {
   return store.candidates.find(c => c.symbol === selectedTicker.value) || store.candidates[0]
 })
+const analyticalHighlights = computed(() => store.candidates.slice(0, 3))
+watch(() => store.report.sessionId, () => { selectedTicker.value = store.candidates[0]?.symbol || '' })
 
 const handlePrint = () => {
   window.print()
@@ -266,7 +268,7 @@ const handleExportJson = () => {
                Riset pasar modal Indonesia
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-               Hasil penyaringan dan analisis lima faktor terhadap perusahaan tercatat di BEI.
+               Hasil penyaringan dan analisis lima faktor terhadap dataset prototype.
             </p>
           </div>
 
@@ -274,7 +276,7 @@ const handleExportJson = () => {
           <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/70 text-xs">
             <div>
               <span class="text-xs text-slate-500 font-mono uppercase block">Ruang lingkup</span>
-              <strong class="text-slate-800 font-mono">914 emiten</strong>
+               <strong class="text-slate-800 font-mono">{{ store.screeningFunnel[0]?.count || 0 }} perusahaan</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
@@ -300,35 +302,13 @@ const handleExportJson = () => {
         </div>
 
         <!-- Key Analytical Highlights (3-Pillar Summary) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
+        <div v-if="analyticalHighlights.length" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div v-for="(company, index) in analyticalHighlights" :key="company.symbol" class="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
             <div class="flex items-center gap-2 text-slate-800 font-bold text-xs">
-              <span class="w-5 h-5 rounded-md bg-[#407EC9] text-white flex items-center justify-center text-[10px] font-mono">1</span>
-              <span>Banking Dominance</span>
+              <span class="w-5 h-5 rounded-md bg-[#407EC9] text-white flex items-center justify-center text-[10px] font-mono">{{ index + 1 }}</span>
+              <span>{{ company.symbol }} · skor {{ company.qualityScore }}</span>
             </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              BBCA & BMRI memimpin skor kualitas dengan ROE >19% yang didorong oleh margin laba bersih yang kuat dan efisiensi dana murah (CASA).
-            </p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex items-center gap-2 text-slate-800 font-bold text-xs">
-              <span class="w-5 h-5 rounded-md bg-[#407EC9] text-white flex items-center justify-center text-[10px] font-mono">2</span>
-              <span>Consumer Pricing Power</span>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              ICBP menunjukkan pricing power melalui margin yang defensif, sementara AMRT unggul pada perputaran aset dan jaringan distribusi ritel.
-            </p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex items-center gap-2 text-slate-800 font-bold text-xs">
-              <span class="w-5 h-5 rounded-md bg-[#407EC9] text-white flex items-center justify-center text-[10px] font-mono">3</span>
-              <span>Cash Flow & Dividend Yield</span>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              UNTR memberikan arus kas bebas tertinggi (FCF yield 12.8%) dengan neraca kas bersih untuk meredam fluktuasi siklus bisnis.
-            </p>
+            <p class="text-xs text-slate-600 leading-relaxed">{{ company.whySelected }}</p>
           </div>
         </div>
       </div>
@@ -341,7 +321,7 @@ const handleExportJson = () => {
               Perbandingan kandidat
             </h3>
             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-              5 kandidat
+               {{ store.candidates.length }} kandidat
             </span>
           </div>
           <span class="text-xs text-slate-500 font-mono">Diurutkan berdasarkan skor kualitas</span>
@@ -410,7 +390,7 @@ const handleExportJson = () => {
       </div>
 
       <!-- 3. Interactive Deep-Dive Dossier Tab Section -->
-      <div id="candidates" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+      <div v-if="activeCandidate" id="candidates" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-[#407EC9] font-mono">
@@ -615,6 +595,7 @@ const handleExportJson = () => {
           </div>
         </div>
       </div>
+      <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.</p></div>
 
       <!-- 4. Macro & Comparative Peer Notes -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">

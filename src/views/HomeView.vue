@@ -77,7 +77,7 @@ const removeSession = (id: string) => {
             </div>
             <div class="rounded-xl bg-black/15 p-3">
               <span class="text-xs text-slate-400">Skor tertinggi</span>
-              <strong class="mt-1 block font-mono text-xl">{{ store.candidates[0]?.qualityScore }}/100</strong>
+              <strong class="mt-1 block font-mono text-xl">{{ store.candidates[0] ? `${store.candidates[0].qualityScore}/100` : 'Belum ada' }}</strong>
             </div>
           </div>
           <router-link :to="`/research/${store.report.sessionId}`" class="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-white hover:text-blue-100">
@@ -134,7 +134,7 @@ const removeSession = (id: string) => {
       <div class="mb-4 flex items-end justify-between gap-4">
         <div>
           <p class="section-kicker">Temuan terbaru</p>
-          <h2 id="latest-findings-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Tiga kandidat teratas</h2>
+           <h2 id="latest-findings-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Kandidat teratas</h2>
         </div>
         <router-link :to="`/research/${store.report.sessionId}/screener`" class="text-link hidden sm:inline-flex">Lihat semua kandidat <ArrowRight class="h-4 w-4" /></router-link>
       </div>

@@ -12,6 +12,8 @@
 
 This document defines the next evolution of Voyager One from a polished dashboard prototype into a professional, accessible, and mobile-ready financial research workspace.
 
+The current prototype now persists the actual symbol membership of every screening stage. Counts, retained companies, excluded companies, final candidates, peer comparison, and report output share that session-scoped result. Local filtering evaluates only fields present in the eight-company fixture dataset; production-scale coverage and unsupported metrics remain explicit limitations until the backend screening API supplies them.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

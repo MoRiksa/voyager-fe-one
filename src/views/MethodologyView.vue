@@ -51,7 +51,7 @@ const store = useResearchStore()
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 2</div>
           <div class="font-bold text-slate-900 font-sans">Menyaring perusahaan</div>
-          <div class="text-xs text-slate-500 font-sans mt-1">Mempersempit daftar secara bertahap (914 -> 284 -> 68 -> 18 -> 5)</div>
+          <div class="text-xs text-slate-500 font-sans mt-1">Ilustrasi skala produksi: mempersempit daftar secara bertahap (914 -> 284 -> 68 -> 18 -> 5)</div>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[#407EC9] font-bold mb-1">PILLAR 3</div>

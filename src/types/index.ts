@@ -122,6 +122,7 @@ export interface ScreeningFunnelStep {
   count: number
   description: string
   filterCriteria: string
+  retainedSymbols: string[]
 }
 
 export interface ResearchReport {

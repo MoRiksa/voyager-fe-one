@@ -15,6 +15,7 @@ import { OBJECTIVE_PRESETS, ALL_COMPANIES_DATABASE } from '../data/sectorsUniver
 
 export const useResearchStore = defineStore('research', () => {
   const STORAGE_KEY = 'voyager-one-research-sessions-v1'
+  const STORAGE_VERSION = 2
   const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
   // --- Core State ---
   const currentObjective = ref<string>(OBJECTIVE_PRESETS[2].objective)
@@ -262,31 +263,36 @@ export const useResearchStore = defineStore('research', () => {
       stage: 'Total Universe',
       count: 914,
       description: 'Active companies listed on the Indonesia Stock Exchange (IDX)',
-      filterCriteria: 'Status: ACTIVE on IDX'
+      filterCriteria: 'Status: ACTIVE on IDX',
+      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
     },
     {
       stage: 'Basic Eligibility',
       count: 284,
       description: 'Filtered by market liquidity, trading frequency & reporting compliance',
-      filterCriteria: 'Market Cap > IDR 1T & 3-yr financial history'
+      filterCriteria: 'Market Cap > IDR 1T & 3-yr financial history',
+      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
     },
     {
       stage: 'Financial Screening',
       count: 68,
       description: 'Fundamental filter on profitability, leverage, and growth stability',
-      filterCriteria: 'ROE > 12% & Debt/Equity < 1.5x'
+      filterCriteria: 'ROE > 12% & Debt/Equity < 1.5x',
+      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
     },
     {
       stage: 'Quality Shortlist',
       count: 18,
       description: 'Derived Intelligence ranking score thresholding',
-      filterCriteria: 'Proprietary Quality Score >= 80/100'
+      filterCriteria: 'Proprietary Quality Score >= 80/100',
+      retainedSymbols: ALL_COMPANIES_DATABASE.map(company => company.symbol)
     },
     {
       stage: 'Final Selection',
       count: 5,
       description: 'Validated top compounders with explainable competitive moats',
-      filterCriteria: 'Passed Deep DuPont, Cash Flow & Peer Audit'
+      filterCriteria: 'Passed Deep DuPont, Cash Flow & Peer Audit',
+      retainedSymbols: ALL_COMPANIES_DATABASE.slice(0, 5).map(company => company.symbol)
     }
   ])
 
@@ -294,11 +300,61 @@ export const useResearchStore = defineStore('research', () => {
   const candidates = ref<CandidateCompany[]>(ALL_COMPANIES_DATABASE.slice(0, 5))
 
   // Selected company object
-  const selectedCompany = computed<CandidateCompany>(() => {
-    return candidates.value.find(c => c.symbol === selectedSymbol.value) || ALL_COMPANIES_DATABASE.find(c => c.symbol === selectedSymbol.value) || candidates.value[0]
+  const selectedCompany = computed<CandidateCompany | undefined>(() => {
+    return candidates.value.find(c => c.symbol === selectedSymbol.value) || candidates.value[0]
   })
 
   const recentSessions = computed(() => [...sessions.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)))
+
+  const deriveSessionResults = (presetId: string) => {
+    const preset = OBJECTIVE_PRESETS.find(item => item.id === presetId)
+    const scoped = ALL_COMPANIES_DATABASE.filter(company => {
+      if (presetId === 'obj-banking-moat') return company.sector === 'Financials'
+      if (presetId === 'obj-consumer-growth') return company.sector.includes('Consumer')
+      if (presetId === 'obj-dividend-fcf') return ['Industrials', 'Telecommunications', 'Consumer Discretionary / Conglomerate'].includes(company.sector)
+      return true
+    })
+    const eligible = scoped.filter(company => [company.marketCapTrillionIdr, company.roePercent, company.debtToEquity, company.freeCashFlowYieldPercent, company.qualityScore].every(Number.isFinite))
+    const financiallyQualified = eligible.filter(company => {
+      if (presetId === 'obj-banking-moat') return company.roePercent > 15
+      if (presetId === 'obj-consumer-growth') return company.debtToEquity < 0.8 && company.freeCashFlowYieldPercent > 0
+      if (presetId === 'obj-dividend-fcf') return company.dividendYieldPercent > 6 && company.freeCashFlowYieldPercent > 0 && company.currentRatio > 1
+      return company.roePercent > 12 && company.debtToEquity < 1.5
+    })
+    const qualityShortlist = financiallyQualified.filter(company => company.qualityScore >= 80).sort((a, b) => b.qualityScore - a.qualityScore || a.symbol.localeCompare(b.symbol))
+    const finalCompanies = qualityShortlist.slice(0, preset?.expectedCandidates || 5).map((company, index) => ({ ...clone(company), rank: index + 1 }))
+    const stage = (name: string, description: string, criteria: string, companies: CandidateCompany[]): ScreeningFunnelStep => ({
+      stage: name,
+      count: companies.length,
+      description,
+      filterCriteria: criteria,
+      retainedSymbols: companies.map(company => company.symbol)
+    })
+    const funnel = [
+      stage('Dataset awal', 'Perusahaan fixture yang termasuk dalam ruang lingkup tujuan riset.', preset?.universe || 'Seluruh dataset prototype', scoped),
+      stage('Kelengkapan data', 'Perusahaan dengan metrik minimum yang tersedia untuk evaluasi.', 'Kapitalisasi, ROE, Debt/Equity, FCF yield, dan skor kualitas tersedia', eligible),
+      stage('Penyaringan finansial', 'Filter finansial yang dapat dievaluasi dari dataset prototype.', presetId === 'obj-banking-moat' ? 'ROE > 15%' : presetId === 'obj-consumer-growth' ? 'Debt/Equity < 0.8x dan FCF yield > 0%' : presetId === 'obj-dividend-fcf' ? 'Dividend yield > 6%, FCF yield > 0%, dan current ratio > 1x' : 'ROE > 12% dan Debt/Equity < 1.5x', financiallyQualified),
+      stage('Shortlist kualitas', 'Perusahaan yang memenuhi ambang skor kualitas deterministik.', 'Skor kualitas >= 80/100', qualityShortlist),
+      stage('Seleksi akhir', 'Kandidat berperingkat tertinggi tanpa menambahkan perusahaan yang tidak lolos.', `Maksimal ${preset?.expectedCandidates || 5} kandidat berdasarkan skor kualitas`, finalCompanies)
+    ]
+    return { funnel, candidates: finalCompanies }
+  }
+
+  const applyResults = (results: ReturnType<typeof deriveSessionResults>) => {
+    screeningFunnel.value = clone(results.funnel)
+    candidates.value = clone(results.candidates)
+    report.value.screeningFunnel = clone(results.funnel)
+    report.value.topCandidates = clone(results.candidates)
+    report.value.universeSummary = `${results.funnel[0].count} perusahaan dalam dataset prototype disaring menjadi ${results.candidates.length} kandidat akhir.`
+    report.value.peerComparisonNotes = results.candidates.length
+      ? `${results.candidates.map(company => company.symbol).join(', ')} lolos seluruh tahap berdasarkan metrik yang tersedia pada dataset prototype.`
+      : 'Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.'
+    report.value.limitations = [
+      'Hasil ini menggunakan delapan fixture perusahaan untuk memvalidasi alur seleksi, bukan cakupan penuh Bursa Efek Indonesia.',
+      'Kriteria yang datanya belum tersedia, termasuk NPL, histori NIM, interest coverage, frekuensi perdagangan, dan kepatuhan pelaporan, tidak diterapkan.',
+      'Metrik valuasi bersifat statis dan dapat berubah setelah pembaruan harga atau laporan keuangan.'
+    ]
+  }
 
   // Final Report
   const report = ref<ResearchReport>({
@@ -355,7 +411,7 @@ export const useResearchStore = defineStore('research', () => {
   const persistSessions = () => {
     if (typeof window === 'undefined') return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, sessions: sessions.value.slice(0, 5) }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, sessions: sessions.value.slice(0, 5) }))
     } catch {
       // Storage may be unavailable or full; the in-memory session remains usable.
     }
@@ -391,13 +447,40 @@ export const useResearchStore = defineStore('research', () => {
     if (typeof window === 'undefined') return
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as { version?: number; sessions?: ResearchSession[] } | null
-      if (parsed?.version === 1 && Array.isArray(parsed.sessions)) {
-        sessions.value = parsed.sessions.map(session => session.status === 'COMPLETED' || session.status === 'FAILED' ? session : { ...session, status: 'PARTIAL' })
+      if ((parsed?.version === 1 || parsed?.version === STORAGE_VERSION) && Array.isArray(parsed.sessions)) {
+        sessions.value = parsed.sessions.map(session => {
+          const results = deriveSessionResults(session.presetId)
+          const normalizedStatus = session.status === 'COMPLETED' || session.status === 'FAILED' ? session.status : 'PARTIAL'
+          return {
+            ...session,
+            status: normalizedStatus,
+            screeningFunnel: clone(results.funnel),
+            candidates: clone(results.candidates),
+            report: {
+              ...session.report,
+              screeningFunnel: clone(results.funnel),
+              topCandidates: clone(results.candidates),
+              universeSummary: `${results.funnel[0].count} perusahaan dalam dataset prototype disaring menjadi ${results.candidates.length} kandidat akhir.`,
+              peerComparisonNotes: results.candidates.length
+                ? `${results.candidates.map(company => company.symbol).join(', ')} lolos seluruh tahap berdasarkan metrik yang tersedia pada dataset prototype.`
+                : 'Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.',
+              limitations: [
+                'Hasil ini menggunakan delapan fixture perusahaan untuk memvalidasi alur seleksi, bukan cakupan penuh Bursa Efek Indonesia.',
+                'Kriteria yang datanya belum tersedia, termasuk NPL, histori NIM, interest coverage, frekuensi perdagangan, dan kepatuhan pelaporan, tidak diterapkan.',
+                'Metrik valuasi bersifat statis dan dapat berubah setelah pembaruan harga atau laporan keuangan.'
+              ]
+            }
+          }
+        })
+        persistSessions()
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY)
     }
-    if (!sessions.value.length) saveCurrentSession('COMPLETED')
+    if (!sessions.value.length) {
+      applyResults(deriveSessionResults(activePresetId.value))
+      saveCurrentSession('COMPLETED')
+    }
     else loadSession(recentSessions.value[0].id)
   }
 
@@ -413,15 +496,21 @@ export const useResearchStore = defineStore('research', () => {
     screeningFunnel.value = clone(session.screeningFunnel)
     candidates.value = clone(session.candidates)
     report.value = clone(session.report)
+    selectedSymbol.value = candidates.value[0]?.symbol || ''
+    isDetailModalOpen.value = false
     isExecuting.value = false
     return true
   }
 
   const createSession = () => {
     const id = `RES-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`
+    const results = deriveSessionResults(activePresetId.value)
     report.value.sessionId = id
     report.value.objective = currentObjective.value
     report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
+    pillars.value.forEach(pillar => { pillar.status = 'pending' })
+    applyResults(results)
+    selectedSymbol.value = candidates.value[0]?.symbol || ''
     saveCurrentSession('IDLE')
     return id
   }
@@ -463,7 +552,7 @@ export const useResearchStore = defineStore('research', () => {
   }
 
   // Autonomous Execution Simulation (Live Agent Loop)
-  const runAutonomousResearch = async () => {
+  const runAutonomousResearch = async (sessionId = report.value.sessionId) => {
     if (isExecuting.value) return
     isExecuting.value = true
     status.value = 'UNDERSTANDING'
@@ -476,12 +565,14 @@ export const useResearchStore = defineStore('research', () => {
 
     // Helper sleep
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+    const ownsSession = () => report.value.sessionId === sessionId
 
     try {
       // Step 1: Understanding & Planning
       status.value = 'PLANNING'
       pillars.value[0].status = 'active'
       await sleep(executionSpeedMs.value)
+      if (!ownsSession()) return
       pillars.value[0].status = 'completed'
       creditsRemaining.value -= 10
       saveCurrentSession('PLANNING')
@@ -490,8 +581,10 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'DISCOVERING'
       pillars.value[1].status = 'active'
       await sleep(executionSpeedMs.value * 0.6)
+      if (!ownsSession()) return
       status.value = 'SCREENING'
       await sleep(executionSpeedMs.value * 0.8)
+      if (!ownsSession()) return
       pillars.value[1].status = 'completed'
       creditsRemaining.value -= 40
       saveCurrentSession('SCREENING')
@@ -500,8 +593,10 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'RESEARCHING'
       pillars.value[2].status = 'active'
       await sleep(executionSpeedMs.value * 1.2)
+      if (!ownsSession()) return
       status.value = 'COMPARING'
       await sleep(executionSpeedMs.value * 0.7)
+      if (!ownsSession()) return
       pillars.value[2].status = 'completed'
       creditsRemaining.value -= 75
       saveCurrentSession('RESEARCHING')
@@ -510,6 +605,7 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'VALIDATING'
       pillars.value[3].status = 'active'
       await sleep(executionSpeedMs.value * 0.6)
+      if (!ownsSession()) return
       pillars.value[3].status = 'completed'
       saveCurrentSession('VALIDATING')
 
@@ -517,33 +613,14 @@ export const useResearchStore = defineStore('research', () => {
       status.value = 'REPORTING'
       pillars.value[4].status = 'active'
       await sleep(executionSpeedMs.value * 0.8)
+      if (!ownsSession()) return
       pillars.value[4].status = 'completed'
 
-      // Filter or rearrange candidates based on objective keywords if custom
-      if (currentObjective.value.toLowerCase().includes('banking') || currentObjective.value.toLowerCase().includes('bank')) {
-        candidates.value = [
-          ALL_COMPANIES_DATABASE[0], // BBCA
-          ALL_COMPANIES_DATABASE[1], // BMRI
-          ALL_COMPANIES_DATABASE[5], // BBRI
-          ALL_COMPANIES_DATABASE[2], // ICBP
-          ALL_COMPANIES_DATABASE[3]  // UNTR
-        ]
-      } else if (currentObjective.value.toLowerCase().includes('consumer') || currentObjective.value.toLowerCase().includes('retail')) {
-        candidates.value = [
-          ALL_COMPANIES_DATABASE[2], // ICBP
-          ALL_COMPANIES_DATABASE[4], // AMRT
-          ALL_COMPANIES_DATABASE[0], // BBCA
-          ALL_COMPANIES_DATABASE[7], // ASII
-          ALL_COMPANIES_DATABASE[1]  // BMRI
-        ]
-      } else {
-        candidates.value = ALL_COMPANIES_DATABASE.slice(0, 5)
-      }
+      applyResults(deriveSessionResults(activePresetId.value))
 
       // Update Report timestamp & top candidates
       report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
       report.value.objective = currentObjective.value
-      report.value.topCandidates = candidates.value
 
       status.value = 'COMPLETED'
       saveCurrentSession('COMPLETED')

@@ -23,6 +23,10 @@ const chooseTemplate = (preset: ResearchObjectivePreset) => {
 }
 
 const submit = async () => {
+  if (store.isExecuting) {
+    error.value = 'Tunggu riset yang sedang berjalan selesai sebelum membuat sesi baru.'
+    return
+  }
   if (objective.value.trim().length < 20) {
     error.value = 'Jelaskan tujuan riset dengan sedikitnya 20 karakter agar ruang lingkupnya dapat disusun.'
     return
@@ -31,7 +35,7 @@ const submit = async () => {
   store.setObjective(objective.value.trim(), selectedPreset.value)
   store.activePlan.objective = objective.value.trim()
   const sessionId = store.createSession()
-  void store.runAutonomousResearch()
+  void store.runAutonomousResearch(sessionId)
   await router.push(`/research/${sessionId}`)
 }
 </script>
@@ -73,6 +77,7 @@ const submit = async () => {
             <button
               v-for="preset in store.presets"
               :key="preset.id"
+              :data-testid="`preset-${preset.id}`"
               type="button"
               :aria-pressed="selectedPreset === preset.id"
               class="min-h-32 rounded-2xl border p-5 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[0.98]"
@@ -122,7 +127,7 @@ const submit = async () => {
             <div><dt class="flex items-center gap-1 text-xs text-slate-400"><Coins class="h-3.5 w-3.5" /> Kredit</dt><dd class="mt-1 font-mono font-bold">~{{ estimate.credits }}</dd></div>
           </div>
         </dl>
-        <button type="submit" class="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#407EC9] px-5 text-sm font-bold text-white transition-[background-color,transform] hover:bg-[#2F64A8] active:scale-[0.98]">
+        <button type="submit" :disabled="store.isExecuting" class="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#407EC9] px-5 text-sm font-bold text-white transition-[background-color,transform] hover:bg-[#2F64A8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
           <Search class="h-4 w-4" />
           Mulai riset
           <ArrowRight class="h-4 w-4" />
