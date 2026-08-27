@@ -69,7 +69,7 @@ try {
   })
   const evaluate = async expression => {
     const result = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })
-    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text)
+    if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text)
     return result.result.value
   }
   const navigate = async path => {
@@ -145,6 +145,7 @@ try {
   await waitFor(() => evaluate('document.activeElement?.dataset?.testid?.startsWith("candidate-")'), 'Focus did not return to the candidate trigger')
 
   await navigate(`/research/${sessionResult.id}/peers`)
+  await waitFor(() => evaluate(`document.querySelectorAll('[data-testid^="comparison-row-"]').length === ${sessionResult.symbols.length}`), 'Peer comparison rows did not render')
   const comparisonState = await evaluate(`({
     rows: Array.from(document.querySelectorAll('[data-testid^="comparison-row-"]')).map(row => row.dataset.testid.replace('comparison-row-', '')),
     hasCandidateFilter: Boolean(document.querySelector('[data-testid^="peer-"]'))
@@ -160,13 +161,45 @@ try {
   })()`)
   await waitFor(() => evaluate('Array.from(document.querySelectorAll("th")).some(cell => cell.textContent.includes("P/BV"))'), 'Metric view did not change comparison columns')
 
-  await navigate('/')
-  await evaluate(`Array.from(document.querySelectorAll('[data-testid="delete-session"]')).find(button => !button.disabled).click()`)
-  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=confirm-delete-session]"))'), 'Delete confirmation was not shown')
-  await evaluate(`document.querySelector('[data-testid="confirm-delete-session"]').click()`)
+  await navigate('/research')
+  const libraryNavigation = await evaluate(`({
+    cards: document.querySelectorAll('[data-testid^="library-session-"]').length,
+    desktopHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Pustaka riset')?.getAttribute('href')
+  })`)
+  if (libraryNavigation.cards < 2 || libraryNavigation.desktopHref !== '/research') throw new Error(`Research library navigation failed: ${JSON.stringify(libraryNavigation)}`)
+
+  await evaluate(`(() => {
+    const field = document.querySelector('[data-testid="library-search"]')
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    setter.call(field, 'Bank berkualitas')
+    field.dispatchEvent(new Event('input', { bubbles: true }))
+  })()`)
+  await waitFor(() => evaluate('document.querySelectorAll("[data-testid^=library-session-]").length === 1'), 'Library search did not filter sessions')
+  await evaluate(`(() => {
+    const field = document.querySelector('[data-testid="library-search"]')
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+    setter.call(field, '')
+    field.dispatchEvent(new Event('input', { bubbles: true }))
+    document.querySelector('[data-testid="library-filter-completed"]').click()
+  })()`)
+  await waitFor(() => evaluate('document.querySelectorAll("[data-testid^=library-session-]").length >= 1'), 'Library status filter did not show completed sessions')
+
+  await evaluate(`document.querySelector('[data-testid="library-filter-all"]').click()`)
+  await waitFor(() => evaluate(`Boolean(document.querySelector('[data-testid="library-duplicate-${sessionResult.id}"]'))`), 'Banking session did not return after clearing library filter')
+  await evaluate(`document.querySelector('[data-testid="library-duplicate-${sessionResult.id}"]').click()`)
+  await waitFor(() => evaluate('location.pathname === "/research/new"'), 'Duplicate action did not open new research')
+  const duplicateDraft = await evaluate(`({ objective: document.querySelector('[data-testid="research-objective"]').value, presetPressed: document.querySelector('[data-testid="preset-obj-banking-moat"]').getAttribute('aria-pressed') })`)
+  if (!duplicateDraft.objective.includes('bank Indonesia') || duplicateDraft.presetPressed !== 'true') throw new Error(`Duplicate draft was not prefilled: ${JSON.stringify(duplicateDraft)}`)
+
+  await navigate('/research')
+  const persistedLibraryCount = await evaluate('document.querySelectorAll("[data-testid^=library-session-]").length')
+  if (persistedLibraryCount < 2) throw new Error('Research library did not persist after reload')
+  await evaluate(`Array.from(document.querySelectorAll('button[aria-label^="Hapus"]')).find(button => !button.disabled).click()`)
+  await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=library-confirm-delete]"))'), 'Library delete confirmation was not shown')
+  await evaluate(`document.querySelector('[data-testid="library-confirm-delete"]').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=toast]")?.textContent.includes("dihapus")'), 'Session deletion toast was not shown')
 
-  console.log('Interaction test passed: screening, audit, dynamic comparison, persistence, dialog focus, and session deletion')
+  console.log('Interaction test passed: screening, audit, comparison, research library, duplication, persistence, and deletion')
 } finally {
   socket?.close()
   browser.kill('SIGTERM')

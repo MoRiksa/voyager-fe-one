@@ -20,6 +20,8 @@ Peer Comparison consumes the complete final candidate list from the active scree
 
 Navigation treats the active research session as the parent workspace. Global actions, session results, and supporting information occupy separate groups; desktop and mobile both provide a direct route back to the session summary. User-facing labels prioritize tasks such as choosing and comparing candidates, while technical trace remains available as secondary detail.
 
+The Research Library at `/research` is the canonical destination for saved sessions. It supports search by title, objective, or session ID; status filtering; result summaries; direct access to sessions and reports; duplication into an editable new-research draft; and confirmed deletion. The dashboard only previews recent work and links to the library.
+
 This is an evolution, not a visual reset. The existing institutional visual identity, blue and slate palette, financial typography, data-dense presentation, and explainability focus remain valuable. The work should improve product structure, interaction clarity, accessibility, and language without replacing the established character of the interface.
 
 ---

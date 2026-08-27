@@ -20,6 +20,7 @@ const pageTitle = computed(() => {
     case 'methodology': return 'Metodologi Penilaian'
     case 'report': return 'Laporan Riset'
     case 'research-new': return 'Riset Baru'
+    case 'research-library': return 'Pustaka Riset'
     case 'research-session': return 'Sesi Riset'
     case 'research-screener': return 'Proses Penyaringan'
     case 'research-peers': return 'Perbandingan Kandidat'

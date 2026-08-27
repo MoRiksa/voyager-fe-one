@@ -11,6 +11,12 @@ const router = createRouter({
       meta: { title: 'Research Workspace' }
     },
     {
+      path: '/research',
+      name: 'research-library',
+      component: () => import('../views/ResearchLibraryView.vue'),
+      meta: { title: 'Pustaka Riset' }
+    },
+    {
       path: '/research/new',
       name: 'research-new',
       component: () => import('../views/NewResearchView.vue'),

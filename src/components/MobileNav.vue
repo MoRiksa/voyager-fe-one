@@ -18,13 +18,13 @@ const moreItems = computed(() => [
   { label: 'Cara kandidat dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
   { label: 'Bandingkan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
   { label: 'Riset baru', to: '/research/new', icon: Search },
-  { label: 'Riwayat riset', to: '/#recent-sessions-title', icon: History },
+  { label: 'Pustaka riset', to: '/research', icon: History },
   { label: 'Cara penilaian', to: '/methodology', icon: BookOpen },
   { label: 'Proses riset', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
   { label: 'Detail teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
 ])
 
-const moreIsActive = computed(() => ['research-new', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
+const moreIsActive = computed(() => ['research-library', 'research-new', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
 </script>
 
 <template>

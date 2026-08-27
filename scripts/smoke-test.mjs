@@ -5,6 +5,7 @@ const baseUrl = 'http://127.0.0.1:4174'
 const sessionId = 'RES-2026-IDX-0941'
 const routes = [
   '/',
+  '/research',
   '/research/new',
   `/research/${sessionId}`,
   `/research/${sessionId}/screener`,
@@ -24,6 +25,7 @@ const routes = [
 ]
 const renderedChecks = [
   { route: '/', text: 'Apa yang ingin Anda teliti hari ini?' },
+  { route: '/research', text: 'Temukan dan lanjutkan riset Anda' },
   { route: `/research/${sessionId}/screener`, text: 'Proses penyaringan' },
   { route: `/research/${sessionId}/peers`, text: 'Bandingkan kekuatan dan tradeoff kandidat' },
   { route: `/research/${sessionId}/company/BBCA`, text: 'Lima faktor penilaian' },

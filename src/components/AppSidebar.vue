@@ -29,7 +29,7 @@ const navItems = computed(() => [
     group: 'UTAMA',
     items: [
       { names: ['home'], label: 'Beranda', path: '/', icon: Home },
-      { names: [], label: 'Riwayat riset', path: '/#recent-sessions-title', icon: History },
+      { names: ['research-library'], label: 'Pustaka riset', path: '/research', icon: History },
       { names: ['research-new'], label: 'Riset baru', path: '/research/new', icon: Search },
     ]
   },

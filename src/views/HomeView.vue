@@ -146,7 +146,7 @@ const removeSession = (id: string) => {
     </section>
 
     <section v-if="store.recentSessions.length" id="recent-sessions-title" aria-labelledby="recent-sessions-heading">
-      <div class="mb-4"><p class="section-kicker">Riwayat lokal</p><h2 id="recent-sessions-heading" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Riset terbaru</h2><p class="mt-1 text-xs text-slate-500">Tersimpan pada browser ini, maksimal lima sesi.</p></div>
+      <div class="mb-4 flex items-end justify-between gap-4"><div><p class="section-kicker">Riwayat lokal</p><h2 id="recent-sessions-heading" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Riset terbaru</h2><p class="mt-1 text-xs text-slate-500">Tersimpan pada browser ini, maksimal lima sesi.</p></div><router-link to="/research" class="text-link hidden sm:inline-flex">Buka pustaka <ArrowRight class="h-4 w-4" /></router-link></div>
       <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <article v-for="session in store.recentSessions" :key="session.id" class="flex min-h-20 items-center gap-2 border-b border-slate-100 px-3 py-2 last:border-0 hover:bg-slate-50 sm:px-5">
           <router-link :to="`/research/${session.id}`" class="min-w-0 flex-1 rounded-lg px-2 py-2">
@@ -161,6 +161,7 @@ const removeSession = (id: string) => {
           <button v-else type="button" data-testid="delete-session" class="icon-button shrink-0 disabled:cursor-not-allowed disabled:opacity-35" :disabled="store.recentSessions.length <= 1" :aria-label="store.recentSessions.length <= 1 ? 'Sesi terakhir tidak dapat dihapus' : `Hapus sesi ${session.id}`" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>
         </article>
       </div>
+      <router-link to="/research" class="button-secondary mt-4 sm:hidden">Buka pustaka riset</router-link>
     </section>
   </div>
 </template>
