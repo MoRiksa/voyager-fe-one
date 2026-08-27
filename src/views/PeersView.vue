@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 import { 
   ArrowRight
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 const leftTicker = ref(store.candidates[0]?.symbol || '')

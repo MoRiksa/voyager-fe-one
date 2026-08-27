@@ -15,6 +15,11 @@ const routes = [
   `/research/${sessionId}/company/BBCA`,
   '/company/BBCA',
   '/methodology',
+  '/screener',
+  '/peers',
+  '/activity',
+  '/trace',
+  '/report',
   '/does-not-exist'
 ]
 

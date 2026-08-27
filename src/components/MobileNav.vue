@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { Home, Search, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal } from 'lucide-vue-next'
+import { Home, Search, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()

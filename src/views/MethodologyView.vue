@@ -12,7 +12,7 @@ import {
   Database,
   SlidersHorizontal,
   BarChart3
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 </script>

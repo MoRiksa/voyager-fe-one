@@ -4,7 +4,7 @@ import { useResearchStore } from '../stores/researchStore'
 import { 
   CheckCircle2,
   XCircle
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 const selectedStage = ref(store.screeningFunnel.length - 1)

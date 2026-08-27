@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
-import { ArrowRight, CheckCircle2, Clock3, FileText, Filter, Search } from 'lucide-vue-next'
+import { ArrowRight, CheckCircle2, Clock3, FileText, Filter, Search } from '@lucide/vue'
 
 const store = useResearchStore()
 const totalDuration = computed(() => store.toolCalls.reduce((sum, call) => sum + call.durationMs, 0))

@@ -22,7 +22,7 @@ import {
   ArrowUpRight,
   ChevronRight,
   Info
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 
@@ -49,17 +49,17 @@ const handlePrint = () => {
 }
 
 const handleCopySummary = async () => {
-  const summaryText = `VOYAGER ONE — EXECUTIVE RESEARCH SUMMARY
-Session: ${store.report.sessionId} | ${store.report.timestamp}
-Objective: ${store.report.objective}
+  const summaryText = `VOYAGER ONE — RINGKASAN RISET
+Sesi: ${store.report.sessionId} | ${store.report.timestamp}
+Tujuan: ${store.report.objective}
 
-TOP RANKED CANDIDATES:
-${store.candidates.map(c => `#${c.rank} ${c.symbol} (${c.name}) — Score: ${c.qualityScore}/100 | ROE: ${c.roePercent}% | P/E: ${c.peRatio}x | FCF Yield: ${c.freeCashFlowYieldPercent}%\nThesis: ${c.whySelected}`).join('\n\n')}
+KANDIDAT TERATAS:
+${store.candidates.map(c => `#${c.rank} ${c.symbol} (${c.name}) — Skor: ${c.qualityScore}/100 | ROE: ${c.roePercent}% | P/E: ${c.peRatio}x | FCF yield: ${c.freeCashFlowYieldPercent}%\nAlasan: ${c.whySelected}`).join('\n\n')}
 
-CROSS-SECTOR SYNTHESIS:
+RINGKASAN PERBANDINGAN:
 ${store.report.peerComparisonNotes}
 
-LIMITATIONS:
+KETERBATASAN:
 ${store.report.limitations.map(l => `- ${l}`).join('\n')}
 `
   try {
@@ -73,60 +73,60 @@ ${store.report.limitations.map(l => `- ${l}`).join('\n')}
 }
 
 const handleExportMarkdown = () => {
-  const content = `# Autonomous Financial Research Report — Voyager One
-**Session ID:** ${store.report.sessionId}
-**Generated at:** ${store.report.timestamp}
-**Target Universe:** ${store.report.universeSummary}
-**Confidence Level:** 94.2% (Deterministic Execution)
+  const content = `# Laporan Riset Finansial — Voyager One
+**ID sesi:** ${store.report.sessionId}
+**Dibuat pada:** ${store.report.timestamp}
+**Ruang lingkup:** ${store.report.universeSummary}
+**Tingkat keyakinan:** Tinggi
 
 ---
 
-## Executive Summary & Research Objective
+## Ringkasan dan tujuan riset
 > "${store.report.objective}"
 
 ${store.report.methodologyOverview}
 
 ---
 
-## Cross-Sectional Recommendation Matrix
-| Rank | Ticker | Name | Sector | Score | ROE | P/E | D/E | FCF Yield | Primary DuPont Driver |
+## Perbandingan kandidat
+| Peringkat | Ticker | Nama | Sektor | Skor | ROE | P/E | D/E | FCF yield | Penggerak DuPont utama |
 |------|--------|------|--------|-------|-----|-----|-----|-----------|------------------------|
 ${store.candidates.map(c => `| #${c.rank} | **${c.symbol}** | ${c.name} | ${c.subsector} | **${c.qualityScore}/100** | ${c.roePercent}% | ${c.peRatio}x | ${c.debtToEquity}x | ${c.freeCashFlowYieldPercent}% | Net Margin (${c.dupontAnalysis.netProfitMargin}%) |`).join('\n')}
 
 ---
 
-## In-Depth Candidate Dossiers
+## Analisis kandidat
 
 ${store.candidates.map(c => `### #${c.rank} ${c.symbol} — ${c.name}
-- **Quality Score:** ${c.qualityScore}/100
-- **Sector:** ${c.sector} (${c.subsector})
-- **DuPont 3-Stage Breakdown:** Net Margin: ${c.dupontAnalysis.netProfitMargin}% × Asset Turnover: ${c.dupontAnalysis.assetTurnover}x × Leverage: ${c.dupontAnalysis.equityMultiplier}x = **Calculated ROE ${c.dupontAnalysis.calculatedRoe}%**
-- **Score Breakdown:** Profitability (${c.scoreBreakdown.profitability}/100), Solvency (${c.scoreBreakdown.solvency}/100), Valuation (${c.scoreBreakdown.valuation}/100), Growth (${c.scoreBreakdown.growth}/100)
-- **Why Selected:** ${c.whySelected}
+- **Skor kualitas:** ${c.qualityScore}/100
+- **Sektor:** ${c.sector} (${c.subsector})
+- **DuPont tiga tahap:** Net margin: ${c.dupontAnalysis.netProfitMargin}% × Asset turnover: ${c.dupontAnalysis.assetTurnover}x × Leverage: ${c.dupontAnalysis.equityMultiplier}x = **ROE terhitung ${c.dupontAnalysis.calculatedRoe}%**
+- **Komponen skor:** Profitabilitas (${c.scoreBreakdown.profitability}/100), Solvabilitas (${c.scoreBreakdown.solvency}/100), Valuasi (${c.scoreBreakdown.valuation}/100), Pertumbuhan (${c.scoreBreakdown.growth}/100)
+- **Alasan dipilih:** ${c.whySelected}
 
-#### Key Strengths:
+#### Kekuatan utama:
 ${c.keyStrengths.map(s => `- ${s}`).join('\n')}
 
-#### Risk & Uncertainty Flags:
+#### Risiko dan ketidakpastian:
 ${c.potentialConcerns.map(r => `- ${r}`).join('\n')}
 
-#### Sectors API Evidence Citations:
+#### Data pendukung:
 ${c.evidenceCitations.map(e => `- **${e.metric}**: ${e.value} (Source: \`${e.source}\`) — ${e.context}`).join('\n')}
 `).join('\n---\n\n')}
 
 ---
 
-## Macro & Cross-Sector Synthesis
+## Ringkasan lintas sektor
 ${store.report.peerComparisonNotes}
 
 ---
 
-## Limitations & Uncertainty Disclosures
+## Keterbatasan dan ketidakpastian
 ${store.report.limitations.map(l => `- ${l}`).join('\n')}
 
 ---
 
-## Compliance & Regulatory Notice
+## Pemberitahuan penggunaan
 ${store.report.disclaimer}
 `
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8;' })
@@ -167,7 +167,7 @@ const handleExportJson = () => {
             </span>
           </div>
           <p class="text-xs text-slate-500 font-mono">
-            Session: {{ store.report.sessionId }} • {{ store.report.timestamp }}
+             Sesi: {{ store.report.sessionId }} • {{ store.report.timestamp }}
           </p>
         </div>
       </div>
@@ -200,11 +200,11 @@ const handleExportJson = () => {
         <button
           @click="handleCopySummary"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
-          title="Copy Executive Summary to Clipboard"
+           title="Salin ringkasan riset"
         >
           <Check v-if="copySuccess" class="w-3.5 h-3.5 text-emerald-600" />
           <Copy v-else class="w-3.5 h-3.5" />
-          <span>{{ copySuccess ? 'Copied!' : 'Copy' }}</span>
+           <span>{{ copySuccess ? 'Tersalin' : 'Salin' }}</span>
         </button>
 
         <!-- Print PDF -->
@@ -269,13 +269,13 @@ const handleExportJson = () => {
           <!-- Metadata Stat Box -->
           <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/70 text-xs">
             <div>
-              <span class="text-[10px] text-slate-400 font-mono uppercase block">Target Universe</span>
-              <strong class="text-slate-800 font-mono">914 Stocks</strong>
+              <span class="text-xs text-slate-500 font-mono uppercase block">Ruang lingkup</span>
+              <strong class="text-slate-800 font-mono">914 emiten</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
-              <span class="text-[10px] text-slate-400 font-mono uppercase block">Confidence</span>
-              <strong class="text-emerald-600 font-mono">94.2%</strong>
+              <span class="text-xs text-slate-500 font-mono uppercase block">Keyakinan</span>
+              <strong class="text-emerald-600 font-mono">Tinggi</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
@@ -288,7 +288,7 @@ const handleExportJson = () => {
         <!-- Research Objective Highlight -->
         <div class="space-y-2">
           <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-            Input Objective & Thesis Prompt:
+            Tujuan riset
           </label>
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-sm text-slate-800 font-medium leading-relaxed">
             "{{ store.report.objective }}"
@@ -334,13 +334,13 @@ const handleExportJson = () => {
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
-              Cross-Sectional Candidate Matrix
+              Perbandingan kandidat
             </h3>
             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-              5 Finalists
+              5 kandidat
             </span>
           </div>
-          <span class="text-xs text-slate-400 font-mono">Sorted by Derived Quality Score</span>
+          <span class="text-xs text-slate-500 font-mono">Diurutkan berdasarkan skor kualitas</span>
         </div>
 
          <div class="overflow-x-auto">
@@ -410,10 +410,10 @@ const handleExportJson = () => {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-[#407EC9] font-mono">
-              In-Depth Analytical Breakdown
+              Analisis mendalam
             </div>
             <h3 class="text-lg font-bold text-slate-900">
-              Candidate Dossier: <span class="font-mono text-[#407EC9]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
+              Kandidat: <span class="font-mono text-[#407EC9]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
             </h3>
             <router-link :to="`/research/${store.report.sessionId}/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
           </div>
@@ -441,7 +441,7 @@ const handleExportJson = () => {
           <!-- 4-Stat Strip -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-              <span class="text-[10px] font-mono uppercase text-slate-400 font-semibold">Derived Quality Score</span>
+              <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Skor kualitas</span>
               <p class="text-xl font-bold font-mono text-[#407EC9] mt-0.5">{{ activeCandidate.qualityScore }}<span class="text-xs text-slate-400">/100</span></p>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
@@ -468,7 +468,7 @@ const handleExportJson = () => {
                 </h4>
               </div>
               <span class="text-xs font-mono font-bold text-[#407EC9]">
-                Calculated ROE: {{ activeCandidate.dupontAnalysis.calculatedRoe }}%
+                ROE terhitung: {{ activeCandidate.dupontAnalysis.calculatedRoe }}%
               </span>
             </div>
 
@@ -503,7 +503,7 @@ const handleExportJson = () => {
           <!-- 5-Factor Scoring Meters -->
           <div class="space-y-3">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              5-Factor Score Decomposition (0-100 Scale)
+              Lima faktor penilaian (skala 0-100)
             </h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
@@ -551,7 +551,7 @@ const handleExportJson = () => {
           <!-- Why Selected & Strengths / Concerns -->
           <div class="space-y-3">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              Research Thesis & Risk Flags
+              Alasan pemilihan dan risiko
             </h4>
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 leading-relaxed">
               <strong>Core Thesis:</strong> {{ activeCandidate.whySelected }}
@@ -591,7 +591,7 @@ const handleExportJson = () => {
           <!-- Evidence Citations Strip -->
           <div class="space-y-2">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-              Sectors API Evidence Citations (Audit Trail)
+              Data pendukung
             </h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[11px]">
               <div 
@@ -615,7 +615,7 @@ const handleExportJson = () => {
       <!-- 4. Macro & Comparative Peer Notes -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
-          Macro & Cross-Sector Synthesis Memo
+          Ringkasan lintas sektor
         </h3>
         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
           {{ store.report.peerComparisonNotes }}
@@ -625,7 +625,7 @@ const handleExportJson = () => {
       <!-- 5. Limitations & Regulatory Disclaimer -->
       <div id="risks" class="scroll-mt-36 bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
-          Limitations, Uncertainty & Regulatory Notice
+          Keterbatasan dan pemberitahuan penggunaan
         </h3>
         <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5">
           <li v-for="(limitation, idx) in store.report.limitations" :key="idx">
@@ -634,7 +634,7 @@ const handleExportJson = () => {
         </ul>
 
         <div class="mt-4 p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-[11px] text-slate-500 leading-relaxed">
-          <strong>Regulatory Notice:</strong> {{ store.report.disclaimer }}
+          <strong>Pemberitahuan:</strong> {{ store.report.disclaimer }}
         </div>
       </div>
     </div>

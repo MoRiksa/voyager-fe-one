@@ -13,7 +13,7 @@ import {
   Coins,
   Search,
   ShieldCheck
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()

@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Database,
   ArrowRight
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 const candidate = computed(() => store.selectedCompany)

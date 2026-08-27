@@ -5,7 +5,7 @@ import { useResearchStore } from '../stores/researchStore'
 import { 
   ChevronRight, 
   Building2
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()

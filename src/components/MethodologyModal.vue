@@ -11,7 +11,7 @@ import {
   Layers,
   Award,
   AlertCircle
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 const dialogRef = ref<HTMLElement | null>(null)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Compass, ArrowLeft } from 'lucide-vue-next'
+import { Compass, ArrowLeft } from '@lucide/vue'
 </script>
 
 <template>

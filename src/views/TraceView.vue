@@ -6,7 +6,7 @@ import {
   Clock, 
   ChevronDown,
   ChevronUp
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const store = useResearchStore()
 const expandedLogId = ref<string | null>('tool-01')

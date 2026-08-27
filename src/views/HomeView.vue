@@ -3,11 +3,12 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import CandidateCard from '../components/CandidateCard.vue'
-import { ArrowRight, Clock3, FileText, Search, Sparkles, Activity, ChevronRight } from 'lucide-vue-next'
+import { ArrowRight, Clock3, FileText, Search, Sparkles, Activity, ChevronRight, Trash2 } from '@lucide/vue'
 
 const store = useResearchStore()
 const router = useRouter()
 const draftObjective = ref('')
+const pendingDeleteId = ref<string | null>(null)
 
 const currentPillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
 const completedSteps = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
@@ -139,7 +140,20 @@ const startDraft = () => {
 
     <section v-if="store.recentSessions.length" aria-labelledby="recent-sessions-title">
       <div class="mb-4"><p class="section-kicker">Riwayat lokal</p><h2 id="recent-sessions-title" class="mt-1 text-2xl font-bold tracking-tight text-slate-950">Riset terbaru</h2><p class="mt-1 text-xs text-slate-500">Tersimpan pada browser ini, maksimal lima sesi.</p></div>
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><router-link v-for="session in store.recentSessions" :key="session.id" :to="`/research/${session.id}`" class="flex min-h-20 items-center justify-between gap-4 border-b border-slate-100 px-5 py-4 last:border-0 hover:bg-slate-50"><div class="min-w-0"><h3 class="truncate text-sm font-bold text-slate-900">{{ session.objective }}</h3><p class="mt-1 font-mono text-xs text-slate-500">{{ session.id }} · {{ session.candidates.length }} kandidat</p></div><span class="shrink-0 rounded-md px-2 py-1 text-xs font-bold" :class="session.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : session.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'">{{ session.status === 'COMPLETED' ? 'Selesai' : session.status === 'PARTIAL' ? 'Parsial' : 'Berjalan' }}</span></router-link></div>
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <article v-for="session in store.recentSessions" :key="session.id" class="flex min-h-20 items-center gap-2 border-b border-slate-100 px-3 py-2 last:border-0 hover:bg-slate-50 sm:px-5">
+          <router-link :to="`/research/${session.id}`" class="min-w-0 flex-1 rounded-lg px-2 py-2">
+            <h3 class="truncate text-sm font-bold text-slate-900">{{ session.objective }}</h3>
+            <p class="mt-1 font-mono text-xs text-slate-500">{{ session.id }} · {{ session.candidates.length }} kandidat</p>
+          </router-link>
+          <span class="hidden shrink-0 rounded-md px-2 py-1 text-xs font-bold sm:inline" :class="session.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700' : session.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'">{{ session.status === 'COMPLETED' ? 'Selesai' : session.status === 'PARTIAL' ? 'Parsial' : 'Berjalan' }}</span>
+          <div v-if="pendingDeleteId === session.id" class="flex shrink-0 items-center gap-1">
+            <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="store.deleteSession(session.id); pendingDeleteId = null">Hapus</button>
+            <button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600 hover:bg-slate-100" @click="pendingDeleteId = null">Batal</button>
+          </div>
+          <button v-else type="button" class="icon-button shrink-0 disabled:cursor-not-allowed disabled:opacity-35" :disabled="store.recentSessions.length <= 1" :aria-label="store.recentSessions.length <= 1 ? 'Sesi terakhir tidak dapat dihapus' : `Hapus sesi ${session.id}`" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>
+        </article>
+      </div>
     </section>
   </div>
 </template>

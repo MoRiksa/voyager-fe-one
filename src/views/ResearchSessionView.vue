@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import CandidateCard from '../components/CandidateCard.vue'
-import { Activity, ArrowRight, CheckCircle2, Clock3, FileText, MessageSquare, Send, Terminal } from 'lucide-vue-next'
+import { Activity, ArrowRight, CheckCircle2, Clock3, FileText, MessageSquare, Send, Terminal } from '@lucide/vue'
 
 const store = useResearchStore()
 const route = useRoute()

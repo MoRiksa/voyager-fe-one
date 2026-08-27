@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { ArrowLeft, BarChart3, CheckCircle2, AlertTriangle, Database, GitCompare } from 'lucide-vue-next'
+import { ArrowLeft, BarChart3, CheckCircle2, AlertTriangle, Database, GitCompare } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()

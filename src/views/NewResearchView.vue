@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchObjectivePreset } from '../types'
-import { ArrowRight, Check, Clock3, Coins, Search, SlidersHorizontal } from 'lucide-vue-next'
+import { ArrowRight, Check, Clock3, Coins, Search, SlidersHorizontal } from '@lucide/vue'
 
 const store = useResearchStore()
 const router = useRouter()

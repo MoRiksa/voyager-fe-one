@@ -303,18 +303,18 @@ export const useResearchStore = defineStore('research', () => {
     sessionId: 'RES-2026-IDX-0941',
     timestamp: '2026-08-25 20:30:15 WIB',
     objective: currentObjective.value,
-    universeSummary: 'Entire Indonesia Stock Exchange (914 Listed Companies filtered down to 5 final candidates)',
+    universeSummary: 'Seluruh Bursa Efek Indonesia (914 perusahaan disaring menjadi 5 kandidat akhir)',
     screeningFunnel: screeningFunnel.value,
-    methodologyOverview: 'Autonomous multi-stage funnel utilizing Sectors API financial datasets combined with a proprietary 5-factor Derived Intelligence Scoring model (Profitability, Growth, Solvency, Valuation, Consistency). Deep DuPont deconstruction and cross-sectional peer benchmarking applied to all shortlisted candidates.',
+    methodologyOverview: 'Penyaringan bertahap menggabungkan lima faktor penilaian: profitabilitas, pertumbuhan, solvabilitas, valuasi, dan konsistensi. Analisis DuPont serta perbandingan perusahaan sejenis diterapkan pada kandidat terpilih.',
     topCandidates: candidates.value,
-    peerComparisonNotes: 'BBCA commands the highest quality score (94) driven by a 21.8% ROE and pristine asset quality. BMRI provides strong earnings growth (+21.5% CAGR) at a modest P/E (11.8x). ICBP demonstrates defensive consumer pricing power with 36.8% gross margin. UNTR offers deep value and cash flow yield (12.8%). AMRT leads capital velocity (Asset Turnover 2.84x).',
+    peerComparisonNotes: 'BBCA memiliki skor kualitas tertinggi (94) dengan ROE 21.8% dan kualitas aset yang kuat. BMRI menawarkan pertumbuhan laba tinggi pada P/E 11.8x. ICBP menunjukkan margin defensif. UNTR menonjol pada valuasi dan FCF yield 12.8%. AMRT unggul pada perputaran aset 2.84x.',
     limitations: [
-      'Valuation metrics reflect latest available trailing Sectors dataset and may change with upcoming quarterly filings.',
-      'Commodity sensitivity for industrials (UNTR) and currency risks on imported inputs (ICBP) remain external variables not captured in static ratios.',
-      'Financial institutions (BBCA, BMRI) operate under banking capital ratios where standard Debt-to-Equity is not directly comparable to non-financial corporates.'
+      'Metrik valuasi menggunakan data trailing yang tersedia dan dapat berubah setelah laporan keuangan berikutnya.',
+      'Sensitivitas komoditas pada UNTR dan risiko mata uang pada input impor ICBP belum sepenuhnya tercermin dalam rasio statis.',
+      'Debt-to-Equity bank tidak dapat dibandingkan langsung dengan perusahaan non-finansial karena karakter struktur modalnya berbeda.'
     ],
-    uncertaintyNotes: 'High overall data confidence (>95%) with all primary financial statements verified directly against official Sectors API endpoints.',
-    disclaimer: 'This autonomous research report is generated strictly for informational and analytical research purposes under the Sectors Hackathon 2026 guidelines. It does not constitute financial advice, investment recommendations, or automated trade execution instructions.'
+    uncertaintyNotes: 'Tingkat keyakinan data: tinggi. Periode data dan keterbatasan tiap metrik tetap perlu diperiksa sebelum mengambil keputusan.',
+    disclaimer: 'Laporan ini dibuat untuk tujuan informasi dan analisis. Laporan tidak merupakan nasihat keuangan, rekomendasi investasi, atau instruksi transaksi.'
   })
 
   // --- Actions ---
@@ -439,6 +439,14 @@ export const useResearchStore = defineStore('research', () => {
       creditCost: 0
     })
     saveCurrentSession(status.value)
+  }
+
+  const deleteSession = (id: string) => {
+    if (sessions.value.length <= 1) return false
+    sessions.value = sessions.value.filter(session => session.id !== id)
+    persistSessions()
+    if (report.value.sessionId === id && recentSessions.value[0]) loadSession(recentSessions.value[0].id)
+    return true
   }
 
   // Autonomous Execution Simulation (Live Agent Loop)
@@ -569,6 +577,7 @@ export const useResearchStore = defineStore('research', () => {
     loadSession,
     createSession,
     addFollowUp,
+    deleteSession,
     saveCurrentSession,
     runAutonomousResearch
   }
