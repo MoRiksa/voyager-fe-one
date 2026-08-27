@@ -150,7 +150,7 @@ export const useResearchStore = defineStore('research', () => {
   }
 
   const deriveSessionArtifacts = (results: ReturnType<typeof deriveSessionResults>, objective = currentObjective.value, basePillars = pillars.value) => {
-    const now = new Date().toLocaleTimeString('id-ID', { hour12: false, fractionalSecondDigits: 3 })
+    const now = new Date().toLocaleTimeString('id-ID', { hour12: false })
     const criteria = results.funnel.slice(1).map(step => step.filterCriteria)
     const plan: ResearchPlan = {
       objective,
@@ -397,7 +397,7 @@ export const useResearchStore = defineStore('research', () => {
     const now = new Date()
     toolCalls.value.push({
       id: `follow-up-${now.getTime()}`,
-      timestamp: now.toLocaleTimeString('id-ID', { hour12: false, fractionalSecondDigits: 3 }),
+      timestamp: now.toLocaleTimeString('id-ID', { hour12: false }),
       pillar: 'report',
       toolName: 'session_follow_up',
       category: 'Research Engine',
