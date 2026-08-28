@@ -12,27 +12,27 @@
   "phases": [
     { "id": "define", "label": "DEFINE", "fromCol": 1, "toCol": 2 },
     { "id": "execute", "label": "EXECUTE", "fromCol": 3, "toCol": 4, "variant": "emphasis" },
-    { "id": "consume", "label": "REVIEW", "fromCol": 5, "toCol": 5 }
+    { "id": "consume", "label": "REVIEW", "fromCol": 4, "toCol": 4 }
   ],
   "mainPath": ["objective", "brief", "create", "plan", "screen", "research", "publish", "review"],
   "nodes": [
     { "id": "objective", "lane": "user", "col": 1, "type": "external", "label": "Set Objective", "sublabel": "thesis + scope" },
-    { "id": "review", "lane": "user", "col": 5, "type": "external", "label": "Review", "sublabel": "proof + risk", "width": 64 },
+    { "id": "review", "lane": "user", "col": 4, "type": "external", "label": "Review", "sublabel": "proof + risk", "width": 64 },
     { "id": "brief", "lane": "frontend", "col": 2, "type": "frontend", "label": "Build Brief", "sublabel": "market + criteria" },
     { "id": "create", "lane": "backend", "col": 2, "type": "backend", "label": "Create Session", "sublabel": "IDLE + revision", "width": 104 },
-    { "id": "publish", "lane": "backend", "col": 5, "type": "database", "label": "Publish", "sublabel": "atomic set", "tag": "consistent", "width": 64 },
+    { "id": "publish", "lane": "backend", "col": 4, "type": "database", "label": "Publish", "sublabel": "atomic set", "tag": "consistent", "width": 64 },
     { "id": "plan", "lane": "engine", "col": 2, "type": "backend", "label": "Plan", "sublabel": "hypothesis" },
-    { "id": "screen", "lane": "engine", "col": 3, "type": "backend", "label": "Screen", "sublabel": "funnel", "width": 72 },
-    { "id": "research", "lane": "engine", "col": 5, "type": "backend", "label": "Research", "sublabel": "score + proof", "width": 64 },
+    { "id": "screen", "lane": "engine", "col": 3, "type": "backend", "label": "Screen", "sublabel": "funnel", "width": 58 },
+    { "id": "research", "lane": "engine", "col": 4, "type": "backend", "label": "Research", "sublabel": "score + proof", "width": 64 },
     { "id": "clarify", "lane": "exceptions", "col": 2, "type": "security", "label": "Needs Input", "sublabel": "saved return state", "width": 104 },
-    { "id": "retry", "lane": "exceptions", "col": 5, "type": "messagebus", "label": "Retry", "sublabel": "new attemptId", "width": 64 }
+    { "id": "retry", "lane": "exceptions", "col": 4, "type": "messagebus", "label": "Retry", "sublabel": "new attemptId", "width": 64 }
   ],
   "edges": [
     { "from": "objective", "to": "brief", "fromSide": "bottom", "toSide": "top", "route": "drop" },
     { "from": "brief", "to": "create", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop" },
     { "from": "create", "to": "plan", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop" },
     { "from": "plan", "to": "screen", "fromSide": "right", "toSide": "left", "route": "straight" },
-    { "from": "screen", "to": "research", "variant": "emphasis", "fromSide": "right", "toSide": "left", "route": "straight" },
+    { "from": "screen", "to": "research", "variant": "emphasis", "fromSide": "bottom", "toSide": "bottom", "route": "bottom-channel" },
     { "from": "research", "to": "publish", "variant": "emphasis", "fromSide": "top", "toSide": "bottom", "route": "drop" },
     { "from": "publish", "to": "review", "variant": "emphasis", "fromSide": "top", "toSide": "bottom", "route": "drop" },
     { "from": "plan", "to": "clarify", "label": "scope ambigu", "variant": "security", "role": "branch", "fromSide": "bottom", "toSide": "top", "route": "drop" },

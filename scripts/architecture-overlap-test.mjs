@@ -152,14 +152,15 @@ try {
           failures.push(`${diagram} (${viewport.name}): branch timing is not parallel: ${JSON.stringify(branchTiming)}`)
         }
         const laneSpacing = await evaluate(`(() => {
+          const laneLeft = 40
           const laneRight = 680
-          const ids = ['review', 'publish', 'research', 'retry']
-          return Object.fromEntries(ids.map(id => {
-            const box = document.querySelector('[data-node-id="' + id + '"]').getBBox()
-            return [id, laneRight - box.x - box.width]
-          }))
+          const boxes = Array.from(document.querySelectorAll('[data-node-id]')).map(node => node.getBBox())
+          return {
+            left: Math.min(...boxes.map(box => box.x)) - laneLeft,
+            right: laneRight - Math.max(...boxes.map(box => box.x + box.width))
+          }
         })()`)
-        if (Object.values(laneSpacing).some(gap => gap < 22)) failures.push(`${diagram} (${viewport.name}): right lane margin too tight: ${JSON.stringify(laneSpacing)}`)
+        if (Math.min(laneSpacing.left, laneSpacing.right) < 100 || Math.abs(laneSpacing.left - laneSpacing.right) > 16) failures.push(`${diagram} (${viewport.name}): lane content is not centered: ${JSON.stringify(laneSpacing)}`)
       }
       if (diagram === 'interaction-overview') {
         const outerSpacing = await evaluate(`(() => {
@@ -175,7 +176,7 @@ try {
             }))
           }
         })()`)
-        if (outerSpacing.left < 100 || outerSpacing.right < 22) failures.push(`${diagram} (${viewport.name}): outer lane margins too tight: ${JSON.stringify(outerSpacing)}`)
+        if (Math.min(outerSpacing.left, outerSpacing.right) < 100 || Math.abs(outerSpacing.left - outerSpacing.right) > 16) failures.push(`${diagram} (${viewport.name}): lane content is not centered: ${JSON.stringify(outerSpacing)}`)
       }
       const problems = await evaluate(`(() => {
         const overlap = (a, b, inset = 1) => a.x + inset < b.x + b.width && a.x + a.width - inset > b.x && a.y + inset < b.y + b.height && a.y + a.height - inset > b.y
