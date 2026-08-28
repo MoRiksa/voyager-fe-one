@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": { "title": "Sequence Diagram", "subtitle": "Create, execute, fetch provider data, publish, dan stream progress", "animation": "trace", "viewBox": [920, 980] },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "analyst" },
+    { "id": "web", "type": "frontend", "label": "Vue UI", "sublabel": "workspace" },
+    { "id": "api", "type": "backend", "label": "API", "sublabel": "/api/v1" },
+    { "id": "db", "type": "database", "label": "DB", "sublabel": "sessions" },
+    { "id": "queue", "type": "messagebus", "label": "Queue", "sublabel": "attempt" },
+    { "id": "worker", "type": "backend", "label": "Worker", "sublabel": "research" },
+    { "id": "cache", "type": "database", "label": "Cache", "sublabel": "provider" },
+    { "id": "sectors", "type": "external", "label": "Sectors", "sublabel": "IDX API" }
+  ],
+  "segments": [
+    { "from": 150, "to": 330, "label": "01 / SESSION" },
+    { "from": 345, "to": 610, "label": "02 / EXECUTION" },
+    { "from": 625, "to": 830, "label": "03 / PUBLICATION" }
+  ],
+  "messages": [
+    { "from": "user", "to": "web", "y": 180, "label": "submit brief", "variant": "default" },
+    { "from": "web", "to": "api", "y": 220, "label": "POST /sessions", "variant": "emphasis" },
+    { "from": "api", "to": "db", "y": 260, "label": "insert IDLE", "variant": "default" },
+    { "from": "db", "to": "api", "y": 295, "label": "revision 1", "variant": "return" },
+    { "from": "api", "to": "web", "y": 330, "label": "201 session", "variant": "return" },
+    { "from": "web", "to": "api", "y": 370, "label": "POST /start", "variant": "emphasis" },
+    { "from": "api", "to": "queue", "y": 410, "label": "enqueue attempt", "variant": "dashed" },
+    { "from": "queue", "to": "worker", "y": 450, "label": "attemptId", "variant": "emphasis" },
+    { "from": "worker", "to": "cache", "y": 490, "label": "read provider cache", "variant": "default" },
+    { "from": "cache", "to": "worker", "y": 525, "label": "miss", "variant": "return" },
+    { "from": "worker", "to": "sectors", "y": 565, "label": "GET financials", "variant": "security" },
+    { "from": "sectors", "to": "worker", "y": 605, "label": "market payload", "variant": "return" },
+    { "from": "worker", "to": "db", "y": 650, "label": "atomic publication", "variant": "emphasis" },
+    { "from": "db", "to": "api", "y": 690, "label": "revision event", "variant": "dashed" },
+    { "from": "api", "to": "web", "y": 730, "label": "SSE report.published", "variant": "dashed" },
+    { "from": "web", "to": "api", "y": 770, "label": "GET /report", "variant": "emphasis" },
+    { "from": "api", "to": "db", "y": 805, "label": "read published set", "variant": "default" },
+    { "from": "api", "to": "web", "y": 835, "label": "200 report", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 215, "to": 838, "type": "frontend" },
+    { "participant": "api", "from": 220, "to": 838, "type": "backend" },
+    { "participant": "db", "from": 255, "to": 825, "type": "database" },
+    { "participant": "queue", "from": 405, "to": 460, "type": "messagebus" },
+    { "participant": "worker", "from": 445, "to": 665, "type": "backend" },
+    { "participant": "cache", "from": 485, "to": 535, "type": "database" },
+    { "participant": "sectors", "from": 560, "to": 615, "type": "external" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Consistency", "items": ["Idempotency-Key menjaga create/start", "Worker membawa attemptId pada setiap write", "UI refetch setelah SSE revision signal"] },
+    { "dot": "rose", "title": "Security", "items": ["Voyager token hanya antara UI dan API", "Raw Sectors key hanya antara worker dan provider", "Published set dibaca setelah owner authorization"] }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Sistem Flow Diagram", "subtitle": "Topologi produksi Voyager One dan batas kepercayaan", "animation": "trace", "viewBox": [1160, 760] },
+  "components": [
+    { "id": "user", "type": "external", "label": "Investor", "sublabel": "browser", "pos": [35, 305], "size": [120, 60] },
+    { "id": "web", "type": "frontend", "label": "Vue Frontend", "sublabel": "research workspace", "pos": [225, 305], "size": [135, 60] },
+    { "id": "auth", "type": "security", "label": "Voyager Auth", "sublabel": "owner + tenant", "pos": [445, 115], "size": [135, 60], "tag": "policy" },
+    { "id": "api", "type": "backend", "label": "Research API", "sublabel": "/api/v1", "pos": [445, 305], "size": [135, 60] },
+    { "id": "sse", "type": "messagebus", "label": "SSE Event Stream", "sublabel": "revision signals", "pos": [225, 465], "size": [135, 60], "tag": "at least once" },
+    { "id": "queue", "type": "messagebus", "label": "Attempt Queue", "sublabel": "async execution", "pos": [650, 305], "size": [135, 60] },
+    { "id": "worker", "type": "backend", "label": "Research Worker", "sublabel": "five pillars", "pos": [860, 305], "size": [140, 60], "tag": "fenced writes" },
+    { "id": "db", "type": "database", "label": "Session DB", "sublabel": "system of record", "pos": [650, 465], "size": [135, 60] },
+    { "id": "cache", "type": "database", "label": "Provider Cache", "sublabel": "stale-if-error", "pos": [860, 465], "size": [140, 60] },
+    { "id": "snapshots", "type": "cloud", "label": "Raw Snapshots", "sublabel": "encrypted objects", "pos": [650, 615], "size": [135, 60] },
+    { "id": "secrets", "type": "security", "label": "Secret Manager", "sublabel": "SECTORS_API_KEY", "pos": [860, 115], "size": [140, 60] },
+    { "id": "sectors", "type": "external", "label": "Sectors API", "sublabel": "api.sectors.app/v1", "pos": [1040, 305], "size": [120, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Voyager Application Boundary", "wraps": ["web", "auth", "api", "sse", "queue", "worker", "db", "cache", "snapshots", "secrets"] },
+    { "kind": "security-group", "label": "Server-only Data Plane", "wraps": ["queue", "worker", "cache", "secrets"] }
+  ],
+  "connections": [
+    { "from": "user", "to": "web", "label": "HTTPS", "variant": "emphasis" },
+    { "from": "web", "to": "api", "label": "Voyager JSON", "variant": "emphasis" },
+    { "from": "auth", "to": "api", "label": "claims", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": -54 },
+    { "from": "api", "to": "queue", "label": "enqueue", "variant": "dashed" },
+    { "from": "queue", "to": "worker", "label": "attemptId", "variant": "emphasis" },
+    { "from": "api", "to": "db", "label": "transaction", "fromSide": "bottom", "toSide": "left", "route": "orthogonal-v", "labelDy": 42 },
+    { "from": "worker", "to": "db", "label": "atomic publish", "variant": "emphasis", "fromSide": "bottom", "toSide": "right", "route": "orthogonal-v", "labelDy": 42 },
+    { "from": "db", "to": "sse", "label": "session events", "variant": "dashed" },
+    { "from": "sse", "to": "web", "label": "Last-Event-ID", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelDy": -58 },
+    { "from": "worker", "to": "cache", "label": "read-through", "fromSide": "bottom", "toSide": "top", "labelDy": 50 },
+    { "from": "cache", "to": "snapshots", "label": "raw body", "variant": "security", "fromSide": "bottom", "toSide": "right", "route": "orthogonal-v", "labelDy": 48 },
+    { "from": "secrets", "to": "worker", "label": "inject raw key", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": -54 },
+    { "from": "worker", "to": "sectors", "label": "server-to-server", "variant": "security", "labelDy": -22 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Application Plane", "items": ["Vue menerima read model dan event revision", "API mengotorisasi semua resource per owner", "DB adalah source of truth sesi"] },
+    { "dot": "rose", "title": "Data Plane", "items": ["Worker saja yang memanggil Sectors", "Secret tidak pernah diteruskan ke browser", "Cache dan snapshot mempertahankan provenance"] }
+  ]
+}

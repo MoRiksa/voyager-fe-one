@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": { "title": "Data Flow Diagram", "subtitle": "Dari brief dan Sectors menuju intelligence yang provenanced", "animation": "trace", "viewBox": [1080, 760] },
+  "stages": [{ "label": "Sources" }, { "label": "Intake" }, { "label": "Normalize" }, { "label": "Persist" }, { "label": "Consume" }],
+  "nodes": [
+    { "id": "user", "type": "external", "label": "Research Brief", "sublabel": "objective + scope", "stage": 0, "row": 0, "tag": "user input" },
+    { "id": "sectors", "type": "external", "label": "Sectors API", "sublabel": "IDX provider", "stage": 0, "row": 3, "tag": "server only" },
+    { "id": "api", "type": "backend", "label": "Voyager API", "sublabel": "validate + authorize", "stage": 1, "row": 0, "tag": "Bearer" },
+    { "id": "adapter", "type": "security", "label": "Sectors Adapter", "sublabel": "schema + units", "stage": 1, "row": 3, "tag": "raw key" },
+    { "id": "engine", "type": "backend", "label": "Research Engine", "sublabel": "screen + score", "stage": 2, "row": 1, "tag": "versioned" },
+    { "id": "provenance", "type": "backend", "label": "Provenance", "sublabel": "sourceRefs", "stage": 2, "row": 3, "tag": "immutable" },
+    { "id": "sessiondb", "type": "database", "label": "Session Store", "sublabel": "revision + attempts", "stage": 3, "row": 0, "tag": "source of truth" },
+    { "id": "snapshot", "type": "database", "label": "Raw Snapshots", "sublabel": "content addressed", "stage": 3, "row": 3, "tag": "encrypted" },
+    { "id": "ui", "type": "frontend", "label": "Research UI", "sublabel": "funnel + dossier", "stage": 4, "row": 0, "tag": "read model" },
+    { "id": "export", "type": "cloud", "label": "Report Export", "sublabel": "MD / PDF / JSON", "stage": 4, "row": 3, "tag": "sanitized" }
+  ],
+  "flows": [
+    { "from": "user", "to": "api", "label": "validated brief", "classification": "tenant scoped", "variant": "emphasis", "route": "straight" },
+    { "from": "sectors", "to": "adapter", "label": "market payload", "classification": "provider data", "variant": "security", "route": "straight" },
+    { "from": "api", "to": "engine", "label": "research attempt", "classification": "attemptId", "variant": "emphasis", "fromSide": "right", "toSide": "left", "via": [[420, 157], [420, 271]], "labelAt": [430, 210] },
+    { "from": "adapter", "to": "engine", "label": "normalized metrics", "classification": "money + null", "variant": "emphasis", "fromSide": "right", "toSide": "bottom", "via": [[500, 499], [530, 499], [530, 329]], "labelAt": [535, 448] },
+    { "from": "adapter", "to": "provenance", "label": "retrieval metadata", "classification": "auditable", "variant": "security", "route": "straight" },
+    { "from": "engine", "to": "sessiondb", "label": "published artifacts", "classification": "atomic revision", "variant": "emphasis", "fromSide": "right", "toSide": "left", "via": [[700, 271], [700, 157]], "labelAt": [705, 218] },
+    { "from": "provenance", "to": "snapshot", "label": "raw snapshot ref", "classification": "encrypted", "variant": "security", "route": "straight" },
+    { "from": "sessiondb", "to": "ui", "label": "session read model", "classification": "owner authorized", "variant": "emphasis", "route": "straight" },
+    { "from": "sessiondb", "to": "export", "label": "report bundle", "classification": "sanitized", "variant": "dashed", "fromSide": "bottom", "toSide": "left", "via": [[745, 499], [960, 499]], "labelAt": [855, 487] },
+    { "from": "snapshot", "to": "export", "label": "source references", "classification": "no secret", "variant": "security", "route": "straight", "labelDy": 28 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Canonical Path", "items": ["Browser hanya berbicara dengan Voyager", "Adapter mengubah provider payload menjadi domain normal", "UI membaca satu publication revision"] },
+    { "dot": "rose", "title": "Trust Boundary", "items": ["Sectors API key tidak masuk browser", "Raw snapshots terenkripsi dan immutable", "Trace dan export selalu disanitasi"] }
+  ]
+}

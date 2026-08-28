@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": { "title": "Timing Diagram", "subtitle": "Perubahan state lintas UI, API, worker, dan publication pointer", "animation": "trace", "viewBox": [920, 900] },
+  "participants": [
+    { "id": "clock", "type": "external", "label": "Timeline", "sublabel": "T0..T8" },
+    { "id": "ui", "type": "frontend", "label": "UI State", "sublabel": "route + status" },
+    { "id": "session", "type": "database", "label": "Session", "sublabel": "revision" },
+    { "id": "attempt", "type": "messagebus", "label": "Attempt", "sublabel": "activeAttemptId" },
+    { "id": "worker", "type": "backend", "label": "Worker", "sublabel": "pillar state" },
+    { "id": "artifact", "type": "database", "label": "Artifacts", "sublabel": "draft/published" },
+    { "id": "sse", "type": "messagebus", "label": "SSE", "sublabel": "event cursor" }
+  ],
+  "segments": [
+    { "from": 150, "to": 350, "label": "T0-T2 / START" },
+    { "from": 365, "to": 610, "label": "T3-T5 / EXECUTE" },
+    { "from": 625, "to": 810, "label": "T6-T8 / COMMIT" }
+  ],
+  "messages": [
+    { "from": "clock", "to": "ui", "y": 180, "label": "T0 brief ready", "variant": "default" },
+    { "from": "ui", "to": "session", "y": 220, "label": "T1 create IDLE", "variant": "emphasis" },
+    { "from": "session", "to": "attempt", "y": 260, "label": "T2 attempt A active", "variant": "emphasis" },
+    { "from": "attempt", "to": "worker", "y": 300, "label": "T2 UNDERSTANDING", "variant": "dashed" },
+    { "from": "worker", "to": "sse", "y": 340, "label": "revision 2", "variant": "dashed" },
+    { "from": "worker", "to": "artifact", "y": 390, "label": "T3 draft plan", "variant": "default" },
+    { "from": "worker", "to": "sse", "y": 430, "label": "T4 SCREENING", "variant": "dashed" },
+    { "from": "sse", "to": "ui", "y": 470, "label": "evt 41 + rev 9", "variant": "return" },
+    { "from": "clock", "to": "attempt", "y": 510, "label": "T5 cancel?", "variant": "security" },
+    { "from": "attempt", "to": "worker", "y": 550, "label": "fence late writes", "variant": "security" },
+    { "from": "worker", "to": "artifact", "y": 590, "label": "T6 complete draft", "variant": "default" },
+    { "from": "attempt", "to": "artifact", "y": 640, "label": "T7 compare attemptId", "variant": "security" },
+    { "from": "artifact", "to": "session", "y": 680, "label": "swap published pointer", "variant": "emphasis" },
+    { "from": "session", "to": "sse", "y": 720, "label": "T8 revision 18", "variant": "dashed" },
+    { "from": "sse", "to": "ui", "y": 760, "label": "report.published", "variant": "return" },
+    { "from": "ui", "to": "session", "y": 800, "label": "GET authoritative", "variant": "emphasis" }
+  ],
+  "activations": [
+    { "participant": "ui", "from": 215, "to": 810, "type": "frontend" },
+    { "participant": "session", "from": 215, "to": 810, "type": "database" },
+    { "participant": "attempt", "from": 255, "to": 690, "type": "messagebus" },
+    { "participant": "worker", "from": 295, "to": 650, "type": "backend" },
+    { "participant": "artifact", "from": 385, "to": 690, "type": "database" },
+    { "participant": "sse", "from": 335, "to": 775, "type": "messagebus" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Temporal Invariants", "items": ["Revision hanya naik", "Event dapat duplikat tetapi eventId stabil", "SSE adalah sinyal; GET adalah snapshot authoritative"] },
+    { "dot": "rose", "title": "Race Safety", "items": ["Cancel mengosongkan activeAttemptId", "Publication memeriksa attemptId tepat sebelum commit", "Retry tidak mengganti result lama sebelum set baru lengkap"] }
+  ]
+}

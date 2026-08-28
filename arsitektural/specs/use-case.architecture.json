@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Use Case Diagram", "subtitle": "Aktor, kapabilitas, dan batas sistem Voyager One", "animation": "trace", "viewBox": [1120, 760] },
+  "components": [
+    { "id": "analyst", "type": "external", "label": "Investor / Analis", "sublabel": "primary actor", "pos": [35, 255], "size": [135, 62] },
+    { "id": "operator", "type": "external", "label": "Platform Operator", "sublabel": "operations", "pos": [35, 520], "size": [135, 62] },
+    { "id": "sectors", "type": "external", "label": "Sectors Provider", "sublabel": "market data", "pos": [950, 370], "size": [135, 62] },
+    { "id": "create", "type": "frontend", "label": "Create Research", "sublabel": "brief + preview", "pos": [280, 95], "size": [145, 62] },
+    { "id": "monitor", "type": "messagebus", "label": "Monitor Session", "sublabel": "SSE + activity", "pos": [500, 95], "size": [145, 62] },
+    { "id": "clarify", "type": "security", "label": "Answer Clarification", "sublabel": "resume workflow", "pos": [720, 95], "size": [155, 62] },
+    { "id": "screen", "type": "backend", "label": "Inspect Funnel", "sublabel": "retained + excluded", "pos": [280, 285], "size": [145, 62] },
+    { "id": "compare", "type": "backend", "label": "Compare Candidates", "sublabel": "peer benchmark", "pos": [500, 285], "size": [145, 62] },
+    { "id": "audit", "type": "security", "label": "Audit Evidence", "sublabel": "trace + provenance", "pos": [720, 285], "size": [155, 62] },
+    { "id": "report", "type": "frontend", "label": "Review Report", "sublabel": "dossier + export", "pos": [500, 475], "size": [145, 62] },
+    { "id": "recover", "type": "messagebus", "label": "Cancel / Retry", "sublabel": "attempt control", "pos": [280, 475], "size": [145, 62] },
+    { "id": "operate", "type": "cloud", "label": "Operate Platform", "sublabel": "queue + outage", "pos": [720, 475], "size": [155, 62] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Voyager One Research System", "wraps": ["create", "monitor", "clarify", "screen", "compare", "audit", "report", "recover", "operate"] }
+  ],
+  "connections": [
+    { "from": "analyst", "to": "create", "variant": "emphasis" },
+    { "from": "analyst", "to": "screen", "variant": "emphasis" },
+    { "from": "analyst", "to": "recover", "variant": "security" },
+    { "from": "create", "to": "monitor", "label": "includes" },
+    { "from": "monitor", "to": "clarify", "label": "extends", "variant": "security" },
+    { "from": "screen", "to": "compare", "label": "includes" },
+    { "from": "compare", "to": "audit", "label": "includes", "variant": "security" },
+    { "from": "compare", "to": "report", "label": "leads to", "fromSide": "bottom", "toSide": "top", "labelDy": 52 },
+    { "from": "operator", "to": "operate", "variant": "emphasis" },
+    { "from": "operate", "to": "audit", "label": "observes", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": -52 },
+    { "from": "sectors", "to": "audit", "label": "source data", "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Primary Actor", "items": ["Membuat brief dan mengendalikan sesi", "Membaca funnel, kandidat, dossier, dan report", "Menilai evidence sebelum mengambil keputusan"] },
+    { "dot": "amber", "title": "Supporting Actors", "items": ["Operator menangani queue, outage, dan retention", "Sectors hanya provider data server-side", "Tidak ada aktor eksternal yang menulis hasil final"] }
+  ]
+}

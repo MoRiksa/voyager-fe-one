@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Class Diagram", "subtitle": "Model domain inti dan relasi agregat riset", "animation": "trace", "viewBox": [1160, 790] },
+  "components": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "id | tenantId", "pos": [35, 280], "size": [125, 62] },
+    { "id": "session", "type": "backend", "label": "ResearchSession", "sublabel": "status | revision", "pos": [225, 280], "size": [145, 62], "tag": "aggregate root" },
+    { "id": "brief", "type": "frontend", "label": "ResearchBrief", "sublabel": "market | scope | depth", "pos": [225, 95], "size": [145, 62] },
+    { "id": "attempt", "type": "messagebus", "label": "ResearchAttempt", "sublabel": "attemptId | state", "pos": [455, 280], "size": [145, 62] },
+    { "id": "plan", "type": "backend", "label": "ResearchPlan", "sublabel": "criteria | steps", "pos": [455, 95], "size": [145, 62] },
+    { "id": "stage", "type": "backend", "label": "ScreeningStage", "sublabel": "order | counts", "pos": [680, 95], "size": [145, 62] },
+    { "id": "membership", "type": "database", "label": "StageMembership", "sublabel": "disposition | reasons", "pos": [900, 95], "size": [155, 62] },
+    { "id": "candidate", "type": "backend", "label": "CandidateResult", "sublabel": "rank | confidence", "pos": [680, 280], "size": [145, 62] },
+    { "id": "company", "type": "database", "label": "Company", "sublabel": "exchange | symbol", "pos": [900, 280], "size": [155, 62] },
+    { "id": "metric", "type": "database", "label": "MetricObservation", "sublabel": "value | unit | period", "pos": [900, 465], "size": [155, 62] },
+    { "id": "evidence", "type": "security", "label": "Evidence", "sublabel": "claim | sourceRef", "pos": [680, 465], "size": [145, 62] },
+    { "id": "source", "type": "cloud", "label": "SourceRecord", "sublabel": "provider | endpoint", "pos": [900, 635], "size": [155, 62] },
+    { "id": "derivation", "type": "backend", "label": "Derivation", "sublabel": "formulaVersion", "pos": [455, 465], "size": [145, 62] },
+    { "id": "report", "type": "frontend", "label": "ResearchReport", "sublabel": "attempt | publishedAt", "pos": [225, 465], "size": [145, 62] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Research Aggregate", "wraps": ["session", "brief", "attempt", "plan", "stage", "membership", "candidate", "evidence", "derivation", "report"] },
+    { "kind": "security-group", "label": "Provenance Chain", "wraps": ["evidence", "metric", "source"] }
+  ],
+  "connections": [
+    { "from": "user", "to": "session", "label": "1 owns *", "variant": "security" },
+    { "from": "session", "to": "brief", "label": "1 embeds 1", "fromSide": "top", "toSide": "bottom", "labelDy": -56 },
+    { "from": "session", "to": "attempt", "label": "1 creates *", "variant": "emphasis" },
+    { "from": "attempt", "to": "plan", "label": "1 builds 1", "fromSide": "top", "toSide": "bottom", "labelDy": -56 },
+    { "from": "plan", "to": "stage", "label": "drives *" },
+    { "from": "stage", "to": "membership", "label": "contains *" },
+    { "from": "attempt", "to": "candidate", "label": "publishes *", "variant": "emphasis" },
+    { "from": "candidate", "to": "company", "label": "references 1" },
+    { "from": "company", "to": "metric", "label": "observed as *", "fromSide": "bottom", "toSide": "top", "labelDy": 52 },
+    { "from": "candidate", "to": "evidence", "label": "supports *", "fromSide": "bottom", "toSide": "top", "labelDy": 52 },
+    { "from": "evidence", "to": "source", "label": "cites 1", "variant": "security", "fromSide": "bottom", "toSide": "left", "route": "orthogonal-v", "labelDy": 48 },
+    { "from": "metric", "to": "source", "label": "from 1", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 50 },
+    { "from": "derivation", "to": "evidence", "label": "produces *" },
+    { "from": "report", "to": "derivation", "label": "summarizes *" },
+    { "from": "session", "to": "report", "label": "publishes 0..1", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 54 }
+  ],
+  "cards": [
+    { "dot": "violet", "title": "Aggregate Rules", "items": ["ResearchSession mengontrol revision dan publication pointer", "Attempt baru tidak menghapus publication lama", "Stage membership adalah sumber count authoritative"] },
+    { "dot": "rose", "title": "Evidence Chain", "items": ["Evidence berbeda dari provenance", "Metric membawa unit, period, dan sourceRef", "Derivation membawa formulaVersion dan cohort"] }
+  ]
+}
