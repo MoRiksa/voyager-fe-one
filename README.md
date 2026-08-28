@@ -79,3 +79,5 @@ npm run preview
 ## Batas produksi
 
 Frontend fixture tidak mencakup universe 900+ emiten, data live, normalisasi sektor terverifikasi, perhitungan skor dari laporan keuangan, invocation audit Sectors API, latensi terukur, autentikasi, database server, atau kuota nyata. Integrasi backend/API harus mengganti sumber fixture dan simulasi eksekusi sambil mempertahankan kontrak `ResearchBrief`, status, provenance, hasil atomik, serta state error dan pemulihan yang sudah digunakan UI.
+
+Kontrak usulan, batas arsitektur, mapping domain, dan acceptance criteria backend tersedia di [`docs/backend-handoff.md`](docs/backend-handoff.md).
