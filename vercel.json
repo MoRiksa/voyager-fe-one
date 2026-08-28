@@ -1,5 +1,10 @@
 {
   "routes": [
+    {
+      "src": "/arsitektural",
+      "status": 308,
+      "headers": { "Location": "/arsitektural/" }
+    },
     { "handle": "filesystem" },
     { "src": "/.*", "dest": "/index.html" }
   ]
