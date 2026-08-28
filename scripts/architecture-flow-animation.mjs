@@ -1,4 +1,4 @@
-﻿import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -69,11 +69,13 @@ const styles = `${markerStart}
     /* Embedded view optimizations inside Atlas Hub */
     html.is-embedded body,
     body.is-embedded {
-      padding: 0.75rem 1.25rem 2rem !important;
+      padding: 1.25rem 1.75rem 3.5rem !important;
       background: var(--bg) !important;
     }
     body.is-embedded .header,
-    body.is-embedded .toolbar {
+    body.is-embedded .toolbar,
+    body.is-embedded .cards,
+    body.is-embedded .footer {
       display: none !important;
     }
     body.is-embedded .diagram-container {
