@@ -19,7 +19,7 @@
           try { theme = localStorage.getItem('archify-theme'); } catch (_) {}
         }
         if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          theme = 'dark';
         }
         document.documentElement.setAttribute('data-theme', theme);
       } catch (_) {}
@@ -502,24 +502,60 @@
     svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      opacity: .8;
+      opacity: .88;
       transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
+      cursor: pointer;
     }
     svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
-      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      filter: drop-shadow(0 0 10px var(--frontend-stroke)) drop-shadow(0 0 2px rgba(34, 211, 238, 0.6));
       stroke-width: 2.25;
       opacity: 1;
     }
     svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
-      filter: drop-shadow(0 0 7px currentColor);
+      filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
       stroke-width: 2.6;
       opacity: 1;
     }
     svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
-      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      filter: drop-shadow(0 0 14px var(--arrow-emphasis)) drop-shadow(0 0 4px rgba(52, 211, 153, 0.7));
       stroke-width: 2.7;
       opacity: 1;
+    }
+    /* Interactive node focus & connection trace */
+    svg[data-animation="trace"].has-hover [data-animate="node"]:not(.is-hovered):not(.is-neighbor) {
+      opacity: .35;
+      filter: grayscale(.4);
+    }
+    svg[data-animation="trace"].has-hover [data-animate="edge"]:not(.is-connected) {
+      opacity: .15;
+    }
+    svg[data-animation="trace"] [data-animate="node"].is-hovered {
+      opacity: 1 !important;
+      filter: drop-shadow(0 0 12px var(--frontend-stroke)) drop-shadow(0 0 2px #fff) !important;
+      stroke-width: 2.5 !important;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].is-connected {
+      opacity: 1 !important;
+      stroke-width: 2.4 !important;
+      filter: drop-shadow(0 0 6px currentColor) !important;
+    }
+    /* Embedded view optimizations inside Atlas Hub */
+    html.is-embedded body,
+    body.is-embedded {
+      padding: 0.75rem 1.25rem 2rem !important;
+      background: transparent !important;
+    }
+    body.is-embedded .header,
+    body.is-embedded .toolbar {
+      display: none !important;
+    }
+    body.is-embedded .diagram-container {
+      margin-top: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -1318,8 +1354,41 @@
   <!-- Voyager narrative flow controller. -->
   <script>
     (function () {
+      if (window.self !== window.top) {
+        document.documentElement.classList.add('is-embedded');
+        document.body.classList.add('is-embedded');
+      }
+
       var svg = document.querySelector('svg[data-animation="trace"]');
-      if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!svg) return;
+
+      function setTheme(theme) {
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', theme);
+          try { localStorage.setItem('archify-theme', theme); } catch (_) {}
+        }
+      }
+
+      try {
+        var param = new URLSearchParams(window.location.search).get('theme');
+        if (param === 'light' || param === 'dark') setTheme(param);
+      } catch (_) {}
+
+      window.addEventListener('message', function (evt) {
+        if (!evt || !evt.data) return;
+        if (evt.data.type === 'voyager-theme-sync') setTheme(evt.data.theme);
+        if (evt.data.type === 'voyager-flow-toggle') {
+          if (evt.data.playing) resumeFlow();
+          else pauseFlow();
+        }
+        if (evt.data.type === 'voyager-flow-restart') {
+          cursor = 0;
+          playStep();
+        }
+      });
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
       var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
       var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
       var steps = Array.from(new Set(edges.map(function (edge) {
@@ -1327,6 +1396,8 @@
       }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
       var timers = [];
       var cursor = 0;
+      var isPaused = false;
+
       function clearTimers() {
         timers.forEach(window.clearTimeout);
         timers = [];
@@ -1339,6 +1410,7 @@
         return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
       }
       function playStep() {
+        if (isPaused) return;
         clearTimers();
         clearActive();
         var step = steps[cursor];
@@ -1360,6 +1432,43 @@
           else playStep();
         }, 1550));
       }
+
+      function pauseFlow() {
+        isPaused = true;
+        clearTimers();
+      }
+      function resumeFlow() {
+        isPaused = false;
+        playStep();
+      }
+
+      nodes.forEach(function (node) {
+        var id = node.dataset.nodeId;
+        if (!id) return;
+        node.addEventListener('mouseenter', function () {
+          svg.classList.add('has-hover');
+          node.classList.add('is-hovered');
+          var connectedEdges = edges.filter(function (edge) {
+            return edge.dataset.from === id || edge.dataset.to === id;
+          });
+          var neighborIds = new Set();
+          connectedEdges.forEach(function (edge) {
+            edge.classList.add('is-connected');
+            if (edge.dataset.from) neighborIds.add(edge.dataset.from);
+            if (edge.dataset.to) neighborIds.add(edge.dataset.to);
+          });
+          nodesById(neighborIds).forEach(function (neighbor) {
+            neighbor.classList.add('is-neighbor');
+          });
+        });
+        node.addEventListener('mouseleave', function () {
+          svg.classList.remove('has-hover');
+          node.classList.remove('is-hovered');
+          edges.forEach(function (edge) { edge.classList.remove('is-connected'); });
+          nodes.forEach(function (n) { n.classList.remove('is-neighbor'); });
+        });
+      });
+
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) { clearTimers(); clearActive(); }
         else { cursor = 0; playStep(); }

@@ -13,7 +13,8 @@ if (!chrome) {
 const appUrl = 'http://127.0.0.1:4175'
 const debugUrl = 'http://127.0.0.1:9225'
 const profile = mkdtempSync(join(tmpdir(), 'voyager-cdp-'))
-const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4175'], { stdio: 'ignore' })
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const preview = spawn(npmCmd, ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4175'], { stdio: 'ignore' })
 const browser = spawn(chrome, [
   '--headless',
   '--no-sandbox',

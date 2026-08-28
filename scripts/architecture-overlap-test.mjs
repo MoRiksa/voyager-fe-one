@@ -14,7 +14,8 @@ const diagrams = ['activity', 'decision', 'data-flow', 'system-flow', 'class', '
 const baseUrl = 'http://127.0.0.1:4177'
 const debugUrl = 'http://127.0.0.1:9227'
 const profile = mkdtempSync(join(tmpdir(), 'voyager-architecture-cdp-'))
-const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4177'], { stdio: 'ignore' })
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const preview = spawn(npmCmd, ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4177'], { stdio: 'ignore' })
 const browser = spawn(chrome, [
   '--headless',
   '--no-sandbox',

@@ -36,7 +36,8 @@ const renderedChecks = [
   { route: '/research/UNKNOWN/report', text: 'Halaman tidak ditemukan' }
 ]
 
-const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4174'], {
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const preview = spawn(npmCmd, ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4174'], {
   stdio: 'ignore'
 })
 

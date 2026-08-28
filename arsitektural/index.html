@@ -1,187 +1,491 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#070b14">
   <title>Voyager One | Architecture Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
+    :root, [data-theme="dark"] {
       color-scheme: dark;
       --bg: #070b14;
-      --panel: rgba(14, 20, 34, 0.86);
+      --bg-surface: #0b1120;
+      --panel: rgba(14, 20, 34, 0.92);
       --panel-solid: #0e1422;
-      --line: rgba(148, 163, 184, 0.16);
+      --line: rgba(148, 163, 184, 0.14);
+      --line-subtle: rgba(148, 163, 184, 0.08);
       --text: #f8fafc;
-      --muted: #8c9aae;
-      --accent: #54e3b1;
-      --accent-soft: rgba(84, 227, 177, 0.12);
-      --cyan: #42cce8;
-      --danger: #fb7185;
-      --sidebar: 292px;
+      --text-muted: #8c9aae;
+      --text-dim: #546377;
+      --accent: #407ec9;
+      --accent-glow: rgba(64, 126, 201, 0.28);
+      --emerald: #34d399;
+      --emerald-glow: rgba(52, 211, 153, 0.25);
+      --cyan: #22d3ee;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --sidebar-w: 300px;
     }
-    * { box-sizing: border-box; }
-    html, body { min-height: 100%; }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #f1f5f9;
+      --bg-surface: #e2e8f0;
+      --panel: rgba(255, 255, 255, 0.96);
+      --panel-solid: #ffffff;
+      --line: rgba(100, 116, 139, 0.2);
+      --line-subtle: rgba(100, 116, 139, 0.1);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.15);
+      --emerald: #059669;
+      --emerald-glow: rgba(5, 150, 105, 0.15);
+      --cyan: #0891b2;
+      --amber: #d97706;
+      --rose: #e11d48;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; height: 100%; }
     body {
-      margin: 0;
-      overflow: hidden;
       background:
-        radial-gradient(circle at 72% 8%, rgba(66, 204, 232, 0.1), transparent 28rem),
-        radial-gradient(circle at 15% 85%, rgba(84, 227, 177, 0.08), transparent 30rem),
+        radial-gradient(circle at 80% 5%, rgba(64, 126, 201, 0.09), transparent 32rem),
+        radial-gradient(circle at 10% 90%, rgba(52, 211, 153, 0.06), transparent 28rem),
         var(--bg);
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      transition: background 0.25s ease, color 0.25s ease;
     }
-    button, a { font: inherit; }
-    button { color: inherit; }
+
     .skip-link {
       position: fixed;
       left: 1rem;
       top: -4rem;
       z-index: 100;
-      padding: .75rem 1rem;
-      border-radius: .65rem;
-      background: var(--accent);
+      padding: .65rem 1.1rem;
+      border-radius: .5rem;
+      background: var(--emerald);
       color: #05120e;
-      font-weight: 800;
+      font-weight: 700;
+      font-size: .82rem;
+      text-decoration: none;
+      transition: top .2s ease;
     }
     .skip-link:focus { top: 1rem; }
-    .shell { display: grid; grid-template-columns: var(--sidebar) 1fr; height: 100dvh; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      height: 100dvh;
+      min-height: 0;
+    }
+
+    /* Sidebar */
     .sidebar {
       position: relative;
       z-index: 30;
       display: flex;
-      min-height: 0;
       flex-direction: column;
       border-right: 1px solid var(--line);
-      background: rgba(7, 11, 20, 0.84);
-      backdrop-filter: blur(22px);
+      background: var(--panel);
+      backdrop-filter: blur(24px);
+      min-height: 0;
     }
-    .brand { padding: 1.5rem 1.35rem 1rem; }
+
+    .brand {
+      padding: 1.4rem 1.25rem 1.1rem;
+      border-bottom: 1px solid var(--line-subtle);
+    }
     .eyebrow {
       display: flex;
       align-items: center;
-      gap: .55rem;
-      margin: 0 0 .7rem;
-      color: var(--accent);
-      font: 700 .68rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-      letter-spacing: .16em;
+      gap: .5rem;
+      margin-bottom: .55rem;
+      color: var(--emerald);
+      font: 700 .68rem/1 'JetBrains Mono', monospace;
+      letter-spacing: .14em;
       text-transform: uppercase;
     }
-    .signal { width: .48rem; height: .48rem; border-radius: 999px; background: var(--accent); box-shadow: 0 0 18px var(--accent); animation: pulse 2.4s ease-in-out infinite; }
-    h1 { margin: 0; max-width: 12rem; font-size: 1.55rem; line-height: 1.05; letter-spacing: -.04em; }
-    .brand p:last-child { margin: .65rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.55; }
-    .nav-label { padding: .8rem 1.35rem .5rem; color: #617086; font: 700 .62rem/1 ui-monospace, monospace; letter-spacing: .15em; text-transform: uppercase; }
-    nav { min-height: 0; overflow: auto; padding: .35rem .75rem 1rem; scrollbar-width: thin; }
+    .signal-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .brand h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--text);
+      line-height: 1.15;
+    }
+    .brand p.sub {
+      margin-top: .45rem;
+      color: var(--text-muted);
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+
+    .nav-header {
+      padding: .85rem 1.25rem .45rem;
+      color: var(--text-dim);
+      font: 700 .62rem/1 'JetBrains Mono', monospace;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    nav {
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      padding: .25rem .75rem 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
     .nav-link {
       position: relative;
       display: grid;
-      grid-template-columns: 2.15rem 1fr auto;
+      grid-template-columns: 2rem 1fr auto;
       align-items: center;
       gap: .65rem;
-      min-height: 3.35rem;
-      margin: .15rem 0;
-      padding: .55rem .65rem;
+      min-height: 3.1rem;
+      margin: .2rem 0;
+      padding: .5rem .75rem;
       border: 1px solid transparent;
-      border-radius: .8rem;
-      color: #b3bdcc;
+      border-radius: .7rem;
+      color: var(--text-muted);
       text-decoration: none;
-      transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
+      transition: all .18s ease;
     }
-    .nav-link:hover { transform: translateX(3px); border-color: var(--line); background: rgba(255,255,255,.025); color: var(--text); }
-    .nav-link[aria-current="page"] { border-color: rgba(84,227,177,.28); background: var(--accent-soft); color: var(--text); }
-    .nav-link[aria-current="page"]::before { content: ""; position: absolute; left: -.78rem; width: 2px; height: 1.55rem; border-radius: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-    .index { color: #5e6c80; font: 600 .69rem/1 ui-monospace, monospace; }
-    .nav-link[aria-current="page"] .index { color: var(--accent); }
-    .nav-copy strong { display: block; font-size: .82rem; line-height: 1.2; }
-    .nav-copy small { display: block; margin-top: .25rem; color: #67758a; font: 500 .62rem/1 ui-monospace, monospace; }
-    .arrow { color: #465368; transition: transform .2s ease; }
-    .nav-link:hover .arrow, .nav-link[aria-current="page"] .arrow { transform: translateX(2px); color: var(--accent); }
-    .sidebar-foot { margin-top: auto; border-top: 1px solid var(--line); padding: 1rem 1.35rem 1.2rem; color: #6d7a8e; font: .65rem/1.55 ui-monospace, monospace; }
-    .sidebar-foot strong { color: #a8b3c3; }
-    .main { display: grid; grid-template-rows: auto 1fr; min-width: 0; min-height: 0; }
+    .nav-link:hover {
+      border-color: var(--line);
+      background: rgba(148, 163, 184, 0.06);
+      color: var(--text);
+      transform: translateX(2px);
+    }
+    .nav-link[aria-current="page"] {
+      border-color: rgba(64, 126, 201, 0.4);
+      background: var(--accent-glow);
+      color: var(--text);
+    }
+    [data-theme="dark"] .nav-link[aria-current="page"] {
+      background: rgba(64, 126, 201, 0.14);
+      border-color: rgba(64, 126, 201, 0.45);
+    }
+    .nav-link[aria-current="page"]::before {
+      content: "";
+      position: absolute;
+      left: -.75rem;
+      width: 3px;
+      height: 1.5rem;
+      border-radius: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .nav-num {
+      font: 600 .7rem/1 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      transition: color .18s ease;
+    }
+    .nav-link[aria-current="page"] .nav-num {
+      color: var(--accent);
+    }
+    .nav-copy strong {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: inherit;
+    }
+    .nav-copy small {
+      display: block;
+      margin-top: .2rem;
+      font: 500 .62rem/1 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      letter-spacing: .05em;
+    }
+    .nav-arrow {
+      color: var(--text-dim);
+      font-size: .8rem;
+      transition: transform .18s ease, color .18s ease;
+    }
+    .nav-link:hover .nav-arrow, .nav-link[aria-current="page"] .nav-arrow {
+      color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    .sidebar-foot {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+      padding: .9rem 1.25rem;
+      font: 500 .68rem/1.55 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      background: rgba(0,0,0,0.08);
+    }
+    .sidebar-foot strong { color: var(--text-muted); }
+
+    /* Main Area */
+    .main {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* Topbar */
     .topbar {
       position: relative;
       z-index: 20;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 1rem;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      min-height: 102px;
-      padding: 1rem 1.35rem 1rem 1.7rem;
+      gap: 1.2rem;
+      padding: .9rem 1.6rem;
       border-bottom: 1px solid var(--line);
-      background: rgba(7, 11, 20, .68);
-      backdrop-filter: blur(18px);
+      background: var(--panel);
+      backdrop-filter: blur(20px);
     }
-    .menu-btn { display: none; }
-    .route-kicker { margin: 0 0 .4rem; color: var(--accent); font: 700 .65rem/1 ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; }
-    #route-title { margin: 0; font-size: clamp(1.35rem, 2.2vw, 2.15rem); line-height: 1; letter-spacing: -.045em; }
-    #route-description { margin: .45rem 0 0; max-width: 60rem; color: var(--muted); font-size: .78rem; line-height: 1.45; }
-    .route-meta { display: flex; align-items: center; gap: .55rem; }
-    .badge, .open-link {
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    .menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 1px solid var(--line);
+      border-radius: .6rem;
+      background: var(--line-subtle);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    .route-kicker {
       display: inline-flex;
       align-items: center;
-      min-height: 2.25rem;
-      padding: .55rem .8rem;
+      gap: .4rem;
+      color: var(--emerald);
+      font: 700 .64rem/1 'JetBrains Mono', monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .25rem;
+    }
+    #route-title {
+      font-size: clamp(1.2rem, 1.8vw, 1.65rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1.15;
+      color: var(--text);
+    }
+    #route-description {
+      margin-top: .2rem;
+      color: var(--text-muted);
+      font-size: .78rem;
+      max-width: 50rem;
+      line-height: 1.4;
+    }
+
+    /* Topbar Controls */
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      height: 2.15rem;
+      padding: 0 .75rem;
       border: 1px solid var(--line);
-      border-radius: .65rem;
-      background: rgba(255,255,255,.025);
-      color: #9ba8ba;
-      font: 700 .64rem/1 ui-monospace, monospace;
+      border-radius: .6rem;
+      background: rgba(148, 163, 184, 0.05);
+      color: var(--text-muted);
+      font: 600 .72rem/1 'JetBrains Mono', monospace;
       text-decoration: none;
+      cursor: pointer;
+      transition: all .18s ease;
       white-space: nowrap;
     }
-    .open-link:hover { border-color: rgba(84,227,177,.4); color: var(--accent); }
-    .canvas-wrap { position: relative; min-width: 0; min-height: 0; padding: 1rem; }
-    .canvas-wrap::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .28; background-image: linear-gradient(rgba(148,163,184,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.05) 1px, transparent 1px); background-size: 32px 32px; mask-image: linear-gradient(to bottom, #000, transparent 92%); }
+    .ctrl-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--text);
+    }
+    .ctrl-btn.active {
+      border-color: var(--emerald);
+      color: var(--emerald);
+      background: var(--emerald-glow);
+    }
+
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: .3rem .6rem;
+      border-radius: .45rem;
+      font: 700 .62rem/1 'JetBrains Mono', monospace;
+      letter-spacing: .08em;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    /* Canvas Frame */
+    .canvas-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      padding: 1rem 1.25rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .25;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, .04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 95%);
+    }
+
     .canvas {
       position: relative;
-      height: 100%;
+      flex: 1;
       min-height: 0;
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 1rem;
-      background: var(--panel);
-      box-shadow: 0 24px 80px rgba(0,0,0,.28);
+      background: var(--panel-solid);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      display: flex;
     }
-    .canvas::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; box-shadow: inset 0 1px rgba(255,255,255,.04); }
-    iframe { display: block; width: 100%; height: 100%; border: 0; background: #020617; opacity: 1; transition: opacity .22s ease, transform .22s ease; }
-    iframe.is-loading { opacity: 0; transform: translateY(7px) scale(.997); }
-    .loading {
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: transparent;
+      opacity: 1;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    iframe.is-loading {
+      opacity: 0;
+      transform: scale(.995);
+    }
+
+    .loading-overlay {
       position: absolute;
       inset: 0;
-      z-index: 2;
+      z-index: 5;
       display: grid;
       place-items: center;
       pointer-events: none;
-      color: #8492a6;
-      font: 700 .68rem/1 ui-monospace, monospace;
-      letter-spacing: .14em;
+      color: var(--text-muted);
+      font: 700 .72rem/1 'JetBrains Mono', monospace;
+      letter-spacing: .15em;
       text-transform: uppercase;
       opacity: 0;
       transition: opacity .2s ease;
+      background: var(--panel-solid);
     }
-    .loading.visible { opacity: 1; }
-    .loading span::after { content: ""; display: block; width: 5rem; height: 1px; margin: .8rem auto 0; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan 1.2s linear infinite; }
+    .loading-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .8rem;
+    }
+    .loading-bar {
+      width: 6rem;
+      height: 2px;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .loading-bar::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      animation: scan 1.2s cubic-bezier(.4, 0, .2, 1) infinite;
+    }
+
     .backdrop { display: none; }
-    @keyframes pulse { 50% { opacity: .35; transform: scale(.75); } }
-    @keyframes scan { 50% { transform: scaleX(.35); opacity: .5; } }
-    @media (max-width: 860px) {
-      body { overflow: hidden; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+    @keyframes scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @media (max-width: 960px) {
       .shell { grid-template-columns: 1fr; }
-      .sidebar { position: fixed; inset: 0 auto 0 0; width: min(88vw, 310px); transform: translateX(-102%); transition: transform .25s cubic-bezier(.22,.8,.22,1); box-shadow: 20px 0 60px rgba(0,0,0,.42); }
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(85vw, 320px);
+        transform: translateX(-102%);
+        transition: transform .25s cubic-bezier(.22, .8, .22, 1);
+        box-shadow: 20px 0 60px rgba(0, 0, 0, .5);
+      }
       body.nav-open .sidebar { transform: translateX(0); }
-      .backdrop { position: fixed; inset: 0; z-index: 25; display: block; border: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        display: block;
+        border: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+      }
       body.nav-open .backdrop { opacity: 1; pointer-events: auto; }
-      .topbar { grid-template-columns: auto 1fr; min-height: 112px; padding: .8rem .9rem; }
-      .menu-btn { display: grid; place-items: center; width: 2.65rem; height: 2.65rem; border: 1px solid var(--line); border-radius: .7rem; background: rgba(255,255,255,.03); font-size: 1.1rem; }
-      .route-meta { display: none; }
-      #route-description { max-width: 35rem; font-size: .72rem; }
-      .canvas-wrap { padding: .55rem; }
+      .menu-btn { display: inline-flex; }
+      .topbar { padding: .75rem 1rem; }
+      .topbar-controls .mode-pill { display: none; }
+      #route-description { display: none; }
+      .canvas-wrap { padding: .65rem; }
       .canvas { border-radius: .75rem; }
     }
+
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -190,36 +494,62 @@
   <div class="shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <p class="eyebrow"><span class="signal"></span> System Atlas / v1</p>
+        <p class="eyebrow"><span class="signal-pulse"></span> SYSTEM ATLAS / V1</p>
         <h1>Voyager One Architecture</h1>
-        <p>Sembilan perspektif atas research workspace, data plane, dan lifecycle produksi.</p>
+        <p class="sub">Sembilan perspektif interaktif atas research workspace, data plane, dan state machine produksi.</p>
       </div>
-      <p class="nav-label">Diagram routes</p>
+      <p class="nav-header">Diagram Routes</p>
       <nav id="diagram-nav" aria-label="Navigasi diagram"></nav>
-      <div class="sidebar-foot"><strong>ARCHIFY 2.8</strong><br>Tekan <strong>T</strong> di area diagram untuk tema.<br>Tekan <strong>E</strong> untuk menu ekspor.</div>
+      <div class="sidebar-foot">
+        <strong>VOYAGER ATLAS &bull; INSTITUTIONAL</strong><br>
+        Gunakan tombol toolbar di atas atau tombol keyboard <strong>T</strong> untuk beralih tema.
+      </div>
     </aside>
+
     <button class="backdrop" id="backdrop" type="button" aria-label="Tutup navigasi"></button>
+
     <main class="main" id="main">
       <header class="topbar">
-        <button class="menu-btn" id="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Buka navigasi">☰</button>
-        <div>
-          <p class="route-kicker" id="route-kicker">01 / Behavior</p>
-          <h2 id="route-title">Activity Diagram</h2>
-          <p id="route-description">Alur riset dari brief tervalidasi hingga publication set yang konsisten.</p>
+        <div class="topbar-left">
+          <button class="menu-btn" id="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false" aria-label="Buka navigasi">☰</button>
+          <div>
+            <p class="route-kicker" id="route-kicker">01 / BEHAVIOR</p>
+            <h2 id="route-title">Activity Diagram</h2>
+            <p id="route-description">Alur riset dari brief tervalidasi hingga publication set yang konsisten.</p>
+          </div>
         </div>
-        <div class="route-meta">
-          <span class="badge" id="route-mode">WORKFLOW</span>
-          <a class="open-link" id="open-link" href="diagrams/activity.html" target="_blank" rel="noreferrer">Open standalone ↗</a>
+
+        <div class="topbar-controls">
+          <span class="mode-pill" id="route-mode">WORKFLOW</span>
+          <button class="ctrl-btn active" id="flow-toggle" type="button" title="Jeda/Lanjutkan animasi alur naratif">
+            <span id="flow-icon">⏸</span> <span id="flow-text">Flow Active</span>
+          </button>
+          <button class="ctrl-btn" id="flow-restart" type="button" title="Mulai ulang animasi dari langkah pertama">
+            ↺ Restart
+          </button>
+          <button class="ctrl-btn" id="theme-toggle" type="button" title="Ganti Tema (Dark / Light)">
+            <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
+          </button>
+          <a class="ctrl-btn" id="open-link" href="diagrams/activity.html" target="_blank" rel="noreferrer" title="Buka dalam tab terpisah">
+            Standalone ↗
+          </a>
         </div>
       </header>
+
       <section class="canvas-wrap" aria-label="Kanvas diagram">
         <div class="canvas">
-          <div class="loading" id="loading" aria-live="polite"><span>Routing diagram</span></div>
+          <div class="loading-overlay" id="loading" aria-live="polite">
+            <div class="loading-spinner">
+              <span>Memuat Diagram...</span>
+              <div class="loading-bar"></div>
+            </div>
+          </div>
           <iframe id="diagram-frame" title="Activity Diagram Voyager One" src="diagrams/activity.html"></iframe>
         </div>
       </section>
     </main>
   </div>
+
   <script>
     const diagrams = [
       { slug: 'activity', title: 'Activity Diagram', group: 'Behavior', mode: 'Workflow', description: 'Alur riset dari brief tervalidasi hingga publication set yang konsisten.' },
@@ -238,12 +568,81 @@
     const loading = document.getElementById('loading');
     const menuButton = document.getElementById('menu-btn');
     const backdrop = document.getElementById('backdrop');
+    const themeButton = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+    const flowButton = document.getElementById('flow-toggle');
+    const flowIcon = document.getElementById('flow-icon');
+    const flowText = document.getElementById('flow-text');
+    const restartButton = document.getElementById('flow-restart');
+
+    let isPlaying = true;
+    let currentTheme = 'dark';
+
+    try {
+      const savedTheme = localStorage.getItem('archify-theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        currentTheme = savedTheme;
+      }
+    } catch (_) {}
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('archify-theme', theme); } catch (_) {}
+      if (theme === 'dark') {
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Dark';
+      } else {
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Light';
+      }
+      syncThemeToFrame();
+    }
+
+    function syncThemeToFrame() {
+      try {
+        if (frame.contentWindow) {
+          frame.contentWindow.postMessage({ type: 'voyager-theme-sync', theme: currentTheme }, '*');
+        }
+      } catch (_) {}
+    }
+
+    themeButton.addEventListener('click', () => {
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    flowButton.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        flowButton.classList.add('active');
+        flowIcon.textContent = '⏸';
+        flowText.textContent = 'Flow Active';
+      } else {
+        flowButton.classList.remove('active');
+        flowIcon.textContent = '▶';
+        flowText.textContent = 'Paused';
+      }
+      try {
+        if (frame.contentWindow) {
+          frame.contentWindow.postMessage({ type: 'voyager-flow-toggle', playing: isPlaying }, '*');
+        }
+      } catch (_) {}
+    });
+
+    restartButton.addEventListener('click', () => {
+      try {
+        if (frame.contentWindow) {
+          frame.contentWindow.postMessage({ type: 'voyager-flow-restart' }, '*');
+        }
+      } catch (_) {}
+    });
 
     nav.innerHTML = diagrams.map((diagram, index) => `
       <a class="nav-link" href="#/${diagram.slug}" data-route="${diagram.slug}">
-        <span class="index">${String(index + 1).padStart(2, '0')}</span>
+        <span class="nav-num">${String(index + 1).padStart(2, '0')}</span>
         <span class="nav-copy"><strong>${diagram.title}</strong><small>${diagram.mode.toUpperCase()}</small></span>
-        <span class="arrow" aria-hidden="true">→</span>
+        <span class="nav-arrow" aria-hidden="true">→</span>
       </a>`).join('');
 
     function closeNav() {
@@ -255,7 +654,7 @@
       const slug = location.hash.replace(/^#\/?/, '') || 'activity';
       const index = Math.max(0, diagrams.findIndex(item => item.slug === slug));
       const diagram = diagrams[index];
-      const src = `diagrams/${diagram.slug}.html`;
+      const src = `diagrams/${diagram.slug}.html?theme=${currentTheme}`;
 
       document.querySelectorAll('.nav-link').forEach(link => {
         if (link.dataset.route === diagram.slug) link.setAttribute('aria-current', 'page');
@@ -265,13 +664,17 @@
       document.getElementById('route-title').textContent = diagram.title;
       document.getElementById('route-description').textContent = diagram.description;
       document.getElementById('route-mode').textContent = diagram.mode.toUpperCase();
-      document.getElementById('open-link').href = src;
+      document.getElementById('open-link').href = `diagrams/${diagram.slug}.html`;
       document.title = `${diagram.title} | Voyager One Architecture`;
       frame.title = `${diagram.title} Voyager One`;
-      if (!frame.src.endsWith(src)) {
+
+      const targetPath = `diagrams/${diagram.slug}.html`;
+      if (!frame.src.includes(targetPath)) {
         frame.classList.add('is-loading');
         loading.classList.add('visible');
         frame.src = src;
+      } else {
+        syncThemeToFrame();
       }
       closeNav();
     }
@@ -279,16 +682,24 @@
     frame.addEventListener('load', () => {
       frame.classList.remove('is-loading');
       loading.classList.remove('visible');
+      syncThemeToFrame();
     });
+
     menuButton.addEventListener('click', () => {
       const open = document.body.classList.toggle('nav-open');
       menuButton.setAttribute('aria-expanded', String(open));
     });
+
     backdrop.addEventListener('click', closeNav);
     window.addEventListener('hashchange', route);
     window.addEventListener('keydown', event => {
       if (event.key === 'Escape') closeNav();
+      if ((event.key === 't' || event.key === 'T') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+      }
     });
+
+    applyTheme(currentTheme);
     if (!location.hash) history.replaceState(null, '', '#/activity');
     route();
   </script>
