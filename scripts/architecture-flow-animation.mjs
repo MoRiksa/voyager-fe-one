@@ -60,6 +60,11 @@ const styles = `${markerStart}
         stroke-dashoffset: 0;
       }
     }
+    @media (max-width: 720px) {
+      .diagram-container svg {
+        min-width: 900px;
+      }
+    }
 ${markerEnd}`
 
 const controller = `${scriptStart}

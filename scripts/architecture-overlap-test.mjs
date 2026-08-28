@@ -99,6 +99,17 @@ try {
       if (motion.nodeAnimation !== 'none' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing || !motion.edgeFrom || !motion.edgeTo || !motion.nodeId || !motion.sourceActive) {
         failures.push(`${diagram} (${viewport.name}): node/edge motion policy invalid: ${JSON.stringify(motion)}`)
       }
+      if (viewport.name === 'mobile') {
+        const mobileScale = await evaluate(`(() => {
+          const container = document.querySelector('.diagram-container')
+          const svg = document.querySelector('svg')
+          return {
+            svgWidth: svg.getBoundingClientRect().width,
+            scrollable: container.scrollWidth > container.clientWidth
+          }
+        })()`)
+        if (mobileScale.svgWidth < 850 || !mobileScale.scrollable) failures.push(`${diagram} (mobile): diagram was compressed below a readable scale: ${JSON.stringify(mobileScale)}`)
+      }
       if (viewport.name === 'desktop') {
         await evaluate('document.dispatchEvent(new Event("voyager-flow-restart"))')
         const initialBeat = await evaluate(`(() => {
