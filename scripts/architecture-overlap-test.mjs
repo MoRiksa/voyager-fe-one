@@ -140,6 +140,15 @@ try {
         if (branchTiming.mainAfterPlan !== branchTiming.branchAfterPlan || branchTiming.needsInput !== '4' || branchTiming.mainAfterResearch !== branchTiming.branchAfterResearch || branchTiming.retry !== '6') {
           failures.push(`${diagram} (${viewport.name}): branch timing is not parallel: ${JSON.stringify(branchTiming)}`)
         }
+        const laneSpacing = await evaluate(`(() => {
+          const laneRight = 680
+          const ids = ['review', 'publish', 'research', 'retry']
+          return Object.fromEntries(ids.map(id => {
+            const box = document.querySelector('[data-node-id="' + id + '"]').getBBox()
+            return [id, laneRight - box.x - box.width]
+          }))
+        })()`)
+        if (Object.values(laneSpacing).some(gap => gap < 16)) failures.push(`${diagram} (${viewport.name}): right lane margin too tight: ${JSON.stringify(laneSpacing)}`)
       }
       const problems = await evaluate(`(() => {
         const overlap = (a, b, inset = 1) => a.x + inset < b.x + b.width && a.x + a.width - inset > b.x && a.y + inset < b.y + b.height && a.y + a.height - inset > b.y

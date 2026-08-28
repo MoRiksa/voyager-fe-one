@@ -17,15 +17,15 @@
   "mainPath": ["objective", "brief", "create", "plan", "screen", "research", "publish", "review"],
   "nodes": [
     { "id": "objective", "lane": "user", "col": 1, "type": "external", "label": "Set Objective", "sublabel": "thesis + scope" },
-    { "id": "review", "lane": "user", "col": 5, "type": "external", "label": "Review Result", "sublabel": "evidence + risk" },
+    { "id": "review", "lane": "user", "col": 5, "type": "external", "label": "Review", "sublabel": "proof + risk", "width": 76 },
     { "id": "brief", "lane": "frontend", "col": 2, "type": "frontend", "label": "Build Brief", "sublabel": "market + criteria" },
     { "id": "create", "lane": "backend", "col": 2, "type": "backend", "label": "Create Session", "sublabel": "IDLE + revision", "width": 104 },
-    { "id": "publish", "lane": "backend", "col": 5, "type": "database", "label": "Atomic Publish", "sublabel": "one attempt set", "tag": "consistent", "width": 104 },
+    { "id": "publish", "lane": "backend", "col": 5, "type": "database", "label": "Publish", "sublabel": "atomic set", "tag": "consistent", "width": 76 },
     { "id": "plan", "lane": "engine", "col": 2, "type": "backend", "label": "Plan", "sublabel": "hypothesis" },
     { "id": "screen", "lane": "engine", "col": 3, "type": "backend", "label": "Screen", "sublabel": "funnel", "width": 72 },
-    { "id": "research", "lane": "engine", "col": 5, "type": "backend", "label": "Research", "sublabel": "score + evidence" },
+    { "id": "research", "lane": "engine", "col": 5, "type": "backend", "label": "Research", "sublabel": "score + proof", "width": 76 },
     { "id": "clarify", "lane": "exceptions", "col": 2, "type": "security", "label": "Needs Input", "sublabel": "saved return state", "width": 104 },
-    { "id": "retry", "lane": "exceptions", "col": 5, "type": "messagebus", "label": "Retry Attempt", "sublabel": "new attemptId" }
+    { "id": "retry", "lane": "exceptions", "col": 5, "type": "messagebus", "label": "Retry", "sublabel": "new attemptId", "width": 76 }
   ],
   "edges": [
     { "from": "objective", "to": "brief", "fromSide": "bottom", "toSide": "top", "route": "drop" },
