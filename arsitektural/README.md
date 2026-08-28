@@ -34,6 +34,12 @@ node bin/archify.mjs render <type> <input.json> <output.html>
 node bin/archify.mjs check <output.html>
 ```
 
+Setelah render ulang, terapkan interaction polish agar node diam saat idle dan hanya menyala ketika ditunjuk:
+
+```bash
+npm run architecture:polish
+```
+
 ## Diagram
 
 | Route | Perspektif | Renderer Archify |

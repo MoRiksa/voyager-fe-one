@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build && node -e \"require('node:fs').cpSync('arsitektural','dist/arsitektural',{recursive:true})\"",
+    "build": "npm run architecture:polish && vue-tsc -b && vite build && node -e \"require('node:fs').cpSync('arsitektural','dist/arsitektural',{recursive:true})\"",
+    "architecture:polish": "node scripts/architecture-hover-nodes.mjs",
     "preview": "vite preview",
     "test:architecture": "node scripts/architecture-overlap-test.mjs",
     "test:smoke": "node scripts/smoke-test.mjs",
