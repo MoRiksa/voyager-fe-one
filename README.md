@@ -49,6 +49,8 @@ Data lanjutan seperti performa harga, estimasi forward, segmen, ESG, kepemilikan
 
 Target produk adalah WCAG 2.2 AA. Audit screen reader formal dan validasi visual produksi pada seluruh kombinasi perangkat masih berada di luar cakupan fixture frontend saat ini.
 
+Prosedur audit NVDA dan VoiceOver tersedia di [`docs/screen-reader-audit.md`](docs/screen-reader-audit.md).
+
 ## Menjalankan proyek
 
 Prasyarat: Node.js yang kompatibel dengan Vite 8 dan npm.
