@@ -486,25 +486,43 @@
         stroke-dashoffset: 0;
       }
     }
-    /* Voyager node interaction: idle by default, active on pointer only. */
-    svg[data-animation="trace"] [data-animate="node"] {
+    /* Voyager narrative flow: activate nodes and edges in step order. */
+    svg[data-animation="trace"] [data-animate] {
       animation: none;
-      cursor: pointer;
-      transition: filter 180ms ease, stroke-width 180ms ease, opacity 180ms ease;
     }
-    svg[data-animation="trace"] [data-animate="node"]:hover {
-      filter: drop-shadow(0 0 9px var(--arrow-emphasis));
-      stroke-width: 2.4;
+    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: voyager-node-flow 900ms ease-in-out 1 both;
+      animation-delay: calc(var(--step, 0) * 650ms);
     }
-    svg[data-animation="trace"] text {
-      pointer-events: none;
+    svg[data-animation="trace"].voyager-flow-playing [data-animate="edge"] {
+      stroke-dasharray: 10 8;
+      animation: voyager-edge-flow 900ms ease-in-out 1 both;
+      animation-delay: calc(var(--step, 0) * 650ms);
     }
-    @media (prefers-reduced-motion: reduce) {
-      svg[data-animation="trace"] [data-animate="node"] {
-        transition: none;
+    @keyframes voyager-node-flow {
+      0%, 100% { filter: none; stroke-width: 1.5; opacity: 1; }
+      28%, 68% {
+        filter: drop-shadow(0 0 10px var(--arrow-emphasis));
+        stroke-width: 2.6;
+        opacity: 1;
       }
     }
-    /* End Voyager node interaction. */
+    @keyframes voyager-edge-flow {
+      0% { stroke-dashoffset: 54; opacity: .38; }
+      35%, 72% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: .72; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      svg[data-animation="trace"].voyager-flow-playing [data-animate] {
+        animation: none !important;
+        filter: none;
+        opacity: 1;
+        stroke-dashoffset: 0;
+      }
+    }
+    /* End Voyager narrative flow. */
   </style>
 </head>
 <body>
@@ -1266,5 +1284,32 @@
       }
     });
   </script>
+  <!-- Voyager narrative flow controller. -->
+  <script>
+    (function () {
+      var svg = document.querySelector('svg[data-animation="trace"]');
+      if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var items = Array.from(svg.querySelectorAll('[data-animate]'));
+      var maxStep = items.reduce(function (max, item) {
+        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
+        return Number.isFinite(value) ? Math.max(max, value) : max;
+      }, 0);
+      var cycleMs = maxStep * 650 + 2700;
+      var timer;
+      function play() {
+        window.clearTimeout(timer);
+        svg.classList.remove('voyager-flow-playing');
+        void svg.getBoundingClientRect();
+        svg.classList.add('voyager-flow-playing');
+        timer = window.setTimeout(play, cycleMs);
+      }
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) window.clearTimeout(timer);
+        else play();
+      });
+      play();
+    })();
+  </script>
+  <!-- End Voyager narrative flow controller. -->
 </body>
 </html>

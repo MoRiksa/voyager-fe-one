@@ -34,7 +34,7 @@ node bin/archify.mjs render <type> <input.json> <output.html>
 node bin/archify.mjs check <output.html>
 ```
 
-Setelah render ulang, terapkan interaction polish agar node diam saat idle dan hanya menyala ketika ditunjuk:
+Setelah render ulang, terapkan narrative flow agar node dan panah aktif berurutan dari awal sampai akhir:
 
 ```bash
 npm run architecture:polish

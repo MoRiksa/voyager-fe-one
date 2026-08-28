@@ -88,23 +88,13 @@ try {
         const edge = document.querySelector('[data-animate="edge"]')
         return {
           nodeAnimation: getComputedStyle(node).animationName,
-          nodeCursor: getComputedStyle(node).cursor,
-          edgeAnimation: getComputedStyle(edge).animationName
+          nodeDelay: getComputedStyle(node).animationDelay,
+          edgeAnimation: getComputedStyle(edge).animationName,
+          playing: document.querySelector('svg').classList.contains('voyager-flow-playing')
         }
       })()`)
-      if (motion.nodeAnimation !== 'none' || motion.nodeCursor !== 'pointer' || motion.edgeAnimation === 'none') {
+      if (motion.nodeAnimation !== 'voyager-node-flow' || motion.edgeAnimation !== 'voyager-edge-flow' || !motion.playing) {
         failures.push(`${diagram} (${viewport.name}): node/edge motion policy invalid: ${JSON.stringify(motion)}`)
-      }
-      if (viewport.name === 'desktop') {
-        const nodeCenter = await evaluate(`(() => {
-          const box = document.querySelector('[data-animate="node"]').getBoundingClientRect()
-          return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
-        })()`)
-        await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: nodeCenter.x, y: nodeCenter.y })
-        await delay(220)
-        const hoverFilter = await evaluate('getComputedStyle(document.querySelector("[data-animate=node]")).filter')
-        if (hoverFilter === 'none') failures.push(`${diagram} (${viewport.name}): node did not activate on pointer hover`)
-        await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 0, y: 0 })
       }
       const problems = await evaluate(`(() => {
         const overlap = (a, b, inset = 1) => a.x + inset < b.x + b.width && a.x + a.width - inset > b.x && a.y + inset < b.y + b.height && a.y + a.height - inset > b.y
