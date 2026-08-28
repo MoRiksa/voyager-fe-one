@@ -495,23 +495,31 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -521,6 +529,7 @@
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -613,74 +622,74 @@
         <text x="960" y="68" class="t-dim" font-size="9" font-weight="600" text-anchor="middle">05 / Consume</text>
 
         <!-- Flow paths -->
-        <path d="M 156 157 L 259 157" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 156 499 L 259 499" class="a-security" data-animate="edge" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 371 157 L 420 157 L 420 271 L 474 271" class="a-emphasis" data-animate="edge" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 371 499 L 500 499 L 530 499 L 530 329 L 530 300" class="a-emphasis" data-animate="edge" style="--step:3" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 371 499 L 474 499" class="a-security" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 586 271 L 700 271 L 700 157 L 689 157" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 586 499 L 689 499" class="a-security" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 801 157 L 904 157" class="a-emphasis" data-animate="edge" style="--step:7" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 745 186 L 745 499 L 960 499 L 904 499" class="a-dashed" data-animate="edge" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 801 499 L 904 499" class="a-security" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 156 157 L 259 157" class="a-emphasis" data-animate="edge" data-from="user" data-to="api" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 156 499 L 259 499" class="a-security" data-animate="edge" data-from="sectors" data-to="adapter" style="--step:1" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 371 157 L 420 157 L 420 271 L 474 271" class="a-emphasis" data-animate="edge" data-from="api" data-to="engine" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 371 499 L 500 499 L 530 499 L 530 329 L 530 300" class="a-emphasis" data-animate="edge" data-from="adapter" data-to="engine" style="--step:3" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 371 499 L 474 499" class="a-security" data-animate="edge" data-from="adapter" data-to="provenance" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 586 271 L 700 271 L 700 157 L 689 157" class="a-emphasis" data-animate="edge" data-from="engine" data-to="sessiondb" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 586 499 L 689 499" class="a-security" data-animate="edge" data-from="provenance" data-to="snapshot" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 801 157 L 904 157" class="a-emphasis" data-animate="edge" data-from="sessiondb" data-to="ui" style="--step:7" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 745 186 L 745 499 L 960 499 L 904 499" class="a-dashed" data-animate="edge" data-from="sessiondb" data-to="export" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 801 499 L 904 499" class="a-security" data-animate="edge" data-from="snapshot" data-to="export" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
 
         <!-- Nodes -->
         <rect x="44" y="128" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="44" y="128" width="112" height="58" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="44" y="128" width="112" height="58" rx="6" class="c-external" data-animate="node" data-node-id="user" style="--step:0" stroke-width="1.5"/>
         <text x="100" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Research Brief</text>
         <text x="100" y="165" class="t-muted" font-size="7" text-anchor="middle">objective + scope</text>
         <text x="100" y="175" class="t-external" font-size="7" text-anchor="middle">user input</text>
 
         <rect x="44" y="470" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="44" y="470" width="112" height="58" rx="6" class="c-external" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="44" y="470" width="112" height="58" rx="6" class="c-external" data-animate="node" data-node-id="sectors" style="--step:1" stroke-width="1.5"/>
         <text x="100" y="491" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Sectors API</text>
         <text x="100" y="507" class="t-muted" font-size="7" text-anchor="middle">IDX provider</text>
         <text x="100" y="517" class="t-external" font-size="7" text-anchor="middle">server only</text>
 
         <rect x="259" y="128" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="259" y="128" width="112" height="58" rx="6" class="c-backend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="259" y="128" width="112" height="58" rx="6" class="c-backend" data-animate="node" data-node-id="api" style="--step:1" stroke-width="1.5"/>
         <text x="315" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Voyager API</text>
         <text x="315" y="165" class="t-muted" font-size="7" text-anchor="middle">validate + authorize</text>
         <text x="315" y="175" class="t-backend" font-size="7" text-anchor="middle">Bearer</text>
 
         <rect x="259" y="470" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="259" y="470" width="112" height="58" rx="6" class="c-security" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="259" y="470" width="112" height="58" rx="6" class="c-security" data-animate="node" data-node-id="adapter" style="--step:2" stroke-width="1.5"/>
         <text x="315" y="491" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Sectors Adapter</text>
         <text x="315" y="507" class="t-muted" font-size="7" text-anchor="middle">schema + units</text>
         <text x="315" y="517" class="t-security" font-size="7" text-anchor="middle">raw key</text>
 
         <rect x="474" y="242" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="474" y="242" width="112" height="58" rx="6" class="c-backend" data-animate="node" style="--step:3" stroke-width="1.5"/>
+        <rect x="474" y="242" width="112" height="58" rx="6" class="c-backend" data-animate="node" data-node-id="engine" style="--step:3" stroke-width="1.5"/>
         <text x="530" y="263" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Research Engine</text>
         <text x="530" y="279" class="t-muted" font-size="7" text-anchor="middle">screen + score</text>
         <text x="530" y="289" class="t-backend" font-size="7" text-anchor="middle">versioned</text>
 
         <rect x="474" y="470" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="474" y="470" width="112" height="58" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+        <rect x="474" y="470" width="112" height="58" rx="6" class="c-backend" data-animate="node" data-node-id="provenance" style="--step:5" stroke-width="1.5"/>
         <text x="530" y="491" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Provenance</text>
         <text x="530" y="507" class="t-muted" font-size="7" text-anchor="middle">sourceRefs</text>
         <text x="530" y="517" class="t-backend" font-size="7" text-anchor="middle">immutable</text>
 
         <rect x="689" y="128" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="689" y="128" width="112" height="58" rx="6" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="689" y="128" width="112" height="58" rx="6" class="c-database" data-animate="node" data-node-id="sessiondb" style="--step:6" stroke-width="1.5"/>
         <text x="745" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Session Store</text>
         <text x="745" y="165" class="t-muted" font-size="7" text-anchor="middle">revision + attempts</text>
         <text x="745" y="175" class="t-database" font-size="7" text-anchor="middle">source of truth</text>
 
         <rect x="689" y="470" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="689" y="470" width="112" height="58" rx="6" class="c-database" data-animate="node" style="--step:7" stroke-width="1.5"/>
+        <rect x="689" y="470" width="112" height="58" rx="6" class="c-database" data-animate="node" data-node-id="snapshot" style="--step:7" stroke-width="1.5"/>
         <text x="745" y="491" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Raw Snapshots</text>
         <text x="745" y="507" class="t-muted" font-size="7" text-anchor="middle">content addressed</text>
         <text x="745" y="517" class="t-database" font-size="7" text-anchor="middle">encrypted</text>
 
         <rect x="904" y="128" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="904" y="128" width="112" height="58" rx="6" class="c-frontend" data-animate="node" style="--step:8" stroke-width="1.5"/>
+        <rect x="904" y="128" width="112" height="58" rx="6" class="c-frontend" data-animate="node" data-node-id="ui" style="--step:8" stroke-width="1.5"/>
         <text x="960" y="149" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Research UI</text>
         <text x="960" y="165" class="t-muted" font-size="7" text-anchor="middle">funnel + dossier</text>
         <text x="960" y="175" class="t-frontend" font-size="7" text-anchor="middle">read model</text>
 
         <rect x="904" y="470" width="112" height="58" rx="6" class="c-mask"/>
-        <rect x="904" y="470" width="112" height="58" rx="6" class="c-cloud" data-animate="node" style="--step:9" stroke-width="1.5"/>
+        <rect x="904" y="470" width="112" height="58" rx="6" class="c-cloud" data-animate="node" data-node-id="export" style="--step:9" stroke-width="1.5"/>
         <text x="960" y="491" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Report Export</text>
         <text x="960" y="507" class="t-muted" font-size="7" text-anchor="middle">MD / PDF / JSON</text>
         <text x="960" y="517" class="t-cloud" font-size="7" text-anchor="middle">sanitized</text>
@@ -1294,25 +1303,56 @@
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
   <!-- End Voyager narrative flow controller. -->

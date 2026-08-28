@@ -495,23 +495,31 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -521,6 +529,7 @@
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -616,67 +625,67 @@
         <path d="M 710 142 L 710 835" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
 
         <!-- Messages -->
-        <path d="M 69 190 L 163 190" class="a-default" data-animate="edge" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 69 190 L 163 190" class="a-default" data-animate="edge" data-from="clock" data-to="ui" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <rect x="73.6" y="170" width="84.8" height="16" rx="3" class="c-mask"/>
         <text x="116" y="180" class="t-backend" font-size="9" text-anchor="middle">T0 brief ready</text>
 
-        <path d="M 177 220 L 271 220" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 177 220 L 271 220" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <rect x="181.6" y="200" width="84.8" height="16" rx="3" class="c-mask"/>
         <text x="224" y="210" class="t-backend" font-size="9" text-anchor="middle">T1 create IDLE</text>
 
-        <path d="M 285 260 L 379 260" class="a-emphasis" data-animate="edge" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 285 260 L 379 260" class="a-emphasis" data-animate="edge" data-from="session" data-to="attempt" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <rect x="276.6" y="240" width="110.8" height="16" rx="3" class="c-mask"/>
         <text x="332" y="250" class="t-backend" font-size="9" text-anchor="middle">T2 attempt A active</text>
 
-        <path d="M 393 300 L 487 300" class="a-dashed" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 393 300 L 487 300" class="a-dashed" data-animate="edge" data-from="attempt" data-to="worker" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
         <rect x="392.4" y="280" width="95.2" height="16" rx="3" class="c-mask"/>
         <text x="440" y="290" class="t-messagebus" font-size="9" text-anchor="middle">T2 UNDERSTANDING</text>
 
-        <path d="M 501 340 L 703 340" class="a-dashed" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 501 340 L 703 340" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
         <rect x="570" y="320" width="64" height="16" rx="3" class="c-mask"/>
         <text x="602" y="330" class="t-messagebus" font-size="9" text-anchor="middle">revision 2</text>
 
-        <path d="M 501 390 L 595 390" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 501 390 L 595 390" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <rect x="508.2" y="370" width="79.60000000000001" height="16" rx="3" class="c-mask"/>
         <text x="548" y="380" class="t-backend" font-size="9" text-anchor="middle">T3 draft plan</text>
 
-        <path d="M 501 430 L 703 430" class="a-dashed" data-animate="edge" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 501 430 L 703 430" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
         <rect x="564.8" y="410" width="74.4" height="16" rx="3" class="c-mask"/>
         <text x="602" y="420" class="t-messagebus" font-size="9" text-anchor="middle">T4 SCREENING</text>
 
-        <path d="M 703 470 L 177 470" class="a-default" data-animate="edge" style="--step:7" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <path d="M 703 470 L 177 470" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:7" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <rect x="397.6" y="450" width="84.8" height="16" rx="3" class="c-mask"/>
         <text x="440" y="460" class="t-muted" font-size="9" text-anchor="middle">evt 41 + rev 9</text>
 
-        <path d="M 69 510 L 379 510" class="a-security" data-animate="edge" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 69 510 L 379 510" class="a-security" data-animate="edge" data-from="clock" data-to="attempt" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <rect x="192" y="490" width="64" height="16" rx="3" class="c-mask"/>
         <text x="224" y="500" class="t-security" font-size="9" text-anchor="middle">T5 cancel?</text>
 
-        <path d="M 393 550 L 487 550" class="a-security" data-animate="edge" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 393 550 L 487 550" class="a-security" data-animate="edge" data-from="attempt" data-to="worker" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <rect x="389.8" y="530" width="100.4" height="16" rx="3" class="c-mask"/>
         <text x="440" y="540" class="t-security" font-size="9" text-anchor="middle">fence late writes</text>
 
-        <path d="M 501 590 L 595 590" class="a-default" data-animate="edge" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 501 590 L 595 590" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <rect x="497.8" y="570" width="100.4" height="16" rx="3" class="c-mask"/>
         <text x="548" y="580" class="t-backend" font-size="9" text-anchor="middle">T6 complete draft</text>
 
-        <path d="M 393 640 L 595 640" class="a-security" data-animate="edge" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 393 640 L 595 640" class="a-security" data-animate="edge" data-from="attempt" data-to="artifact" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <rect x="436" y="620" width="116" height="16" rx="3" class="c-mask"/>
         <text x="494" y="630" class="t-security" font-size="9" text-anchor="middle">T7 compare attemptId</text>
 
-        <path d="M 595 680 L 285 680" class="a-emphasis" data-animate="edge" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 595 680 L 285 680" class="a-emphasis" data-animate="edge" data-from="artifact" data-to="session" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <rect x="376.8" y="660" width="126.4" height="16" rx="3" class="c-mask"/>
         <text x="440" y="670" class="t-backend" font-size="9" text-anchor="middle">swap published pointer</text>
 
-        <path d="M 285 720 L 703 720" class="a-dashed" data-animate="edge" style="--step:13" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 285 720 L 703 720" class="a-dashed" data-animate="edge" data-from="session" data-to="sse" style="--step:13" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
         <rect x="451.6" y="700" width="84.8" height="16" rx="3" class="c-mask"/>
         <text x="494" y="710" class="t-messagebus" font-size="9" text-anchor="middle">T8 revision 18</text>
 
-        <path d="M 703 760 L 177 760" class="a-default" data-animate="edge" style="--step:14" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <path d="M 703 760 L 177 760" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:14" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <rect x="392.4" y="740" width="95.2" height="16" rx="3" class="c-mask"/>
         <text x="440" y="750" class="t-muted" font-size="9" text-anchor="middle">report.published</text>
 
-        <path d="M 177 800 L 271 800" class="a-emphasis" data-animate="edge" style="--step:15" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 177 800 L 271 800" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:15" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <rect x="173.8" y="780" width="100.4" height="16" rx="3" class="c-mask"/>
         <text x="224" y="790" class="t-backend" font-size="9" text-anchor="middle">GET authoritative</text>
 
@@ -696,37 +705,37 @@
 
         <!-- Participants -->
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" data-animate="node" data-node-id="clock" style="--step:0" stroke-width="1.5"/>
         <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Timeline</text>
         <text x="62" y="111" class="t-muted" font-size="7" text-anchor="middle">T0..T8</text>
 
         <rect x="127" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="127" y="72" width="86" height="54" rx="6" class="c-frontend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="127" y="72" width="86" height="54" rx="6" class="c-frontend" data-animate="node" data-node-id="ui" style="--step:1" stroke-width="1.5"/>
         <text x="170" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">UI State</text>
         <text x="170" y="111" class="t-muted" font-size="7" text-anchor="middle">route + status</text>
 
         <rect x="235" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="235" y="72" width="86" height="54" rx="6" class="c-database" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="235" y="72" width="86" height="54" rx="6" class="c-database" data-animate="node" data-node-id="session" style="--step:2" stroke-width="1.5"/>
         <text x="278" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Session</text>
         <text x="278" y="111" class="t-muted" font-size="7" text-anchor="middle">revision</text>
 
         <rect x="343" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="343" y="72" width="86" height="54" rx="6" class="c-messagebus" data-animate="node" style="--step:3" stroke-width="1.5"/>
+        <rect x="343" y="72" width="86" height="54" rx="6" class="c-messagebus" data-animate="node" data-node-id="attempt" style="--step:3" stroke-width="1.5"/>
         <text x="386" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Attempt</text>
         <text x="386" y="111" class="t-muted" font-size="7" text-anchor="middle">activeAttemptId</text>
 
         <rect x="451" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="451" y="72" width="86" height="54" rx="6" class="c-backend" data-animate="node" style="--step:4" stroke-width="1.5"/>
+        <rect x="451" y="72" width="86" height="54" rx="6" class="c-backend" data-animate="node" data-node-id="worker" style="--step:4" stroke-width="1.5"/>
         <text x="494" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Worker</text>
         <text x="494" y="111" class="t-muted" font-size="7" text-anchor="middle">pillar state</text>
 
         <rect x="559" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="559" y="72" width="86" height="54" rx="6" class="c-database" data-animate="node" style="--step:5" stroke-width="1.5"/>
+        <rect x="559" y="72" width="86" height="54" rx="6" class="c-database" data-animate="node" data-node-id="artifact" style="--step:5" stroke-width="1.5"/>
         <text x="602" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Artifacts</text>
         <text x="602" y="111" class="t-muted" font-size="7" text-anchor="middle">draft/published</text>
 
         <rect x="667" y="72" width="86" height="54" rx="6" class="c-mask"/>
-        <rect x="667" y="72" width="86" height="54" rx="6" class="c-messagebus" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="667" y="72" width="86" height="54" rx="6" class="c-messagebus" data-animate="node" data-node-id="sse" style="--step:6" stroke-width="1.5"/>
         <text x="710" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SSE</text>
         <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">event cursor</text>
 
@@ -1307,25 +1316,56 @@
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
   <!-- End Voyager narrative flow controller. -->

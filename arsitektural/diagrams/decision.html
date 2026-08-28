@@ -495,23 +495,31 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -521,6 +529,7 @@
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -608,67 +617,67 @@
         <path d="M 154 157 L 748 157" class="a-emphasis" stroke-width="2.2" marker-end="url(#arrowhead-emphasis)"/>
 
         <!-- Transition paths -->
-        <path d="M 248 188 L 248 223 Q 248 233 258 233 L 392 233 Q 402 233 402 243 L 402 278" class="a-security" data-animate="edge" style="--step:0" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
-        <path d="M 402 188 L 402 223 Q 402 233 412 233 L 546 233 Q 556 233 556 243 L 556 278" class="a-security" data-animate="edge" style="--step:1" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
-        <path d="M 556 188 L 556 223 Q 556 233 566 233 L 700 233 Q 710 233 710 243 L 710 278" class="a-default" data-animate="edge" style="--step:2" stroke-width="1.1" marker-end="url(#arrowhead)"/>
-        <path d="M 402 336 L 402 450" class="a-security" data-animate="edge" style="--step:3" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
-        <path d="M 556 336 L 556 450" class="a-security" data-animate="edge" style="--step:4" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
-        <path d="M 710 336 L 710 450" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="2" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 710 188 L 795 188 Q 805 188 805 198 L 805 469 Q 805 479 795 479 L 769 479" class="a-emphasis" data-animate="edge" style="--step:6" stroke-width="2" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 248 188 L 248 223 Q 248 233 258 233 L 392 233 Q 402 233 402 243 L 402 278" class="a-security" data-animate="edge" data-from="valid" data-to="clarify" style="--step:0" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
+        <path d="M 402 188 L 402 223 Q 402 233 412 233 L 546 233 Q 556 233 556 243 L 556 278" class="a-security" data-animate="edge" data-from="required" data-to="retry" style="--step:1" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
+        <path d="M 556 188 L 556 223 Q 556 233 566 233 L 700 233 Q 710 233 710 243 L 710 278" class="a-default" data-animate="edge" data-from="coherent" data-to="warn" style="--step:2" stroke-width="1.1" marker-end="url(#arrowhead)"/>
+        <path d="M 402 336 L 402 450" class="a-security" data-animate="edge" data-from="clarify" data-to="partial" style="--step:3" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
+        <path d="M 556 336 L 556 450" class="a-security" data-animate="edge" data-from="retry" data-to="failed" style="--step:4" stroke-width="1.1" marker-end="url(#arrowhead-security)"/>
+        <path d="M 710 336 L 710 450" class="a-emphasis" data-animate="edge" data-from="warn" data-to="completed" style="--step:5" stroke-width="2" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 710 188 L 795 188 Q 805 188 805 198 L 805 469 Q 805 479 795 479 L 769 479" class="a-emphasis" data-animate="edge" data-from="publish" data-to="completed" style="--step:6" stroke-width="2" marker-end="url(#arrowhead-emphasis)"/>
 
         <!-- States -->
         <rect x="35" y="126" width="118" height="62" rx="7" class="c-mask"/>
-        <rect x="35" y="126" width="118" height="62" rx="7" class="c-frontend" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="35" y="126" width="118" height="62" rx="7" class="c-frontend" data-animate="node" data-node-id="brief" style="--step:0" stroke-width="1.5"/>
         <text x="94" y="147" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Brief Ready</text>
         <text x="94" y="163" class="t-muted" font-size="7" text-anchor="middle">scope submitted</text>
 
         <rect x="189" y="126" width="118" height="62" rx="7" class="c-mask"/>
-        <rect x="189" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="189" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" data-node-id="valid" style="--step:0" stroke-width="1.5"/>
         <text x="248" y="147" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Scope Valid?</text>
         <text x="248" y="163" class="t-muted" font-size="7" text-anchor="middle">capabilities gate</text>
 
         <rect x="343" y="126" width="118" height="62" rx="7" class="c-mask"/>
-        <rect x="343" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="343" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" data-node-id="required" style="--step:1" stroke-width="1.5"/>
         <text x="402" y="147" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Required Data?</text>
         <text x="402" y="163" class="t-muted" font-size="7" text-anchor="middle">minimum set</text>
 
         <rect x="497" y="126" width="118" height="62" rx="7" class="c-mask"/>
-        <rect x="497" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="497" y="126" width="118" height="62" rx="7" class="c-security" data-animate="node" data-node-id="coherent" style="--step:2" stroke-width="1.5"/>
         <text x="556" y="147" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Set Coherent?</text>
         <text x="556" y="163" class="t-muted" font-size="7" text-anchor="middle">attempt + revision</text>
 
         <rect x="651" y="126" width="118" height="62" rx="7" class="c-mask"/>
-        <rect x="651" y="126" width="118" height="62" rx="7" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="651" y="126" width="118" height="62" rx="7" class="c-database" data-animate="node" data-node-id="publish" style="--step:6" stroke-width="1.5"/>
         <text x="710" y="147" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Publish</text>
         <text x="710" y="163" class="t-muted" font-size="7" text-anchor="middle">atomic pointer swap</text>
 
         <rect x="339" y="278" width="126" height="58" rx="7" class="c-mask"/>
-        <rect x="339" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="339" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" data-node-id="clarify" style="--step:1" stroke-width="1.5"/>
         <text x="402" y="299" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Needs Input</text>
         <text x="402" y="315" class="t-muted" font-size="7" text-anchor="middle">resume saved state</text>
 
         <rect x="493" y="278" width="126" height="58" rx="7" class="c-mask"/>
-        <rect x="493" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="493" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" data-node-id="retry" style="--step:2" stroke-width="1.5"/>
         <text x="556" y="299" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Retry</text>
         <text x="556" y="315" class="t-muted" font-size="7" text-anchor="middle">new attempt</text>
 
         <rect x="647" y="278" width="126" height="58" rx="7" class="c-mask"/>
-        <rect x="647" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" style="--step:3" stroke-width="1.5"/>
+        <rect x="647" y="278" width="126" height="58" rx="7" class="c-cloud" data-animate="node" data-node-id="warn" style="--step:3" stroke-width="1.5"/>
         <text x="710" y="299" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Warn Optional</text>
         <text x="710" y="315" class="t-muted" font-size="7" text-anchor="middle">complete with warning</text>
 
         <rect x="343" y="450" width="118" height="58" rx="7" class="c-mask"/>
-        <rect x="343" y="450" width="118" height="58" rx="7" class="c-security" data-animate="node" style="--step:4" stroke-width="1.5"/>
+        <rect x="343" y="450" width="118" height="58" rx="7" class="c-security" data-animate="node" data-node-id="partial" style="--step:4" stroke-width="1.5"/>
         <text x="402" y="471" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Partial</text>
         <text x="402" y="487" class="t-muted" font-size="7" text-anchor="middle">useful subset</text>
 
         <rect x="497" y="450" width="118" height="58" rx="7" class="c-mask"/>
-        <rect x="497" y="450" width="118" height="58" rx="7" class="c-security" data-animate="node" style="--step:5" stroke-width="1.5"/>
+        <rect x="497" y="450" width="118" height="58" rx="7" class="c-security" data-animate="node" data-node-id="failed" style="--step:5" stroke-width="1.5"/>
         <text x="556" y="471" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Failed</text>
         <text x="556" y="487" class="t-muted" font-size="7" text-anchor="middle">no safe set</text>
 
         <rect x="651" y="450" width="118" height="58" rx="7" class="c-mask"/>
-        <rect x="651" y="450" width="118" height="58" rx="7" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="651" y="450" width="118" height="58" rx="7" class="c-database" data-animate="node" data-node-id="completed" style="--step:6" stroke-width="1.5"/>
         <text x="710" y="471" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Completed</text>
         <text x="710" y="487" class="t-muted" font-size="7" text-anchor="middle">consistent report</text>
 
@@ -1258,25 +1267,56 @@
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
   <!-- End Voyager narrative flow controller. -->

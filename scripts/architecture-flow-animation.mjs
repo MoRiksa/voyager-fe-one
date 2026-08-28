@@ -20,23 +20,31 @@ const styles = `${markerStart}
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -46,6 +54,7 @@ const styles = `${markerStart}
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -58,25 +67,56 @@ const controller = `${scriptStart}
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
 ${scriptEnd}`
@@ -99,6 +139,18 @@ for (const file of readdirSync(directory).filter(file => file.endsWith('.html'))
   const specFile = readdirSync(specsDirectory).find(candidate => candidate.startsWith(`${file.slice(0, -5)}.`) && candidate.endsWith('.json'))
   if (specFile) {
     const spec = JSON.parse(readFileSync(join(specsDirectory.pathname, specFile), 'utf8'))
+    const nodes = spec.nodes || spec.components || spec.participants || spec.states || []
+    const edges = spec.edges || spec.connections || spec.flows || spec.messages || spec.transitions || []
+    let relationIndex = 0
+    let identityIndex = 0
+    output = output.replace(/data-animate="edge" style="--step:\d+"/g, match => {
+      const edge = edges[relationIndex++]
+      return edge ? match.replace('data-animate="edge"', `data-animate="edge" data-from="${edge.from}" data-to="${edge.to}"`) : match
+    })
+    output = output.replace(/data-animate="node" style="--step:\d+"/g, match => {
+      const node = nodes[identityIndex++]
+      return node ? match.replace('data-animate="node"', `data-animate="node" data-node-id="${node.id}"`) : match
+    })
     if (spec.diagram_type === 'workflow' && Array.isArray(spec.mainPath)) {
       const mainSteps = new Map(spec.mainPath.map((id, index) => [id, index]))
       const edgeSteps = spec.edges.map((edge, index) => {
@@ -114,8 +166,8 @@ for (const file of readdirSync(directory).filter(file => file.endsWith('.html'))
       const nodeSteps = spec.nodes.map((node, index) => mainSteps.get(node.id) ?? branchTargets.get(node.id) ?? spec.mainPath.length + index)
       let edgeIndex = 0
       let nodeIndex = 0
-      output = output.replace(/data-animate="edge" style="--step:\d+"/g, match => match.replace(/--step:\d+/, `--step:${edgeSteps[edgeIndex++]}`))
-      output = output.replace(/data-animate="node" style="--step:\d+"/g, match => match.replace(/--step:\d+/, `--step:${nodeSteps[nodeIndex++]}`))
+      output = output.replace(/data-animate="edge" data-from="[^"]+" data-to="[^"]+" style="--step:\d+"/g, match => match.replace(/--step:\d+/, `--step:${edgeSteps[edgeIndex++]}`))
+      output = output.replace(/data-animate="node" data-node-id="[^"]+" style="--step:\d+"/g, match => match.replace(/--step:\d+/, `--step:${nodeSteps[nodeIndex++]}`))
     }
   }
   const source = readFileSync(path, 'utf8')

@@ -495,23 +495,31 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -521,6 +529,7 @@
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -601,76 +610,76 @@
         <text x="258" y="83" class="t-cloud" font-size="9" font-weight="600">Voyager One Research System</text>
 
         <!-- Connection paths (before components for correct z-order) -->
-        <path d="M 170 286 L 217 286 Q 225 286 225 278 L 225 134 Q 225 126 233 126 L 280 126" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 170 286 L 217 286 Q 225 286 225 294 L 225 308 Q 225 316 233 316 L 280 316" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 170 286 L 217 286 Q 225 286 225 294 L 225 498 Q 225 506 233 506 L 280 506" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 425 126 L 500 126" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 645 126 L 720 126" class="a-security" data-animate="edge" style="--step:4" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 425 316 L 500 316" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 645 316 L 720 316" class="a-security" data-animate="edge" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 572.5 347 L 572.5 475" class="a-default" data-animate="edge" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 170 551 L 437 551 Q 445 551 445 543 L 445 514 Q 445 506 453 506 L 720 506" class="a-emphasis" data-animate="edge" style="--step:8" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 797.5 475 L 797.5 347" class="a-security" data-animate="edge" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 950 401 L 920.5 401 Q 912.5 401 912.5 393 L 912.5 324 Q 912.5 316 904.5 316 L 875 316" class="a-security" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 170 286 L 217 286 Q 225 286 225 278 L 225 134 Q 225 126 233 126 L 280 126" class="a-emphasis" data-animate="edge" data-from="analyst" data-to="create" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 170 286 L 217 286 Q 225 286 225 294 L 225 308 Q 225 316 233 316 L 280 316" class="a-emphasis" data-animate="edge" data-from="analyst" data-to="screen" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 170 286 L 217 286 Q 225 286 225 294 L 225 498 Q 225 506 233 506 L 280 506" class="a-security" data-animate="edge" data-from="analyst" data-to="recover" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 425 126 L 500 126" class="a-default" data-animate="edge" data-from="create" data-to="monitor" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 645 126 L 720 126" class="a-security" data-animate="edge" data-from="monitor" data-to="clarify" style="--step:4" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 425 316 L 500 316" class="a-default" data-animate="edge" data-from="screen" data-to="compare" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 645 316 L 720 316" class="a-security" data-animate="edge" data-from="compare" data-to="audit" style="--step:6" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 572.5 347 L 572.5 475" class="a-default" data-animate="edge" data-from="compare" data-to="report" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 170 551 L 437 551 Q 445 551 445 543 L 445 514 Q 445 506 453 506 L 720 506" class="a-emphasis" data-animate="edge" data-from="operator" data-to="operate" style="--step:8" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 797.5 475 L 797.5 347" class="a-security" data-animate="edge" data-from="operate" data-to="audit" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 950 401 L 920.5 401 Q 912.5 401 912.5 393 L 912.5 324 Q 912.5 316 904.5 316 L 875 316" class="a-security" data-animate="edge" data-from="sectors" data-to="audit" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
 
         <!-- Components -->
         <rect x="35" y="255" width="135" height="62" rx="6" class="c-mask"/>
-        <rect x="35" y="255" width="135" height="62" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="35" y="255" width="135" height="62" rx="6" class="c-external" data-animate="node" data-node-id="analyst" style="--step:0" stroke-width="1.5"/>
         <text x="102.5" y="284" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Investor / Analis</text>
         <text x="102.5" y="300" class="t-muted" font-size="9" text-anchor="middle">primary actor</text>
 
         <rect x="35" y="520" width="135" height="62" rx="6" class="c-mask"/>
-        <rect x="35" y="520" width="135" height="62" rx="6" class="c-external" data-animate="node" style="--step:8" stroke-width="1.5"/>
+        <rect x="35" y="520" width="135" height="62" rx="6" class="c-external" data-animate="node" data-node-id="operator" style="--step:8" stroke-width="1.5"/>
         <text x="102.5" y="549" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Platform Operator</text>
         <text x="102.5" y="565" class="t-muted" font-size="9" text-anchor="middle">operations</text>
 
         <rect x="950" y="370" width="135" height="62" rx="6" class="c-mask"/>
-        <rect x="950" y="370" width="135" height="62" rx="6" class="c-external" data-animate="node" style="--step:10" stroke-width="1.5"/>
+        <rect x="950" y="370" width="135" height="62" rx="6" class="c-external" data-animate="node" data-node-id="sectors" style="--step:10" stroke-width="1.5"/>
         <text x="1017.5" y="399" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Sectors Provider</text>
         <text x="1017.5" y="415" class="t-muted" font-size="9" text-anchor="middle">market data</text>
 
         <rect x="280" y="95" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="280" y="95" width="145" height="62" rx="6" class="c-frontend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="280" y="95" width="145" height="62" rx="6" class="c-frontend" data-animate="node" data-node-id="create" style="--step:1" stroke-width="1.5"/>
         <text x="352.5" y="124" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Create Research</text>
         <text x="352.5" y="140" class="t-muted" font-size="9" text-anchor="middle">brief + preview</text>
 
         <rect x="500" y="95" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="500" y="95" width="145" height="62" rx="6" class="c-messagebus" data-animate="node" style="--step:4" stroke-width="1.5"/>
+        <rect x="500" y="95" width="145" height="62" rx="6" class="c-messagebus" data-animate="node" data-node-id="monitor" style="--step:4" stroke-width="1.5"/>
         <text x="572.5" y="124" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Monitor Session</text>
         <text x="572.5" y="140" class="t-muted" font-size="9" text-anchor="middle">SSE + activity</text>
 
         <rect x="720" y="95" width="155" height="62" rx="6" class="c-mask"/>
-        <rect x="720" y="95" width="155" height="62" rx="6" class="c-security" data-animate="node" style="--step:5" stroke-width="1.5"/>
+        <rect x="720" y="95" width="155" height="62" rx="6" class="c-security" data-animate="node" data-node-id="clarify" style="--step:5" stroke-width="1.5"/>
         <text x="797.5" y="124" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Answer Clarification</text>
         <text x="797.5" y="140" class="t-muted" font-size="9" text-anchor="middle">resume workflow</text>
 
         <rect x="280" y="285" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="280" y="285" width="145" height="62" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="280" y="285" width="145" height="62" rx="6" class="c-backend" data-animate="node" data-node-id="screen" style="--step:2" stroke-width="1.5"/>
         <text x="352.5" y="314" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Inspect Funnel</text>
         <text x="352.5" y="330" class="t-muted" font-size="9" text-anchor="middle">retained + excluded</text>
 
         <rect x="500" y="285" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="500" y="285" width="145" height="62" rx="6" class="c-backend" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="500" y="285" width="145" height="62" rx="6" class="c-backend" data-animate="node" data-node-id="compare" style="--step:6" stroke-width="1.5"/>
         <text x="572.5" y="314" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Compare Candidates</text>
         <text x="572.5" y="330" class="t-muted" font-size="9" text-anchor="middle">peer benchmark</text>
 
         <rect x="720" y="285" width="155" height="62" rx="6" class="c-mask"/>
-        <rect x="720" y="285" width="155" height="62" rx="6" class="c-security" data-animate="node" style="--step:7" stroke-width="1.5"/>
+        <rect x="720" y="285" width="155" height="62" rx="6" class="c-security" data-animate="node" data-node-id="audit" style="--step:7" stroke-width="1.5"/>
         <text x="797.5" y="314" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Audit Evidence</text>
         <text x="797.5" y="330" class="t-muted" font-size="9" text-anchor="middle">trace + provenance</text>
 
         <rect x="500" y="475" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="500" y="475" width="145" height="62" rx="6" class="c-frontend" data-animate="node" style="--step:8" stroke-width="1.5"/>
+        <rect x="500" y="475" width="145" height="62" rx="6" class="c-frontend" data-animate="node" data-node-id="report" style="--step:8" stroke-width="1.5"/>
         <text x="572.5" y="504" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Review Report</text>
         <text x="572.5" y="520" class="t-muted" font-size="9" text-anchor="middle">dossier + export</text>
 
         <rect x="280" y="475" width="145" height="62" rx="6" class="c-mask"/>
-        <rect x="280" y="475" width="145" height="62" rx="6" class="c-messagebus" data-animate="node" style="--step:3" stroke-width="1.5"/>
+        <rect x="280" y="475" width="145" height="62" rx="6" class="c-messagebus" data-animate="node" data-node-id="recover" style="--step:3" stroke-width="1.5"/>
         <text x="352.5" y="504" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cancel / Retry</text>
         <text x="352.5" y="520" class="t-muted" font-size="9" text-anchor="middle">attempt control</text>
 
         <rect x="720" y="475" width="155" height="62" rx="6" class="c-mask"/>
-        <rect x="720" y="475" width="155" height="62" rx="6" class="c-cloud" data-animate="node" style="--step:9" stroke-width="1.5"/>
+        <rect x="720" y="475" width="155" height="62" rx="6" class="c-cloud" data-animate="node" data-node-id="operate" style="--step:9" stroke-width="1.5"/>
         <text x="797.5" y="504" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Operate Platform</text>
         <text x="797.5" y="520" class="t-muted" font-size="9" text-anchor="middle">queue + outage</text>
 
@@ -1275,25 +1284,56 @@
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
   <!-- End Voyager narrative flow controller. -->

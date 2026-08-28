@@ -88,13 +88,41 @@ try {
         const edge = document.querySelector('[data-animate="edge"]')
         return {
           nodeAnimation: getComputedStyle(node).animationName,
-          nodeDelay: getComputedStyle(node).animationDelay,
           edgeAnimation: getComputedStyle(edge).animationName,
-          playing: document.querySelector('svg').classList.contains('voyager-flow-playing')
+          playing: document.querySelector('svg').classList.contains('voyager-flow-playing'),
+          edgeFrom: edge.dataset.from,
+          edgeTo: edge.dataset.to,
+          nodeId: node.dataset.nodeId,
+          sourceActive: Boolean(document.querySelector('.voyager-source-active'))
         }
       })()`)
-      if (motion.nodeAnimation !== 'voyager-node-flow' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing) {
+      if (motion.nodeAnimation !== 'none' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing || !motion.edgeFrom || !motion.edgeTo || !motion.nodeId || !motion.sourceActive) {
         failures.push(`${diagram} (${viewport.name}): node/edge motion policy invalid: ${JSON.stringify(motion)}`)
+      }
+      if (viewport.name === 'desktop') {
+        await evaluate('document.dispatchEvent(new Event("voyager-flow-restart"))')
+        const initialBeat = await evaluate(`(() => {
+          const source = document.querySelector('.voyager-source-active')
+          const sourceId = source?.dataset.nodeId
+          const activeEdges = Array.from(document.querySelectorAll('.voyager-edge-active'))
+          return { sourceId, activeEdges: activeEdges.length }
+        })()`)
+        if (!initialBeat.sourceId || initialBeat.activeEdges !== 0) failures.push(`${diagram}: source beat invalid: ${JSON.stringify(initialBeat)}`)
+        await delay(360)
+        const edgeBeat = await evaluate(`(() => {
+          const sourceId = document.querySelector('.voyager-source-active')?.dataset.nodeId
+          const activeEdges = Array.from(document.querySelectorAll('.voyager-edge-active'))
+          return { sourceId, count: activeEdges.length, aligned: activeEdges.every(edge => edge.dataset.from === sourceId) }
+        })()`)
+        if (!edgeBeat.count || !edgeBeat.aligned) failures.push(`${diagram}: edge beat is not aligned to source: ${JSON.stringify(edgeBeat)}`)
+        await delay(500)
+        const targetBeat = await evaluate(`(() => {
+          const activeEdges = Array.from(document.querySelectorAll('.voyager-edge-active'))
+          const expected = new Set(activeEdges.map(edge => edge.dataset.to))
+          const actual = new Set(Array.from(document.querySelectorAll('.voyager-target-active')).map(node => node.dataset.nodeId))
+          return { expected: Array.from(expected), actual: Array.from(actual), aligned: expected.size === actual.size && Array.from(expected).every(id => actual.has(id)) }
+        })()`)
+        if (!targetBeat.aligned) failures.push(`${diagram}: target beat is not aligned to edge: ${JSON.stringify(targetBeat)}`)
       }
       if (diagram === 'activity') {
         const branchTiming = await evaluate(`(() => {

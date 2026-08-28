@@ -495,23 +495,31 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       animation: voyager-edge-stream 2.8s linear infinite;
-      will-change: stroke-dashoffset, opacity;
+      opacity: .48;
+      transition: opacity 420ms ease, filter 420ms ease, stroke-width 420ms ease;
+      will-change: stroke-dashoffset, opacity, filter;
     }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
+    svg[data-animation="trace"] [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
-      animation-delay: calc(var(--step, 0) * 820ms);
+      opacity: .8;
+      transition: filter 520ms cubic-bezier(.22, .8, .24, 1), stroke-width 520ms cubic-bezier(.22, .8, .24, 1), opacity 520ms ease;
       will-change: filter, stroke-width, opacity;
     }
-    @keyframes voyager-node-flow {
-      0% { filter: none; stroke-width: 1.5; opacity: .82; }
-      20%, 72% {
-        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
-        stroke-width: 2.5;
-        opacity: 1;
-      }
-      100% { filter: none; stroke-width: 1.5; opacity: .9; }
+    svg[data-animation="trace"] [data-animate="node"].voyager-source-active {
+      filter: drop-shadow(0 0 9px var(--frontend-stroke));
+      stroke-width: 2.25;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="edge"].voyager-edge-active {
+      filter: drop-shadow(0 0 7px currentColor);
+      stroke-width: 2.6;
+      opacity: 1;
+    }
+    svg[data-animation="trace"] [data-animate="node"].voyager-target-active {
+      filter: drop-shadow(0 0 12px var(--arrow-emphasis));
+      stroke-width: 2.7;
+      opacity: 1;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -521,6 +529,7 @@
     @media (prefers-reduced-motion: reduce) {
       svg[data-animation="trace"] [data-animate] {
         animation: none !important;
+        transition: none !important;
         filter: none;
         opacity: 1;
         stroke-dashoffset: 0;
@@ -604,78 +613,78 @@
         <text x="628" y="103" class="t-security" font-size="9" font-weight="600">Server-only Data Plane</text>
 
         <!-- Connection paths (before components for correct z-order) -->
-        <path d="M 155 335 L 225 335" class="a-emphasis" data-animate="edge" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 360 335 L 445 335" class="a-emphasis" data-animate="edge" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 512.5 175 L 512.5 305" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 580 335 L 650 335" class="a-dashed" data-animate="edge" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 785 335 L 860 335" class="a-emphasis" data-animate="edge" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 512.5 365 L 512.5 422 Q 512.5 430 520.5 430 L 642 430 Q 650 430 650 438 L 650 495" class="a-default" data-animate="edge" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 930 365 L 930 422 Q 930 430 922 430 L 793 430 Q 785 430 785 438 L 785 495" class="a-emphasis" data-animate="edge" style="--step:6" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 650 495 L 360 495" class="a-dashed" data-animate="edge" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 292.5 465 L 292.5 365" class="a-dashed" data-animate="edge" style="--step:8" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 930 365 L 930 465" class="a-default" data-animate="edge" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path d="M 930 525 L 930 577 Q 930 585 922 585 L 793 585 Q 785 585 785 593 L 785 645" class="a-security" data-animate="edge" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 930 175 L 930 305" class="a-security" data-animate="edge" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        <path d="M 1000 335 L 1040 335" class="a-security" data-animate="edge" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 155 335 L 225 335" class="a-emphasis" data-animate="edge" data-from="user" data-to="web" style="--step:0" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 360 335 L 445 335" class="a-emphasis" data-animate="edge" data-from="web" data-to="api" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 512.5 175 L 512.5 305" class="a-security" data-animate="edge" data-from="auth" data-to="api" style="--step:2" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 580 335 L 650 335" class="a-dashed" data-animate="edge" data-from="api" data-to="queue" style="--step:3" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 785 335 L 860 335" class="a-emphasis" data-animate="edge" data-from="queue" data-to="worker" style="--step:4" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 512.5 365 L 512.5 422 Q 512.5 430 520.5 430 L 642 430 Q 650 430 650 438 L 650 495" class="a-default" data-animate="edge" data-from="api" data-to="db" style="--step:5" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 930 365 L 930 422 Q 930 430 922 430 L 793 430 Q 785 430 785 438 L 785 495" class="a-emphasis" data-animate="edge" data-from="worker" data-to="db" style="--step:6" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 650 495 L 360 495" class="a-dashed" data-animate="edge" data-from="db" data-to="sse" style="--step:7" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 292.5 465 L 292.5 365" class="a-dashed" data-animate="edge" data-from="sse" data-to="web" style="--step:8" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 930 365 L 930 465" class="a-default" data-animate="edge" data-from="worker" data-to="cache" style="--step:9" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path d="M 930 525 L 930 577 Q 930 585 922 585 L 793 585 Q 785 585 785 593 L 785 645" class="a-security" data-animate="edge" data-from="cache" data-to="snapshots" style="--step:10" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 930 175 L 930 305" class="a-security" data-animate="edge" data-from="secrets" data-to="worker" style="--step:11" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path d="M 1000 335 L 1040 335" class="a-security" data-animate="edge" data-from="worker" data-to="sectors" style="--step:12" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
 
         <!-- Components -->
         <rect x="35" y="305" width="120" height="60" rx="6" class="c-mask"/>
-        <rect x="35" y="305" width="120" height="60" rx="6" class="c-external" data-animate="node" style="--step:0" stroke-width="1.5"/>
+        <rect x="35" y="305" width="120" height="60" rx="6" class="c-external" data-animate="node" data-node-id="user" style="--step:0" stroke-width="1.5"/>
         <text x="95" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Investor</text>
         <text x="95" y="349" class="t-muted" font-size="9" text-anchor="middle">browser</text>
 
         <rect x="225" y="305" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="225" y="305" width="135" height="60" rx="6" class="c-frontend" data-animate="node" style="--step:1" stroke-width="1.5"/>
+        <rect x="225" y="305" width="135" height="60" rx="6" class="c-frontend" data-animate="node" data-node-id="web" style="--step:1" stroke-width="1.5"/>
         <text x="292.5" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Vue Frontend</text>
         <text x="292.5" y="349" class="t-muted" font-size="9" text-anchor="middle">research workspace</text>
 
         <rect x="445" y="115" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="445" y="115" width="135" height="60" rx="6" class="c-security" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="445" y="115" width="135" height="60" rx="6" class="c-security" data-animate="node" data-node-id="auth" style="--step:2" stroke-width="1.5"/>
         <text x="512.5" y="143" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Voyager Auth</text>
         <text x="512.5" y="159" class="t-muted" font-size="9" text-anchor="middle">owner + tenant</text>
 
         <rect x="445" y="305" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="445" y="305" width="135" height="60" rx="6" class="c-backend" data-animate="node" style="--step:2" stroke-width="1.5"/>
+        <rect x="445" y="305" width="135" height="60" rx="6" class="c-backend" data-animate="node" data-node-id="api" style="--step:2" stroke-width="1.5"/>
         <text x="512.5" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Research API</text>
         <text x="512.5" y="349" class="t-muted" font-size="9" text-anchor="middle">/api/v1</text>
 
         <rect x="225" y="465" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="225" y="465" width="135" height="60" rx="6" class="c-messagebus" data-animate="node" style="--step:8" stroke-width="1.5"/>
+        <rect x="225" y="465" width="135" height="60" rx="6" class="c-messagebus" data-animate="node" data-node-id="sse" style="--step:8" stroke-width="1.5"/>
         <text x="292.5" y="493" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">SSE Event Stream</text>
         <text x="292.5" y="509" class="t-muted" font-size="9" text-anchor="middle">revision signals</text>
 
         <rect x="650" y="305" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="305" width="135" height="60" rx="6" class="c-messagebus" data-animate="node" style="--step:4" stroke-width="1.5"/>
+        <rect x="650" y="305" width="135" height="60" rx="6" class="c-messagebus" data-animate="node" data-node-id="queue" style="--step:4" stroke-width="1.5"/>
         <text x="717.5" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Attempt Queue</text>
         <text x="717.5" y="349" class="t-muted" font-size="9" text-anchor="middle">async execution</text>
 
         <rect x="860" y="305" width="140" height="60" rx="6" class="c-mask"/>
-        <rect x="860" y="305" width="140" height="60" rx="6" class="c-backend" data-animate="node" style="--step:5" stroke-width="1.5"/>
+        <rect x="860" y="305" width="140" height="60" rx="6" class="c-backend" data-animate="node" data-node-id="worker" style="--step:5" stroke-width="1.5"/>
         <text x="930" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Research Worker</text>
         <text x="930" y="349" class="t-muted" font-size="9" text-anchor="middle">five pillars</text>
 
         <rect x="650" y="465" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="465" width="135" height="60" rx="6" class="c-database" data-animate="node" style="--step:6" stroke-width="1.5"/>
+        <rect x="650" y="465" width="135" height="60" rx="6" class="c-database" data-animate="node" data-node-id="db" style="--step:6" stroke-width="1.5"/>
         <text x="717.5" y="493" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Session DB</text>
         <text x="717.5" y="509" class="t-muted" font-size="9" text-anchor="middle">system of record</text>
 
         <rect x="860" y="465" width="140" height="60" rx="6" class="c-mask"/>
-        <rect x="860" y="465" width="140" height="60" rx="6" class="c-database" data-animate="node" style="--step:10" stroke-width="1.5"/>
+        <rect x="860" y="465" width="140" height="60" rx="6" class="c-database" data-animate="node" data-node-id="cache" style="--step:10" stroke-width="1.5"/>
         <text x="930" y="493" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Provider Cache</text>
         <text x="930" y="509" class="t-muted" font-size="9" text-anchor="middle">stale-if-error</text>
 
         <rect x="650" y="615" width="135" height="60" rx="6" class="c-mask"/>
-        <rect x="650" y="615" width="135" height="60" rx="6" class="c-cloud" data-animate="node" style="--step:11" stroke-width="1.5"/>
+        <rect x="650" y="615" width="135" height="60" rx="6" class="c-cloud" data-animate="node" data-node-id="snapshots" style="--step:11" stroke-width="1.5"/>
         <text x="717.5" y="643" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Raw Snapshots</text>
         <text x="717.5" y="659" class="t-muted" font-size="9" text-anchor="middle">encrypted objects</text>
 
         <rect x="860" y="115" width="140" height="60" rx="6" class="c-mask"/>
-        <rect x="860" y="115" width="140" height="60" rx="6" class="c-security" data-animate="node" style="--step:11" stroke-width="1.5"/>
+        <rect x="860" y="115" width="140" height="60" rx="6" class="c-security" data-animate="node" data-node-id="secrets" style="--step:11" stroke-width="1.5"/>
         <text x="930" y="143" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Secret Manager</text>
         <text x="930" y="159" class="t-muted" font-size="9" text-anchor="middle">SECTORS_API_KEY</text>
 
         <rect x="1040" y="305" width="100" height="60" rx="6" class="c-mask"/>
-        <rect x="1040" y="305" width="100" height="60" rx="6" class="c-external" data-animate="node" style="--step:13" stroke-width="1.5"/>
+        <rect x="1040" y="305" width="100" height="60" rx="6" class="c-external" data-animate="node" data-node-id="sectors" style="--step:13" stroke-width="1.5"/>
         <text x="1090" y="333" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Sectors API</text>
         <text x="1090" y="349" class="t-muted" font-size="9" text-anchor="middle">sectors.app/v1</text>
 
@@ -1290,25 +1299,56 @@
     (function () {
       var svg = document.querySelector('svg[data-animation="trace"]');
       if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.from(svg.querySelectorAll('[data-animate]'));
-      var maxStep = items.reduce(function (max, item) {
-        var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
-        return Number.isFinite(value) ? Math.max(max, value) : max;
-      }, 0);
-      var cycleMs = maxStep * 820 + 3600;
-      var timer;
-      function play() {
-        window.clearTimeout(timer);
-        svg.classList.remove('voyager-flow-playing');
-        void svg.getBoundingClientRect();
-        svg.classList.add('voyager-flow-playing');
-        timer = window.setTimeout(play, cycleMs);
+      var nodes = Array.from(svg.querySelectorAll('[data-animate="node"]'));
+      var edges = Array.from(svg.querySelectorAll('[data-animate="edge"]'));
+      var steps = Array.from(new Set(edges.map(function (edge) {
+        return Number.parseInt(edge.style.getPropertyValue('--step'), 10);
+      }).filter(Number.isFinite))).sort(function (a, b) { return a - b; });
+      var timers = [];
+      var cursor = 0;
+      function clearTimers() {
+        timers.forEach(window.clearTimeout);
+        timers = [];
+      }
+      function clearActive() {
+        nodes.forEach(function (node) { node.classList.remove('voyager-source-active', 'voyager-target-active'); });
+        edges.forEach(function (edge) { edge.classList.remove('voyager-edge-active'); });
+      }
+      function nodesById(ids) {
+        return nodes.filter(function (node) { return ids.has(node.dataset.nodeId); });
+      }
+      function playStep() {
+        clearTimers();
+        clearActive();
+        var step = steps[cursor];
+        var activeEdges = edges.filter(function (edge) {
+          return Number.parseInt(edge.style.getPropertyValue('--step'), 10) === step;
+        });
+        var sourceIds = new Set(activeEdges.map(function (edge) { return edge.dataset.from; }));
+        var targetIds = new Set(activeEdges.map(function (edge) { return edge.dataset.to; }));
+        nodesById(sourceIds).forEach(function (node) { node.classList.add('voyager-source-active'); });
+        timers.push(window.setTimeout(function () {
+          activeEdges.forEach(function (edge) { edge.classList.add('voyager-edge-active'); });
+        }, 280));
+        timers.push(window.setTimeout(function () {
+          nodesById(targetIds).forEach(function (node) { node.classList.add('voyager-target-active'); });
+        }, 760));
+        timers.push(window.setTimeout(function () {
+          cursor = (cursor + 1) % steps.length;
+          if (cursor === 0) timers.push(window.setTimeout(playStep, 1100));
+          else playStep();
+        }, 1550));
       }
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) window.clearTimeout(timer);
-        else play();
+        if (document.hidden) { clearTimers(); clearActive(); }
+        else { cursor = 0; playStep(); }
       });
-      play();
+      document.addEventListener('voyager-flow-restart', function () {
+        cursor = 0;
+        playStep();
+      });
+      svg.classList.add('voyager-flow-playing');
+      playStep();
     })();
   </script>
   <!-- End Voyager narrative flow controller. -->
