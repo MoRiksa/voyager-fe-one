@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const directory = new URL('../arsitektural/diagrams/', import.meta.url)
-const specsDirectory = new URL('../arsitektural/specs/', import.meta.url)
+const directoryPath = fileURLToPath(new URL('../arsitektural/diagrams/', import.meta.url))
+const specsDirectoryPath = fileURLToPath(new URL('../arsitektural/specs/', import.meta.url))
 const oldStart = '    /* Voyager node interaction: idle by default, active on pointer only. */'
 const oldEnd = '    /* End Voyager node interaction. */'
 const markerStart = '    /* Voyager narrative flow: activate nodes and edges in step order. */'
@@ -127,8 +128,8 @@ const controller = `${scriptStart}
 ${scriptEnd}`
 
 let updated = 0
-for (const file of readdirSync(directory).filter(file => file.endsWith('.html'))) {
-  const path = join(directory.pathname, file)
+for (const file of readdirSync(directoryPath).filter(file => file.endsWith('.html'))) {
+  const path = join(directoryPath, file)
   let output = readFileSync(path, 'utf8')
   const oldBlock = new RegExp(`${escapePattern(oldStart)}[\\s\\S]*?${escapePattern(oldEnd)}\\n?`)
   const styleBlock = new RegExp(`${escapePattern(markerStart)}[\\s\\S]*?${escapePattern(markerEnd)}`)
@@ -141,9 +142,9 @@ for (const file of readdirSync(directory).filter(file => file.endsWith('.html'))
     ? output.replace(scriptBlock, controller)
     : output.replace('</body>', `${controller}\n</body>`)
 
-  const specFile = readdirSync(specsDirectory).find(candidate => candidate.startsWith(`${file.slice(0, -5)}.`) && candidate.endsWith('.json'))
+  const specFile = readdirSync(specsDirectoryPath).find(candidate => candidate.startsWith(`${file.slice(0, -5)}.`) && candidate.endsWith('.json'))
   if (specFile) {
-    const spec = JSON.parse(readFileSync(join(specsDirectory.pathname, specFile), 'utf8'))
+    const spec = JSON.parse(readFileSync(join(specsDirectoryPath, specFile), 'utf8'))
     const nodes = spec.nodes || spec.components || spec.participants || spec.states || []
     const edges = spec.edges || spec.connections || spec.flows || spec.messages || spec.transitions || []
     let relationIndex = 0
