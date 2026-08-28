@@ -5,10 +5,10 @@
 | Field | Value |
 | --- | --- |
 | Document type | Product UX direction and implementation specification |
-| Status | Proposed evolution |
+| Status | Frontend fixture evolution completed; live integration pending |
 | Scope | UI/UX, mobile readiness, accessibility, page functionality, and copywriting |
 | Product | Voyager One |
-| Last updated | 2026-08-27 |
+| Last updated | 2026-08-28 |
 
 This document defines the next evolution of Voyager One from a polished dashboard prototype into a professional, accessible, and mobile-ready financial research workspace.
 
@@ -1297,27 +1297,27 @@ Every data-driven page should define these states where applicable:
 - [ ] Tables have captions and header scope.
 - [ ] Tabs, filters, and accordions expose selected or expanded state.
 - [ ] Essential text meets WCAG AA contrast.
-- [ ] Reduced-motion preference is respected.
+- [x] Reduced-motion preference is respected.
 - [ ] Browser zoom at 200% does not hide content or actions.
 
 ### Page functionality
 
-- [ ] Candidate detail opens consistently from dashboard, screener, peers, and report.
-- [ ] Screener stages explain retained and excluded results.
-- [ ] Peer comparison supports an understandable two-company mobile view.
-- [ ] Activity presents plain-language events before technical payloads.
-- [ ] Methodology explains interpretation, calculation, adjustments, and limitations.
-- [ ] Report sections are navigable and exports have success and error feedback.
+- [x] Candidate detail opens consistently from dashboard, screener, peers, and report.
+- [x] Screener stages explain retained and excluded results.
+- [x] Peer comparison supports an understandable two-company mobile view.
+- [x] Activity presents plain-language events before technical payloads.
+- [x] Methodology explains interpretation, calculation, adjustments, and limitations.
+- [x] Report sections are navigable and exports have success and error feedback.
 
 ### Copywriting
 
-- [ ] One primary interface language is used consistently.
-- [ ] Primary headings describe user tasks or results.
-- [ ] Internal architecture terms are removed from primary user flows.
-- [ ] Findings use conclusion, reason, evidence, and risk structure.
-- [ ] Status and errors explain what happened and what the user can do next.
-- [ ] Confidence language does not imply unexplained precision.
-- [ ] Financial content remains informational and avoids recommendation language.
+- [x] One primary interface language is used consistently.
+- [x] Primary headings describe user tasks or results.
+- [x] Internal architecture terms are removed from primary user flows.
+- [x] Findings use conclusion, reason, evidence, and risk structure.
+- [x] Status and errors explain what happened and what the user can do next.
+- [x] Confidence language does not imply unexplained precision.
+- [x] Financial content remains informational and avoids recommendation language.
 
 ---
 
@@ -1349,14 +1349,14 @@ The final experience should feel like a focused financial research product, not 
 
 ### Current State
 
-The scoring system uses a 5-factor formula with static fixture data:
+UI mendokumentasikan formula lima faktor berikut sebagai metodologi target:
 
 ```
 Quality Score = (0.25 × Profitability) + (0.25 × Growth) + (0.20 × Solvency) 
               + (0.20 × Valuation) + (0.10 × Consistency)
 ```
 
-**Current Accuracy Assessment: 7/10**
+Frontend saat ini tidak menghitung ulang formula tersebut. `qualityScore` dan breakdown setiap faktor adalah nilai fixture tersimpan yang dipakai untuk ranking deterministik dan presentasi. Akurasi prediktif atau analitisnya belum ditetapkan melalui benchmark, backtest, rekonsiliasi, atau validasi independen; belum ada dasar untuk menyatakan rating akurasi numerik.
 
 ### Known Limitations
 
@@ -1387,7 +1387,7 @@ These disclaimers should appear in the UI:
 With Sectors API integration, the scoring can be enhanced to:
 
 ```typescript
-// Enhanced 8-factor formula (target accuracy: 9/10)
+// Formula delapan faktor yang diusulkan untuk divalidasi setelah integrasi API.
 const enhancedScore = 
   (0.20 * profitability) +    // ROE, ROA vs sector median
   (0.20 * growth) +           // Validated CAGR from quarterly data
@@ -1445,3 +1445,51 @@ asOf: '2026-08-27'
 ```
 
 This ensures auditability and user trust in the presented data.
+
+---
+
+## 30. Status Penyelesaian Frontend Fixture
+
+### Konteks penyelesaian
+
+Cakupan frontend fixture selesai pada 2026-08-28 dalam konteks kerja commit `a5891f4` (`feat(frontend): complete end-to-end research experience`). Status ini mencatat perilaku yang tersedia di repository pada konteks tersebut, bukan klaim kesiapan data produksi.
+
+### Matriks cakupan selesai
+
+| Area | Cakupan frontend yang selesai |
+| --- | --- |
+| Entri dan brief | Validasi tujuan, preview aturan deterministik, universe fixture aktual, template, fallback aturan khusus, `ResearchBrief` terstruktur, dan dimensi opsional |
+| Siklus sesi | Pembuatan, progress simulasi, gating hasil, penyelesaian, pembatalan, state parsial, kontrak kegagalan, retry, klarifikasi, pemulihan refresh, dan perpindahan sesi |
+| Hasil | Keanggotaan tahap, perusahaan lolos dan tidak lolos, ranking kandidat, peer comparison responsif, dossier perusahaan, metodologi, glossary, dan alur laporan |
+| Pustaka | Maksimum lima sesi lokal, pencarian, filter status, buka ulang, duplikasi ke draft, konfirmasi penghapusan, dan tautan langsung ke hasil |
+| Kepercayaan dan ekspor | Aktivitas sebelum trace teknis, payload audit fixture, provenance data, keterbatasan, print, ekspor Markdown, dan ekspor JSON |
+| Akses responsif | Sidebar desktop, navigasi dalam konteks sesi, navigasi bawah mobile, menu landscape, kartu hasil mobile, dan state halaman tidak ditemukan |
+
+### Kontrak state
+
+`ResearchBrief`, tujuan, preset, rencana, pillars, event audit, keanggotaan funnel, kandidat, laporan, dan state kembali dari klarifikasi disimpan per sesi dalam skema `localStorage` versi 2. Siklus yang didukung mencakup `IDLE`, tahap eksekusi simulasi, `NEEDS_INPUT`, `PARTIAL`, `CANCELLED`, `COMPLETED`, dan `FAILED`. Kandidat final serta laporan tetap tersembunyi sampai selesai; artefak parsial dapat diperiksa hanya bila tersedia. Sesi cancelled, partial, dan failed menyediakan retry, sedangkan klarifikasi mengembalikan state recoverable sebelumnya setelah submit atau reload.
+
+### Provenance dan data kondisional
+
+Semua event screening saat ini mengidentifikasi `prototype-fixture-v1` atau input pengguna. Catatan audit fixture memakai durasi terukur nol dan biaya kredit nol serta tidak merepresentasikan invocation Sectors API. Keanggotaan funnel, kandidat, peer comparison, dan output laporan memakai hasil sesi yang sama. Tampilan berbasis data mengungkap sumber serta periode atau timestamp yang tersedia.
+
+Field presentasi perusahaan untuk listing performance, estimasi forward, segmen, ESG, kepemilikan dan manajemen, riwayat dividen, serta tren bersifat opsional. Halaman merender field hanya saat tersedia dan memberikan state tidak tersedia secara eksplisit bila tidak ada; memilih dimensi brief opsional tidak menyiratkan ketersediaan data atau mengubah aturan screening fixture.
+
+### Interpretasi skor
+
+Formula lima faktor berbobot tetap merupakan metodologi target untuk penjelasan. Nilai `qualityScore` dan breakdown faktor saat ini tersimpan dalam fixture delapan perusahaan dan tidak dihitung frontend dari laporan live. Skor tersimpan maupun model delapan faktor usulan belum memiliki rating akurasi yang tervalidasi; validasi membutuhkan ground truth terdefinisi, rekonsiliasi, dan backtest yang sesuai setelah integrasi data live.
+
+### Cakupan aksesibilitas
+
+Cakupan implementasi meliputi skip navigation, landmark, label navigasi, state rute aktif, error form terasosiasi, feedback status live, caption dan scope tabel, state toggle dan expandable yang aksesibel, target sentuh responsif, reduced motion, serta dialog bernama dengan isolasi background, focus containment, Escape, dan focus return. Tes interaksi otomatis memeriksa perilaku keyboard dialog dan navigasi mobile. Pengujian formal dengan teknologi asistif, validasi zoom 200% pada seluruh halaman, dan visual QA produksi tetap menjadi aktivitas validasi terpisah.
+
+### Cakupan tes
+
+- `npm run build` memvalidasi TypeScript dan bundle produksi.
+- `npm run test:smoke` memeriksa 19 rute aplikasi serta konten render yang diharapkan ketika Chrome atau Chromium tersedia.
+- `npm run test:interaction` mencakup persistence brief, gating hasil, pembatalan dan retry, pemulihan klarifikasi setelah reload, invariant screening, provenance, peer controls, perilaku responsif, keyboard dialog, navigasi dan ekspor laporan, glossary, persistence pustaka, serta penghapusan.
+- Pemeriksaan yang bergantung pada browser dilewati ketika Chrome atau Chromium tidak terpasang; kondisi ini tidak setara dengan browser test yang lulus.
+
+### Batas tersisa
+
+Batas produk yang tersisa hanya integrasi backend/API live dan visual QA produksi. Pekerjaan produksi harus mengganti filter fixture serta simulasi waktu dengan eksekusi API terautentikasi, penyimpanan server yang durable, universe dan data finansial live, perhitungan skor tervalidasi, provenance dan pencatatan kuota nyata, serta semantik error backend sambil mempertahankan kontrak brief, state, hasil atomik, pemulihan, dan aksesibilitas yang sudah terbentuk. Visual QA produksi harus mencakup browser dan perangkat yang didukung, zoom 200%, screen reader, kontras, serta perilaku final untuk kepadatan data.

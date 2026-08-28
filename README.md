@@ -1,64 +1,79 @@
-# Voyager One — Autonomous Financial Research Agent
-> **Sectors Hackathon 2026** • Track: AI Agents & Assistants • Derived Intelligence Engine
+# Voyager One
 
-Voyager One is an autonomous financial research agent and analytical workspace built for the Indonesian capital markets (IDX). It transforms high-level investment objectives into multi-stage execution DAGs, performs universe screening across 900+ listed equities, calculates proprietary 5-factor quality scores and 3-stage DuPont decompositions, and produces explainable institutional research dossiers.
+Voyager One adalah workspace riset finansial Vue untuk mendemonstrasikan alur riset IDX secara end-to-end di frontend. Implementasi saat ini siap digunakan untuk pengujian alur produk dengan data fixture lokal, bukan untuk analisis pasar produksi.
 
----
+## Status saat ini
 
-## 🏛️ The 5 Core Pillars Architecture
+- Alur frontend lengkap: membuat brief, menjalankan simulasi, memantau sesi, meninjau funnel, membandingkan kandidat, membuka analisis perusahaan, memeriksa aktivitas dan audit, serta mengekspor laporan.
+- Dataset `prototype-fixture-v1` berisi delapan perusahaan: BBCA, BMRI, ICBP, UNTR, AMRT, BBRI, TLKM, dan ASII.
+- Penyaringan deterministik hanya memakai field yang tersedia pada fixture. Keanggotaan simbol pada setiap tahap menjadi sumber yang sama untuk kandidat, perbandingan, audit, dan laporan.
+- `ResearchBrief`, status, artefak, klarifikasi, dan maksimum lima sesi terakhir disimpan di `localStorage` dengan kontrak penyimpanan versi 2.
+- Skor kualitas dan breakdown faktor adalah nilai yang tersimpan pada fixture. Frontend tidak menghitung skor pasar langsung, tidak memanggil Sectors API, dan tidak mengukur kuota, kredit, atau latensi nyata.
 
-1. **Pillar 1: Research Planner**: Translates user objectives into structured execution plans and tool orchestration.
-2. **Pillar 2: Autonomous Screener**: Corong multi-tahap mempersempit semesta saham ($914 \rightarrow 284 \rightarrow 68 \rightarrow 18 \rightarrow 5$) secara terukur.
-3. **Pillar 3: Deep Research Engine**: Dekonstruksi finansial mendalam (3-Stage DuPont ROE Decomposition, Solvency Stress Checks, FCF Yields).
-4. **Pillar 4: Memory & State (Observability)**: Audit trail lengkap dari setiap invocation Sectors API dan monitoring kuota credits.
-5. **Pillar 5: Final Research Report**: Sintesis bukti empiris, rasionalitas pemilihan saham, mitigasi risiko, serta batas ketidakpastian (*Limitations & Uncertainty*).
+## Alur dan pemulihan
 
----
+Kontrak status mencakup `IDLE`, tahap eksekusi simulasi, `NEEDS_INPUT`, `PARTIAL`, `CANCELLED`, `COMPLETED`, dan `FAILED`. Kandidat, funnel akhir, dan laporan baru terlihat setelah sesi selesai; hasil parsial hanya ditampilkan bila artefaknya memang tersedia.
 
-## 🎨 Design Philosophy & UI/UX Standards
+Sesi yang dibatalkan, parsial, atau gagal dapat dijalankan ulang. Klarifikasi, brief, dan hasil yang sudah tersimpan dipulihkan setelah refresh. Berpindah sesi saat simulasi berjalan menghentikan eksekusi lama dan mempertahankannya sebagai hasil parsial.
 
-* **Color Palette**: Pure White Base (`#FFFFFF`) with official **Pantone 660 C** (`#407EC9` / `#2F64A8`) primary brand accent.
-* **Zero Emojis**: 100% Crisp SVG vector icons powered by `lucide-vue-next`.
-* **Anti-AI-Slop**: Estetika presisi FinTech institusional tanpa gradien liar.
-* **UI/UX Laws**: Penerapan Hick's Law, Fitts's Law, Miller's Law, dan Jakob's Law pada seluruh tampilan metrik finansial.
+## Rute dan fitur
 
----
+| Rute | Fungsi |
+| --- | --- |
+| `/` | Ringkasan dan titik masuk riset |
+| `/research` | Pustaka sesi: cari, filter, buka, duplikasi, dan hapus |
+| `/research/new` | Brief, template aturan, universe aktual, dan validasi tujuan |
+| `/research/:id` | Status, progress, brief tersimpan, pemulihan, dan langkah berikutnya |
+| `/research/:id/screener` | Tahap, simbol lolos/tidak lolos, alasan, dan pengurutan |
+| `/research/:id/peers` | Pilihan kandidat, kelompok metrik, pengurutan, dan tampilan relatif bila valid |
+| `/research/:id/company/:symbol` | Dossier, DuPont fixture, bukti, serta data opsional atau empty state |
+| `/research/:id/activity` | Aktivitas sesi dalam bahasa pengguna |
+| `/research/:id/trace` | Payload audit fixture dan metadata teknis |
+| `/research/:id/report` | Bagian laporan dan ekspor print, Markdown, atau JSON |
+| `/methodology` dan `/glossary` | Interpretasi metode dan istilah finansial |
 
-## 🛠️ Tech Stack
+Rute global kompatibel juga tersedia untuk screener, peers, company, activity, trace, dan report. Rute tidak dikenal menampilkan halaman 404.
 
-* **Framework**: Vue 3 (Composition API + `<script setup lang="ts">`)
-* **Build Tool**: Vite 6
-* **Language**: TypeScript (Strict mode)
-* **Styling**: Tailwind CSS v4
-* **State Management**: Pinia
-* **Routing**: Vue Router 4
-* **Icons**: Lucide Vue Next
+## Provenance dan data opsional
 
----
+Komponen data menampilkan sumber, periode finansial, tanggal harga, dan waktu laporan bila tersedia. Audit fixture mencatat input, kriteria, dan simbol yang dipertahankan dengan `durationMs: 0` dan `creditCost: 0`; event tersebut bukan invocation Sectors API.
 
-## 🚀 Getting Started
+Data lanjutan seperti performa harga, estimasi forward, segmen, ESG, kepemilikan, dividen, dan tren bersifat kondisional per perusahaan. UI menampilkan empty state dan keterbatasan saat field tidak tersedia. Ekspor JSON menyatukan laporan, funnel, audit, dan identitas dataset untuk penelusuran.
 
-### 1. Install Dependencies
+## Aksesibilitas
+
+- Navigasi desktop dan mobile, skip link, landmark utama, `aria-current`, status live, label form, serta error terasosiasi.
+- Dialog mengelola penamaan, isolasi background, focus trap, Escape, dan focus return.
+- Tabel memakai caption dan header scope; toggle dan bagian expandable mengekspos state yang sesuai.
+- Target sentuh utama minimal 44 piksel, tampilan hasil responsif, dan `prefers-reduced-motion` dihormati.
+
+Target produk adalah WCAG 2.2 AA. Audit screen reader formal dan validasi visual produksi pada seluruh kombinasi perangkat masih berada di luar cakupan fixture frontend saat ini.
+
+## Menjalankan proyek
+
+Prasyarat: Node.js yang kompatibel dengan Vite 8 dan npm.
+
 ```bash
 npm install
-```
-
-### 2. Run Development Server
-```bash
 npm run dev
 ```
 
-### 3. Build for Production
+Perintah verifikasi:
+
 ```bash
 npm run build
+npm run test:smoke
+npm run test:interaction
 ```
 
----
+`test:smoke` memeriksa 19 rute dan render utama bila Chrome atau Chromium tersedia. `test:interaction` mencakup brief dan persistence, gating hasil, pembatalan dan retry, pemulihan klarifikasi, funnel, provenance, peer controls, dialog keyboard, navigasi mobile, ekspor, pustaka, dan penghapusan; tes ini dilewati bila Chrome atau Chromium tidak terpasang.
 
-## 🌐 Deployment on Vercel
+Preview build lokal:
 
-This frontend is configured for zero-config automatic deployment on [Vercel](https://vercel.com):
-* **Framework Preset**: Vite
-* **Build Command**: `npm run build`
-* **Output Directory**: `dist`
-* **Install Command**: `npm install`
+```bash
+npm run preview
+```
+
+## Batas produksi
+
+Frontend fixture tidak mencakup universe 900+ emiten, data live, normalisasi sektor terverifikasi, perhitungan skor dari laporan keuangan, invocation audit Sectors API, latensi terukur, autentikasi, database server, atau kuota nyata. Integrasi backend/API harus mengganti sumber fixture dan simulasi eksekusi sambil mempertahankan kontrak `ResearchBrief`, status, provenance, hasil atomik, serta state error dan pemulihan yang sudah digunakan UI.
