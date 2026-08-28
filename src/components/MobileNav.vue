@@ -143,7 +143,7 @@ onBeforeUnmount(() => setBackgroundInert(false))
         class="flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold"
         :class="moreIsActive || isMoreOpen ? 'text-[#2F64A8]' : 'text-slate-500'"
         :aria-expanded="isMoreOpen"
-        aria-controls="mobile-more-menu"
+        :aria-controls="isMoreOpen ? 'mobile-more-menu' : undefined"
         @click="isMoreOpen = !isMoreOpen"
       >
         <Menu class="h-5 w-5" />

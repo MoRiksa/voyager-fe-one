@@ -95,7 +95,7 @@ const submit = async () => {
             data-testid="research-objective"
             v-model="objective"
             rows="5"
-            aria-describedby="objective-help objective-error"
+            :aria-describedby="error ? 'objective-help objective-error' : 'objective-help'"
             :aria-invalid="Boolean(error)"
             class="mt-4 w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 focus:border-[#2F64A8]"
             placeholder="Contoh: Temukan lima perusahaan consumer Indonesia dengan pertumbuhan laba konsisten, neraca sehat, dan valuasi di bawah median sektornya."

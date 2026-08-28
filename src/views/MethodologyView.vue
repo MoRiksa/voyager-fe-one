@@ -122,33 +122,33 @@ const store = useResearchStore()
 
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Tanpa normalisasi sektor</h4>
+          <h3 class="text-xs font-bold text-amber-900">Tanpa normalisasi sektor</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">ROE 20% di sektor perbankan dan retail diperlakukan sama, padahal benchmark sektor berbeda. Skor seharusnya relatif terhadap median sektor.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Tanpa momentum harga</h4>
+          <h3 class="text-xs font-bold text-amber-900">Tanpa momentum harga</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">Skor hanya berdasarkan fundamental historis. Pergerakan harga 30, 90, dan 365 hari belum diperhitungkan.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Tanpa data forward-looking</h4>
+          <h3 class="text-xs font-bold text-amber-900">Tanpa data forward-looking</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">Estimasi analis dan forward P/E belum tersedia. Skor hanya mencerminkan kinerja masa lalu.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Konsistensi tanpa validasi</h4>
+          <h3 class="text-xs font-bold text-amber-900">Konsistensi tanpa validasi</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">Skor konsistensi 80-99 belum divalidasi dari data kuartalan historis yang sebenarnya.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Tanpa filter likuiditas</h4>
+          <h3 class="text-xs font-bold text-amber-900">Tanpa filter likuiditas</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">Belum ada filter berdasarkan keanggotaan indeks atau volume perdagangan rata-rata.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h4 class="text-xs font-bold text-amber-900">Valuasi absolut</h4>
+          <h3 class="text-xs font-bold text-amber-900">Valuasi absolut</h3>
           <p class="mt-1 text-xs leading-5 text-amber-800">P/E dibandingkan dengan threshold tetap, bukan median sektor yang lebih relevan.</p>
         </div>
       </div>
 
       <div class="rounded-xl bg-blue-50 border border-blue-200 p-4">
-        <h4 class="text-xs font-bold text-blue-900">Rencana peningkatan</h4>
+        <h3 class="text-xs font-bold text-blue-900">Rencana peningkatan</h3>
         <p class="mt-1 text-xs leading-5 text-blue-800">Data yang lebih lengkap dapat menambahkan perbandingan sektor, momentum harga, histori kuartalan, keanggotaan indeks, dan estimasi ke depan. Kualitas model harus diukur melalui metode validasi yang terdokumentasi, bukan skor akurasi subjektif.</p>
       </div>
     </div>
@@ -162,15 +162,15 @@ const store = useResearchStore()
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">1. Net profit margin</h4>
+          <h3 class="text-xs font-bold text-slate-900 uppercase font-mono">1. Net profit margin</h3>
           <p class="text-xs text-slate-500 mt-1">Laba bersih ÷ pendapatan. Menggambarkan profitabilitas dan efisiensi biaya.</p>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">2. Asset turnover</h4>
+          <h3 class="text-xs font-bold text-slate-900 uppercase font-mono">2. Asset turnover</h3>
           <p class="text-xs text-slate-500 mt-1">Pendapatan ÷ total aset. Menggambarkan efisiensi penggunaan aset.</p>
         </div>
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <h4 class="text-xs font-bold text-slate-900 uppercase font-mono">3. Leverage finansial</h4>
+          <h3 class="text-xs font-bold text-slate-900 uppercase font-mono">3. Leverage finansial</h3>
           <p class="text-xs text-slate-500 mt-1">Total aset ÷ ekuitas. Menggambarkan seberapa besar aset didukung oleh modal sendiri.</p>
         </div>
       </div>
@@ -220,12 +220,12 @@ const store = useResearchStore()
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h4 class="text-xs font-bold text-slate-900">Perusahaan dalam fixture</h4>
+          <h3 class="text-xs font-bold text-slate-900">Perusahaan dalam fixture</h3>
           <p class="mt-2 font-mono text-xs text-slate-600">BBCA, BMRI, BBRI, ICBP, UNTR, AMRT, ASII, TLKM</p>
           <p class="mt-2 text-xs text-slate-500">Tiga sektor: Commercial Banks, Consumer Goods, dan Diversified.</p>
         </div>
         <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h4 class="text-xs font-bold text-slate-900">Format sitasi bukti</h4>
+          <h3 class="text-xs font-bold text-slate-900">Format sitasi bukti</h3>
           <p class="mt-2 text-xs text-slate-600">Setiap metrik menyertakan sumber dan konteks. Mode demonstrasi menggunakan format:</p>
           <p class="mt-2 font-mono text-[11px] text-slate-500 bg-white rounded px-2 py-1 border border-slate-200">source: 'Prototype fixture: /companies/[TICKER]/financials'</p>
         </div>
