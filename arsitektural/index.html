@@ -544,7 +544,7 @@
               <div class="loading-bar"></div>
             </div>
           </div>
-          <iframe id="diagram-frame" title="Activity Diagram Voyager One" src="diagrams/activity.html"></iframe>
+          <iframe id="diagram-frame" title="Activity Diagram Voyager One" src="diagrams/activity.html?theme=dark"></iframe>
         </div>
       </section>
     </main>
@@ -604,6 +604,9 @@
       try {
         if (frame.contentWindow) {
           frame.contentWindow.postMessage({ type: 'voyager-theme-sync', theme: currentTheme }, '*');
+        }
+        if (frame.contentDocument && frame.contentDocument.documentElement) {
+          frame.contentDocument.documentElement.setAttribute('data-theme', currentTheme);
         }
       } catch (_) {}
     }
