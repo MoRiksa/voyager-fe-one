@@ -70,7 +70,7 @@ const styles = `${markerStart}
     html.is-embedded body,
     body.is-embedded {
       padding: 0.75rem 1.25rem 2rem !important;
-      background: transparent !important;
+      background: var(--bg) !important;
     }
     body.is-embedded .header,
     body.is-embedded .toolbar {
