@@ -539,29 +539,19 @@
       filter: drop-shadow(0 0 6px currentColor) !important;
     }
     /* Embedded view optimizations inside Atlas Hub */
-    html.is-embedded,
     html.is-embedded body,
     body.is-embedded {
-      height: 100% !important;
-      min-height: 100% !important;
       margin: 0 !important;
-      padding: 1.25rem 1.5rem !important;
+      padding: 1.5rem 1.75rem 2.5rem !important;
       background: var(--bg) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      overflow: hidden !important;
-      box-sizing: border-box !important;
+      overflow-y: auto !important;
+      overflow-x: auto !important;
     }
     body.is-embedded .container {
       width: 100% !important;
-      height: 100% !important;
-      max-width: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      margin: 0 !important;
+      max-width: 1100px !important;
+      margin: 0 auto !important;
+      display: block !important;
     }
     body.is-embedded .header,
     body.is-embedded .toolbar,
@@ -570,48 +560,20 @@
       display: none !important;
     }
     body.is-embedded .diagram-container {
-      width: 100% !important;
-      height: 100% !important;
       margin-top: 0 !important;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
       padding: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      overflow: hidden !important;
+      overflow: visible !important;
     }
     body.is-embedded svg {
-      width: auto !important;
-      height: 100% !important;
+      width: 100% !important;
       max-width: 100% !important;
-      max-height: 100% !important;
-      min-width: 0 !important;
+      height: auto !important;
+      min-width: 720px !important;
       display: block !important;
-      margin: auto !important;
-      object-fit: contain !important;
-    }
-    @media (max-width: 768px) {
-      html.is-embedded,
-      body.is-embedded {
-        overflow: auto !important;
-        display: block !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        padding: 1rem !important;
-      }
-      body.is-embedded .container,
-      body.is-embedded .diagram-container {
-        height: auto !important;
-        display: block !important;
-        overflow-x: auto !important;
-      }
-      body.is-embedded svg {
-        width: 100% !important;
-        height: auto !important;
-        min-width: 700px !important;
-      }
+      margin: 0 auto !important;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
@@ -674,7 +636,7 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container">
-      <svg viewBox="0 0 720 780" role="img" aria-label="Interaction Overview Diagram — Peta route dan interaksi utama dalam research workspace (workflow diagram)" data-animation="trace">
+      <svg viewBox="0 0 720 760" role="img" aria-label="Interaction Overview Diagram — Peta route dan interaksi utama dalam research workspace (workflow diagram)" data-animation="trace">
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -698,126 +660,123 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Swimlanes -->
-        <rect x="40" y="52" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / Discover</text>
+        <rect x="40" y="48" width="640" height="116" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="68" class="t-dim" font-size="10" font-weight="600">01 / Discover</text>
 
-        <rect x="40" y="176" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="54" y="198" class="t-dim" font-size="10" font-weight="600">02 / Execute</text>
+        <rect x="40" y="176" width="640" height="116" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="196" class="t-dim" font-size="10" font-weight="600">02 / Execute</text>
 
-        <rect x="40" y="300" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="54" y="322" class="t-dim" font-size="10" font-weight="600">03 / Analyze</text>
+        <rect x="40" y="304" width="640" height="116" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="324" class="t-dim" font-size="10" font-weight="600">03 / Analyze</text>
 
-        <rect x="40" y="424" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="54" y="446" class="t-dim" font-size="10" font-weight="600">04 / Evidence</text>
+        <rect x="40" y="432" width="640" height="116" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="452" class="t-dim" font-size="10" font-weight="600">04 / Evidence</text>
 
-        <rect x="40" y="548" width="640" height="104" rx="10" class="c-lane" stroke-width="1"/>
-        <rect x="46" y="554" width="628" height="92" rx="8" class="c-security-group" stroke-width="1"/>
-        <text x="54" y="570" class="t-security" font-size="10" font-weight="600">EX / Recovery</text>
+        <rect x="40" y="560" width="640" height="116" rx="10" class="c-lane" stroke-width="1"/>
+        <rect x="46" y="566" width="628" height="104" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="54" y="582" class="t-security" font-size="10" font-weight="600">EX / Recovery</text>
 
         <!-- Phase headers -->
-        <line x1="42" y1="35" x2="246" y2="35" class="a-default" stroke-width="1.1"/>
-        <rect x="42" y="27" width="204" height="16" rx="4" class="c-mask"/>
-        <text x="144" y="39" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">ENTRY</text>
-        <line x1="254" y1="35" x2="446" y2="35" class="a-emphasis" stroke-width="1.1"/>
-        <rect x="254" y="27" width="192" height="16" rx="4" class="c-mask"/>
-        <text x="350" y="39" class="t-backend" font-size="8" font-weight="600" text-anchor="middle">RESEARCH</text>
-        <line x1="454" y1="35" x2="546" y2="35" class="a-default" stroke-width="1.1"/>
-        <rect x="454" y="27" width="92" height="16" rx="4" class="c-mask"/>
-        <text x="500" y="39" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">DECIDE</text>
-
-        <!-- Workflow groups -->
-
+        <line x1="220" y1="31" x2="350" y2="31" class="a-default" stroke-width="1.1"/>
+        <rect x="220" y="23" width="130" height="16" rx="4" class="c-mask"/>
+        <text x="285" y="35" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">ENTRY</text>
+        <line x1="400" y1="31" x2="520" y2="31" class="a-emphasis" stroke-width="1.1"/>
+        <rect x="400" y="23" width="120" height="16" rx="4" class="c-mask"/>
+        <text x="460" y="35" class="t-backend" font-size="8" font-weight="600" text-anchor="middle">RESEARCH</text>
+        <line x1="570" y1="31" x2="640" y2="31" class="a-default" stroke-width="1.1"/>
+        <rect x="570" y="23" width="70" height="16" rx="4" class="c-mask"/>
+        <text x="605" y="35" class="t-muted" font-size="8" font-weight="600" text-anchor="middle">DECIDE</text>
 
         <!-- Edge paths -->
-        <path d="M 220 145 L 220 217" class="a-default" data-animate="edge" data-from="home" data-to="new" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path d="M 266 243 L 280 243" class="a-emphasis" data-animate="edge" data-from="new" data-to="session" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 318 277 L 318 341" class="a-emphasis" data-animate="edge" data-from="session" data-to="screener" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 356 367 L 380 367" class="a-default" data-animate="edge" data-from="screener" data-to="peers" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path d="M 450 367 L 474 367" class="a-default" data-animate="edge" data-from="peers" data-to="company" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <path d="M 510 393 L 510 465" class="a-emphasis" data-animate="edge" data-from="company" data-to="report" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 280 243 L 220 243 L 220 465" class="a-dashed" data-animate="edge" data-from="session" data-to="activity" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 356 380 L 415 380 L 415 465" class="a-security" data-animate="edge" data-from="screener" data-to="trace" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 318 277 L 318 315 L 140 315 L 140 615 L 276 615" class="a-security" data-animate="edge" data-from="session" data-to="clarify" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 450 380 L 590 380 L 590 615 L 552 615" class="a-security" data-animate="edge" data-from="peers" data-to="retry" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 220 140 L 220 212" class="a-default" data-animate="edge" data-from="home" data-to="new" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 266 240 L 280 240" class="a-emphasis" data-animate="edge" data-from="new" data-to="session" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 318 274 L 318 340" class="a-emphasis" data-animate="edge" data-from="session" data-to="screener" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 356 368 L 380 368" class="a-default" data-animate="edge" data-from="screener" data-to="peers" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 450 368 L 474 368" class="a-default" data-animate="edge" data-from="peers" data-to="company" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path d="M 510 396 L 510 468" class="a-emphasis" data-animate="edge" data-from="company" data-to="report" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path d="M 280 240 L 220 240 L 220 468" class="a-dashed" data-animate="edge" data-from="session" data-to="activity" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 356 380 L 415 380 L 415 468" class="a-security" data-animate="edge" data-from="screener" data-to="trace" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 318 274 L 318 310 L 140 310 L 140 624 L 276 624" class="a-security" data-animate="edge" data-from="session" data-to="clarify" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 450 380 L 590 380 L 590 624 L 552 624" class="a-security" data-animate="edge" data-from="peers" data-to="retry" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
 
         <!-- Nodes -->
-        <rect x="174" y="93" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="174" y="93" width="92" height="52" rx="6" class="c-frontend" data-animate="node" data-node-id="home" style="--step:0" stroke-width="1.5"/>
-        <text x="220" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Workspace</text>
-        <text x="220" y="131" class="t-muted" font-size="8" text-anchor="middle">/</text>
+        <rect x="174" y="84" width="92" height="56" rx="6" class="c-mask"/>
+        <rect x="174" y="84" width="92" height="56" rx="6" class="c-frontend" data-animate="node" data-node-id="home" style="--step:0" stroke-width="1.5"/>
+        <text x="220" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Workspace</text>
+        <text x="220" y="125" class="t-muted" font-size="8" text-anchor="middle">/</text>
 
-        <rect x="468" y="93" width="84" height="52" rx="6" class="c-mask"/>
-        <rect x="468" y="93" width="84" height="52" rx="6" class="c-database" data-animate="node" data-node-id="library" style="--step:8" stroke-width="1.5"/>
-        <text x="510" y="114" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Library</text>
-        <text x="510" y="131" class="t-muted" font-size="8" text-anchor="middle">/research</text>
+        <rect x="468" y="84" width="84" height="56" rx="6" class="c-mask"/>
+        <rect x="468" y="84" width="84" height="56" rx="6" class="c-database" data-animate="node" data-node-id="library" style="--step:8" stroke-width="1.5"/>
+        <text x="510" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Library</text>
+        <text x="510" y="125" class="t-muted" font-size="8" text-anchor="middle">/research</text>
 
-        <rect x="174" y="217" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="174" y="217" width="92" height="52" rx="6" class="c-frontend" data-animate="node" data-node-id="new" style="--step:1" stroke-width="1.5"/>
-        <text x="220" y="238" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">New</text>
-        <text x="220" y="255" class="t-muted" font-size="8" text-anchor="middle">/research/new</text>
+        <rect x="174" y="212" width="92" height="56" rx="6" class="c-mask"/>
+        <rect x="174" y="212" width="92" height="56" rx="6" class="c-frontend" data-animate="node" data-node-id="new" style="--step:1" stroke-width="1.5"/>
+        <text x="220" y="235" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">New</text>
+        <text x="220" y="253" class="t-muted" font-size="8" text-anchor="middle">/research/new</text>
 
-        <rect x="280" y="209" width="76" height="68" rx="6" class="c-mask"/>
-        <rect x="280" y="209" width="76" height="68" rx="6" class="c-messagebus" data-animate="node" data-node-id="session" style="--step:2" stroke-width="1.5"/>
-        <text x="318" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Session</text>
-        <text x="318" y="247" class="t-muted" font-size="8" text-anchor="middle">/:id</text>
-        <text x="318" y="265" class="t-messagebus" font-size="7" text-anchor="middle">SSE</text>
+        <rect x="280" y="206" width="76" height="68" rx="6" class="c-mask"/>
+        <rect x="280" y="206" width="76" height="68" rx="6" class="c-messagebus" data-animate="node" data-node-id="session" style="--step:2" stroke-width="1.5"/>
+        <text x="318" y="228" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Session</text>
+        <text x="318" y="245" class="t-muted" font-size="8" text-anchor="middle">/:id</text>
+        <text x="318" y="263" class="t-messagebus" font-size="7" text-anchor="middle">SSE</text>
 
-        <rect x="280" y="341" width="76" height="52" rx="6" class="c-mask"/>
-        <rect x="280" y="341" width="76" height="52" rx="6" class="c-backend" data-animate="node" data-node-id="screener" style="--step:3" stroke-width="1.5"/>
-        <text x="318" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Screener</text>
-        <text x="318" y="379" class="t-muted" font-size="8" text-anchor="middle">funnel</text>
+        <rect x="280" y="340" width="76" height="56" rx="6" class="c-mask"/>
+        <rect x="280" y="340" width="76" height="56" rx="6" class="c-backend" data-animate="node" data-node-id="screener" style="--step:3" stroke-width="1.5"/>
+        <text x="318" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Screener</text>
+        <text x="318" y="381" class="t-muted" font-size="8" text-anchor="middle">funnel</text>
 
-        <rect x="380" y="341" width="70" height="52" rx="6" class="c-mask"/>
-        <rect x="380" y="341" width="70" height="52" rx="6" class="c-backend" data-animate="node" data-node-id="peers" style="--step:4" stroke-width="1.5"/>
-        <text x="415" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Peers</text>
-        <text x="415" y="379" class="t-muted" font-size="8" text-anchor="middle">cohort</text>
+        <rect x="380" y="340" width="70" height="56" rx="6" class="c-mask"/>
+        <rect x="380" y="340" width="70" height="56" rx="6" class="c-backend" data-animate="node" data-node-id="peers" style="--step:4" stroke-width="1.5"/>
+        <text x="415" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Peers</text>
+        <text x="415" y="381" class="t-muted" font-size="8" text-anchor="middle">cohort</text>
 
-        <rect x="474" y="341" width="72" height="52" rx="6" class="c-mask"/>
-        <rect x="474" y="341" width="72" height="52" rx="6" class="c-frontend" data-animate="node" data-node-id="company" style="--step:5" stroke-width="1.5"/>
-        <text x="510" y="362" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Company</text>
-        <text x="510" y="379" class="t-muted" font-size="8" text-anchor="middle">dossier</text>
+        <rect x="474" y="340" width="72" height="56" rx="6" class="c-mask"/>
+        <rect x="474" y="340" width="72" height="56" rx="6" class="c-frontend" data-animate="node" data-node-id="company" style="--step:5" stroke-width="1.5"/>
+        <text x="510" y="363" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Company</text>
+        <text x="510" y="381" class="t-muted" font-size="8" text-anchor="middle">dossier</text>
 
-        <rect x="174" y="465" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="174" y="465" width="92" height="52" rx="6" class="c-messagebus" data-animate="node" data-node-id="activity" style="--step:3" stroke-width="1.5"/>
-        <text x="220" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Activity</text>
-        <text x="220" y="503" class="t-muted" font-size="8" text-anchor="middle">user-readable</text>
+        <rect x="174" y="468" width="92" height="56" rx="6" class="c-mask"/>
+        <rect x="174" y="468" width="92" height="56" rx="6" class="c-messagebus" data-animate="node" data-node-id="activity" style="--step:3" stroke-width="1.5"/>
+        <text x="220" y="491" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Activity</text>
+        <text x="220" y="509" class="t-muted" font-size="8" text-anchor="middle">user-readable</text>
 
-        <rect x="380" y="465" width="70" height="52" rx="6" class="c-mask"/>
-        <rect x="380" y="465" width="70" height="52" rx="6" class="c-security" data-animate="node" data-node-id="trace" style="--step:4" stroke-width="1.5"/>
-        <text x="415" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Trace</text>
-        <text x="415" y="503" class="t-muted" font-size="8" text-anchor="middle">audit trail</text>
+        <rect x="380" y="468" width="70" height="56" rx="6" class="c-mask"/>
+        <rect x="380" y="468" width="70" height="56" rx="6" class="c-security" data-animate="node" data-node-id="trace" style="--step:4" stroke-width="1.5"/>
+        <text x="415" y="491" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Trace</text>
+        <text x="415" y="509" class="t-muted" font-size="8" text-anchor="middle">audit trail</text>
 
-        <rect x="474" y="465" width="72" height="52" rx="6" class="c-mask"/>
-        <rect x="474" y="465" width="72" height="52" rx="6" class="c-frontend" data-animate="node" data-node-id="report" style="--step:6" stroke-width="1.5"/>
-        <text x="510" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Report</text>
-        <text x="510" y="503" class="t-muted" font-size="8" text-anchor="middle">proof/export</text>
+        <rect x="474" y="468" width="72" height="56" rx="6" class="c-mask"/>
+        <rect x="474" y="468" width="72" height="56" rx="6" class="c-frontend" data-animate="node" data-node-id="report" style="--step:6" stroke-width="1.5"/>
+        <text x="510" y="491" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Report</text>
+        <text x="510" y="509" class="t-muted" font-size="8" text-anchor="middle">proof/export</text>
 
-        <rect x="276" y="589" width="84" height="52" rx="6" class="c-mask"/>
-        <rect x="276" y="589" width="84" height="52" rx="6" class="c-security" data-animate="node" data-node-id="clarify" style="--step:3" stroke-width="1.5"/>
-        <text x="318" y="610" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Clarify</text>
-        <text x="318" y="627" class="t-muted" font-size="8" text-anchor="middle">answer + resume</text>
+        <rect x="276" y="596" width="84" height="56" rx="6" class="c-mask"/>
+        <rect x="276" y="596" width="84" height="56" rx="6" class="c-security" data-animate="node" data-node-id="clarify" style="--step:3" stroke-width="1.5"/>
+        <text x="318" y="619" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Clarify</text>
+        <text x="318" y="637" class="t-muted" font-size="8" text-anchor="middle">answer + resume</text>
 
-        <rect x="468" y="589" width="84" height="52" rx="6" class="c-mask"/>
-        <rect x="468" y="589" width="84" height="52" rx="6" class="c-messagebus" data-animate="node" data-node-id="retry" style="--step:5" stroke-width="1.5"/>
-        <text x="510" y="610" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Retry</text>
-        <text x="510" y="627" class="t-muted" font-size="8" text-anchor="middle">cancel / restart</text>
+        <rect x="468" y="596" width="84" height="56" rx="6" class="c-mask"/>
+        <rect x="468" y="596" width="84" height="56" rx="6" class="c-messagebus" data-animate="node" data-node-id="retry" style="--step:5" stroke-width="1.5"/>
+        <text x="510" y="619" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Retry</text>
+        <text x="510" y="637" class="t-muted" font-size="8" text-anchor="middle">cancel / restart</text>
 
         <!-- Edge labels -->
         <rect x="188.6" y="289" width="62.8" height="14" rx="3" class="c-mask"/>
         <text x="220" y="299" class="t-security" font-size="8" text-anchor="middle">NEEDS_INPUT</text>
 
         <!-- Legend -->
-        <text x="145" y="680" class="t-primary" font-size="10" font-weight="600">Legend</text>
-        <rect x="145" y="694" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
-        <text x="165" y="702" class="t-muted" font-size="7">User UI</text>
-        <rect x="235" y="694" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
-        <text x="255" y="702" class="t-muted" font-size="7">Agent logic</text>
-        <rect x="345" y="694" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
-        <text x="365" y="702" class="t-muted" font-size="7">Policy</text>
-        <rect x="430" y="694" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
-        <text x="450" y="702" class="t-muted" font-size="7">Tool action</text>
-        <rect x="540" y="694" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
-        <text x="560" y="702" class="t-muted" font-size="7">Context / trace</text>
+        <text x="145" y="706" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <rect x="145" y="720" width="14" height="9" rx="2" class="c-frontend" stroke-width="1"/>
+        <text x="165" y="728" class="t-muted" font-size="7">User UI</text>
+        <rect x="235" y="720" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+        <text x="255" y="728" class="t-muted" font-size="7">Agent logic</text>
+        <rect x="345" y="720" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+        <text x="365" y="728" class="t-muted" font-size="7">Policy</text>
+        <rect x="430" y="720" width="14" height="9" rx="2" class="c-messagebus" stroke-width="1"/>
+        <text x="450" y="728" class="t-muted" font-size="7">Tool action</text>
+        <rect x="540" y="720" width="14" height="9" rx="2" class="c-database" stroke-width="1"/>
+        <text x="560" y="728" class="t-muted" font-size="7">Context / trace</text>
       </svg>
     </div>
 

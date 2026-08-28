@@ -67,29 +67,19 @@ const styles = `${markerStart}
       filter: drop-shadow(0 0 6px currentColor) !important;
     }
     /* Embedded view optimizations inside Atlas Hub */
-    html.is-embedded,
     html.is-embedded body,
     body.is-embedded {
-      height: 100% !important;
-      min-height: 100% !important;
       margin: 0 !important;
-      padding: 1.25rem 1.5rem !important;
+      padding: 1.5rem 1.75rem 2.5rem !important;
       background: var(--bg) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      overflow: hidden !important;
-      box-sizing: border-box !important;
+      overflow-y: auto !important;
+      overflow-x: auto !important;
     }
     body.is-embedded .container {
       width: 100% !important;
-      height: 100% !important;
-      max-width: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      margin: 0 !important;
+      max-width: 1100px !important;
+      margin: 0 auto !important;
+      display: block !important;
     }
     body.is-embedded .header,
     body.is-embedded .toolbar,
@@ -98,48 +88,20 @@ const styles = `${markerStart}
       display: none !important;
     }
     body.is-embedded .diagram-container {
-      width: 100% !important;
-      height: 100% !important;
       margin-top: 0 !important;
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
       padding: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      overflow: hidden !important;
+      overflow: visible !important;
     }
     body.is-embedded svg {
-      width: auto !important;
-      height: 100% !important;
+      width: 100% !important;
       max-width: 100% !important;
-      max-height: 100% !important;
-      min-width: 0 !important;
+      height: auto !important;
+      min-width: 720px !important;
       display: block !important;
-      margin: auto !important;
-      object-fit: contain !important;
-    }
-    @media (max-width: 768px) {
-      html.is-embedded,
-      body.is-embedded {
-        overflow: auto !important;
-        display: block !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        padding: 1rem !important;
-      }
-      body.is-embedded .container,
-      body.is-embedded .diagram-container {
-        height: auto !important;
-        display: block !important;
-        overflow-x: auto !important;
-      }
-      body.is-embedded svg {
-        width: 100% !important;
-        height: auto !important;
-        min-width: 700px !important;
-      }
+      margin: 0 auto !important;
     }
     @keyframes voyager-edge-stream {
       0% { stroke-dashoffset: 60; opacity: .64; }
