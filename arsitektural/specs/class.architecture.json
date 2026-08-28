@@ -4,7 +4,7 @@
   "meta": { "title": "Class Diagram", "subtitle": "Model domain inti dan relasi agregat riset", "animation": "trace", "viewBox": [1160, 790] },
   "components": [
     { "id": "user", "type": "external", "label": "User", "sublabel": "id | tenantId", "pos": [35, 280], "size": [125, 62] },
-    { "id": "session", "type": "backend", "label": "ResearchSession", "sublabel": "status | revision", "pos": [225, 280], "size": [145, 62], "tag": "aggregate root" },
+    { "id": "session", "type": "backend", "label": "ResearchSession", "sublabel": "status | revision", "pos": [225, 280], "size": [145, 62] },
     { "id": "brief", "type": "frontend", "label": "ResearchBrief", "sublabel": "market | scope | depth", "pos": [225, 95], "size": [145, 62] },
     { "id": "attempt", "type": "messagebus", "label": "ResearchAttempt", "sublabel": "attemptId | state", "pos": [455, 280], "size": [145, 62] },
     { "id": "plan", "type": "backend", "label": "ResearchPlan", "sublabel": "criteria | steps", "pos": [455, 95], "size": [145, 62] },

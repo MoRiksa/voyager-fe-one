@@ -18,7 +18,7 @@
     { "from": 625, "to": 830, "label": "03 / PUBLICATION" }
   ],
   "messages": [
-    { "from": "user", "to": "web", "y": 180, "label": "submit brief", "variant": "default" },
+    { "from": "user", "to": "web", "y": 190, "label": "submit brief", "variant": "default" },
     { "from": "web", "to": "api", "y": 220, "label": "POST /sessions", "variant": "emphasis" },
     { "from": "api", "to": "db", "y": 260, "label": "insert IDLE", "variant": "default" },
     { "from": "db", "to": "api", "y": 295, "label": "revision 1", "variant": "return" },

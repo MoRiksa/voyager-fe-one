@@ -17,7 +17,7 @@
     { "from": 625, "to": 810, "label": "T6-T8 / COMMIT" }
   ],
   "messages": [
-    { "from": "clock", "to": "ui", "y": 180, "label": "T0 brief ready", "variant": "default" },
+    { "from": "clock", "to": "ui", "y": 190, "label": "T0 brief ready", "variant": "default" },
     { "from": "ui", "to": "session", "y": 220, "label": "T1 create IDLE", "variant": "emphasis" },
     { "from": "session", "to": "attempt", "y": 260, "label": "T2 attempt A active", "variant": "emphasis" },
     { "from": "attempt", "to": "worker", "y": 300, "label": "T2 UNDERSTANDING", "variant": "dashed" },

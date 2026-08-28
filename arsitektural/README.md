@@ -21,6 +21,12 @@ Setiap file di `diagrams/` adalah output Archify mandiri dengan:
 - ekspor PNG, JPEG, WebP, dan SVG;
 - shortcut `T` untuk tema dan `E` untuk ekspor.
 
+Audit overlap seluruh diagram pada viewport desktop dan mobile:
+
+```bash
+npm run test:architecture
+```
+
 Source diagram tersedia di `specs/`. Render ulang dari folder skill Archify:
 
 ```bash

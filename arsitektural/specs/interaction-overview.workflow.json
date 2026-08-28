@@ -18,16 +18,16 @@
   "nodes": [
     { "id": "home", "lane": "discover", "col": 0, "type": "frontend", "label": "Workspace", "sublabel": "/" },
     { "id": "library", "lane": "discover", "col": 5, "type": "database", "label": "Library", "sublabel": "/research" },
-    { "id": "new", "lane": "execute", "col": 1, "type": "frontend", "label": "New", "sublabel": "/research/new", "width": 66 },
-    { "id": "session", "lane": "execute", "col": 2, "type": "messagebus", "label": "Session", "sublabel": "/research/:id", "tag": "SSE", "width": 66 },
-    { "id": "screener", "lane": "analyze", "col": 3, "type": "backend", "label": "Screener", "sublabel": "funnel + reasons", "width": 58 },
-    { "id": "peers", "lane": "analyze", "col": 4, "type": "backend", "label": "Peers", "sublabel": "compare cohort", "width": 58 },
+    { "id": "new", "lane": "execute", "col": 1, "type": "frontend", "label": "New", "sublabel": "/research/new", "width": 76 },
+    { "id": "session", "lane": "execute", "col": 2, "type": "messagebus", "label": "Session", "sublabel": "/:id", "tag": "SSE", "width": 66 },
+    { "id": "screener", "lane": "analyze", "col": 3, "type": "backend", "label": "Screener", "sublabel": "funnel", "width": 58 },
+    { "id": "peers", "lane": "analyze", "col": 4, "type": "backend", "label": "Peers", "sublabel": "cohort", "width": 58 },
     { "id": "company", "lane": "analyze", "col": 5, "type": "frontend", "label": "Company", "sublabel": "dossier" },
     { "id": "activity", "lane": "evidence", "col": 1, "type": "messagebus", "label": "Activity", "sublabel": "user-readable" },
     { "id": "trace", "lane": "evidence", "col": 3, "type": "security", "label": "Trace", "sublabel": "sanitized audit" },
     { "id": "report", "lane": "evidence", "col": 5, "type": "frontend", "label": "Report", "sublabel": "evidence + export" },
     { "id": "clarify", "lane": "recovery", "col": 2, "type": "security", "label": "Clarify", "sublabel": "answer + resume" },
-    { "id": "retry", "lane": "recovery", "col": 4, "type": "messagebus", "label": "Cancel / Retry", "sublabel": "attempt controls" }
+    { "id": "retry", "lane": "recovery", "col": 4, "type": "messagebus", "label": "Retry", "sublabel": "cancel / restart" }
   ],
   "edges": [
     { "from": "home", "to": "new" },

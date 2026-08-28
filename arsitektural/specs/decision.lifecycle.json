@@ -8,11 +8,11 @@
     { "id": "terminal", "label": "Outcomes" }
   ],
   "states": [
-    { "id": "brief", "type": "start", "label": "Brief Ready", "sublabel": "scope submitted", "lane": "main", "col": 0, "step": "01" },
-    { "id": "valid", "type": "decision", "label": "Scope Valid?", "sublabel": "capabilities gate", "lane": "main", "col": 1, "step": "02" },
-    { "id": "required", "type": "decision", "label": "Required Data?", "sublabel": "minimum set", "lane": "main", "col": 2, "step": "03" },
-    { "id": "coherent", "type": "decision", "label": "Set Coherent?", "sublabel": "attempt + revision", "lane": "main", "col": 3, "step": "04" },
-    { "id": "publish", "type": "success", "label": "Publish", "sublabel": "atomic pointer swap", "lane": "main", "col": 4, "step": "05" },
+    { "id": "brief", "type": "start", "label": "Brief Ready", "sublabel": "scope submitted", "lane": "main", "col": 0 },
+    { "id": "valid", "type": "decision", "label": "Scope Valid?", "sublabel": "capabilities gate", "lane": "main", "col": 1 },
+    { "id": "required", "type": "decision", "label": "Required Data?", "sublabel": "minimum set", "lane": "main", "col": 2 },
+    { "id": "coherent", "type": "decision", "label": "Set Coherent?", "sublabel": "attempt + revision", "lane": "main", "col": 3 },
+    { "id": "publish", "type": "success", "label": "Publish", "sublabel": "atomic pointer swap", "lane": "main", "col": 4 },
     { "id": "clarify", "type": "waiting", "label": "Needs Input", "sublabel": "resume saved state", "lane": "interrupt", "col": 0 },
     { "id": "retry", "type": "waiting", "label": "Retry", "sublabel": "new attempt", "lane": "interrupt", "col": 1 },
     { "id": "warn", "type": "waiting", "label": "Warn Optional", "sublabel": "complete with warning", "lane": "interrupt", "col": 2 },
