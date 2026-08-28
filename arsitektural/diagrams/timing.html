@@ -636,7 +636,7 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container">
-      <svg viewBox="0 0 920 890" role="img" aria-label="Timing Diagram — Perubahan state lintas UI, API, worker, dan publication pointer (sequence diagram)" data-animation="trace">
+            <svg viewBox="0 0 920 890" role="img" aria-label="Timing Diagram — State machine &amp; race condition fence" data-animation="trace">
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -660,104 +660,120 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
 
         <!-- Time Segments -->
-        <rect x="48" y="150" width="824" height="200" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="168" class="t-dim" font-size="9" font-weight="600">T0-T2 / START</text>
+        <rect x="48" y="150" width="824" height="185" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="168" class="t-dim" font-size="9" font-weight="600">01 / T0-T2: START &amp; INTENT</text>
 
-        <rect x="48" y="365" width="824" height="245" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="383" class="t-dim" font-size="9" font-weight="600">T3-T5 / EXECUTE</text>
+        <rect x="48" y="345" width="824" height="245" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="363" class="t-dim" font-size="9" font-weight="600">02 / T3-T5: ASYNC EXECUTE &amp; RACE FENCE</text>
 
-        <rect x="48" y="625" width="824" height="180" rx="10" class="c-lane" stroke-width="1"/>
-        <text x="62" y="643" class="t-dim" font-size="9" font-weight="600">T6-T8 / COMMIT</text>
+        <rect x="48" y="600" width="824" height="220" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="62" y="618" class="t-dim" font-size="9" font-weight="600">03 / T6-T8: ATOMIC COMMIT &amp; EMIT</text>
 
         <!-- Lifelines -->
-        <path d="M 62 142 L 62 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 170 142 L 170 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 278 142 L 278 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 386 142 L 386 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 494 142 L 494 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 602 142 L 602 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-        <path d="M 710 142 L 710 815" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
-
-        <!-- Messages -->
-        <path d="M 62 190 L 165 190" class="a-default" data-animate="edge" data-from="clock" data-to="ui" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="73.6" y="170" width="84.8" height="16" rx="3" class="c-mask"/>
-        <text x="116" y="180" class="t-backend" font-size="9" text-anchor="middle">T0 brief ready</text>
-
-        <path d="M 175 800 L 273 800" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="181.6" y="200" width="84.8" height="16" rx="3" class="c-mask"/>
-        <text x="224" y="210" class="t-backend" font-size="9" text-anchor="middle">T1 create IDLE</text>
-
-        <path d="M 283 260 L 381 260" class="a-emphasis" data-animate="edge" data-from="session" data-to="attempt" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="276.6" y="240" width="110.8" height="16" rx="3" class="c-mask"/>
-        <text x="332" y="250" class="t-backend" font-size="9" text-anchor="middle">T2 attempt A active</text>
-
-        <path d="M 391 550 L 489 550" class="a-dashed" data-animate="edge" data-from="attempt" data-to="worker" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <rect x="392.4" y="280" width="95.2" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="290" class="t-messagebus" font-size="9" text-anchor="middle">T2 UNDERSTANDING</text>
-
-        <path d="M 499 430 L 705 430" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <rect x="570" y="320" width="64" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="330" class="t-messagebus" font-size="9" text-anchor="middle">revision 2</text>
-
-        <path d="M 499 590 L 597 590" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="508.2" y="370" width="79.60000000000001" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="380" class="t-backend" font-size="9" text-anchor="middle">T3 draft plan</text>
-
-        <path d="M 501 430 L 703 430" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <rect x="564.8" y="410" width="74.4" height="16" rx="3" class="c-mask"/>
-        <text x="602" y="420" class="t-messagebus" font-size="9" text-anchor="middle">T4 SCREENING</text>
-
-        <path d="M 705 760 L 175 760" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:7" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="397.6" y="450" width="84.8" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="460" class="t-muted" font-size="9" text-anchor="middle">evt 41 + rev 9</text>
-
-        <path d="M 62 510 L 381 510" class="a-security" data-animate="edge" data-from="clock" data-to="attempt" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <rect x="192" y="490" width="64" height="16" rx="3" class="c-mask"/>
-        <text x="224" y="500" class="t-security" font-size="9" text-anchor="middle">T5 cancel?</text>
-
-        <path d="M 393 550 L 487 550" class="a-security" data-animate="edge" data-from="attempt" data-to="worker" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <rect x="389.8" y="530" width="100.4" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="540" class="t-security" font-size="9" text-anchor="middle">fence late writes</text>
-
-        <path d="M 501 590 L 595 590" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-        <rect x="497.8" y="570" width="100.4" height="16" rx="3" class="c-mask"/>
-        <text x="548" y="580" class="t-backend" font-size="9" text-anchor="middle">T6 complete draft</text>
-
-        <path d="M 391 640 L 597 640" class="a-security" data-animate="edge" data-from="attempt" data-to="artifact" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <rect x="436" y="620" width="116" height="16" rx="3" class="c-mask"/>
-        <text x="494" y="630" class="t-security" font-size="9" text-anchor="middle">T7 compare attemptId</text>
-
-        <path d="M 597 680 L 283 680" class="a-emphasis" data-animate="edge" data-from="artifact" data-to="session" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="376.8" y="660" width="126.4" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="670" class="t-backend" font-size="9" text-anchor="middle">swap published pointer</text>
-
-        <path d="M 283 720 L 705 720" class="a-dashed" data-animate="edge" data-from="session" data-to="sse" style="--step:13" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <rect x="451.6" y="700" width="84.8" height="16" rx="3" class="c-mask"/>
-        <text x="494" y="710" class="t-messagebus" font-size="9" text-anchor="middle">T8 revision 18</text>
-
-        <path d="M 703 760 L 177 760" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:14" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <rect x="392.4" y="740" width="95.2" height="16" rx="3" class="c-mask"/>
-        <text x="440" y="750" class="t-muted" font-size="9" text-anchor="middle">report.published</text>
-
-        <path d="M 177 800 L 271 800" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:15" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <rect x="173.8" y="780" width="100.4" height="16" rx="3" class="c-mask"/>
-        <text x="224" y="790" class="t-backend" font-size="9" text-anchor="middle">GET authoritative</text>
+        <path d="M 62 142 L 62 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 170 142 L 170 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 278 142 L 278 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 386 142 L 386 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 494 142 L 494 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 602 142 L 602 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
+        <path d="M 710 142 L 710 825" class="a-default" stroke-width="0.8" stroke-dasharray="3,7"/>
 
         <!-- Activations -->
-        <rect x="165" y="215" width="10" height="595" rx="3" class="c-mask"/>
-        <rect x="165" y="215" width="10" height="595" rx="3" class="c-frontend" stroke-width="1"/>
-        <rect x="273" y="215" width="10" height="595" rx="3" class="c-mask"/>
-        <rect x="273" y="215" width="10" height="595" rx="3" class="c-database" stroke-width="1"/>
-        <rect x="381" y="255" width="10" height="435" rx="3" class="c-mask"/>
-        <rect x="381" y="255" width="10" height="435" rx="3" class="c-messagebus" stroke-width="1"/>
-        <rect x="489" y="295" width="10" height="355" rx="3" class="c-mask"/>
-        <rect x="489" y="295" width="10" height="355" rx="3" class="c-backend" stroke-width="1"/>
-        <rect x="597" y="385" width="10" height="305" rx="3" class="c-mask"/>
-        <rect x="597" y="385" width="10" height="305" rx="3" class="c-database" stroke-width="1"/>
-        <rect x="705" y="335" width="10" height="440" rx="3" class="c-mask"/>
-        <rect x="705" y="335" width="10" height="440" rx="3" class="c-messagebus" stroke-width="1"/>
+        <rect x="165" y="190" width="10" height="615" rx="3" class="c-mask"/>
+        <rect x="165" y="190" width="10" height="615" rx="3" class="c-frontend" stroke-width="1"/>
+        <rect x="273" y="225" width="10" height="580" rx="3" class="c-mask"/>
+        <rect x="273" y="225" width="10" height="580" rx="3" class="c-database" stroke-width="1"/>
+        <rect x="381" y="265" width="10" height="400" rx="3" class="c-mask"/>
+        <rect x="381" y="265" width="10" height="400" rx="3" class="c-messagebus" stroke-width="1"/>
+        <rect x="489" y="305" width="10" height="325" rx="3" class="c-mask"/>
+        <rect x="489" y="305" width="10" height="325" rx="3" class="c-backend" stroke-width="1"/>
+        <rect x="597" y="410" width="10" height="290" rx="3" class="c-mask"/>
+        <rect x="597" y="410" width="10" height="290" rx="3" class="c-database" stroke-width="1"/>
+        <rect x="705" y="370" width="10" height="400" rx="3" class="c-mask"/>
+        <rect x="705" y="370" width="10" height="400" rx="3" class="c-messagebus" stroke-width="1"/>
 
-        <!-- Participants -->
+        <!-- Messages & Labels (Labels strictly ABOVE arrows) -->
+        <!-- Step 0: T0 brief ready (Clock -> UI) -->
+        <rect x="70" y="174" width="85" height="14" rx="3" class="c-mask"/>
+        <text x="113.5" y="184" class="t-backend" font-size="9" text-anchor="middle">T0 brief ready</text>
+        <path d="M 62 190 L 165 190" class="a-default" data-animate="edge" data-from="clock" data-to="ui" style="--step:0" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Step 1: T1 create IDLE (UI -> Session) -->
+        <rect x="180" y="209" width="88" height="14" rx="3" class="c-mask"/>
+        <text x="224" y="219" class="t-backend" font-size="9" text-anchor="middle">T1 create IDLE</text>
+        <path d="M 175 225 L 273 225" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:1" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Step 2: T2 attempt A active (Session -> Attempt) -->
+        <rect x="278" y="249" width="108" height="14" rx="3" class="c-mask"/>
+        <text x="332" y="259" class="t-backend" font-size="9" text-anchor="middle">T2 attempt A active</text>
+        <path d="M 283 265 L 381 265" class="a-emphasis" data-animate="edge" data-from="session" data-to="attempt" style="--step:2" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Step 3: T2 UNDERSTANDING (Attempt -> Worker) -->
+        <rect x="388" y="289" width="104" height="14" rx="3" class="c-mask"/>
+        <text x="440" y="299" class="t-messagebus" font-size="9" text-anchor="middle">T2 UNDERSTANDING</text>
+        <path d="M 391 305 L 489 305" class="a-dashed" data-animate="edge" data-from="attempt" data-to="worker" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Step 4: revision 2 (Worker -> SSE) -->
+        <rect x="566" y="354" width="72" height="14" rx="3" class="c-mask"/>
+        <text x="602" y="364" class="t-messagebus" font-size="9" text-anchor="middle">revision 2</text>
+        <path d="M 499 370 L 705 370" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Step 5: T3 draft plan (Worker -> Artifacts) -->
+        <rect x="508" y="394" width="80" height="14" rx="3" class="c-mask"/>
+        <text x="548" y="404" class="t-backend" font-size="9" text-anchor="middle">T3 draft plan</text>
+        <path d="M 499 410 L 597 410" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:5" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Step 6: T4 SCREENING (Worker -> SSE) -->
+        <rect x="558" y="434" width="88" height="14" rx="3" class="c-mask"/>
+        <text x="602" y="444" class="t-messagebus" font-size="9" text-anchor="middle">T4 SCREENING</text>
+        <path d="M 499 450 L 705 450" class="a-dashed" data-animate="edge" data-from="worker" data-to="sse" style="--step:6" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Step 7: evt 41 + rev 9 (SSE -> UI) -->
+        <rect x="394" y="474" width="92" height="14" rx="3" class="c-mask"/>
+        <text x="440" y="484" class="t-muted" font-size="9" text-anchor="middle">evt 41 + rev 9</text>
+        <path d="M 705 490 L 175 490" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:7" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+
+        <!-- Step 8: T5 cancel? (Clock -> Attempt) -->
+        <rect x="188" y="514" width="72" height="14" rx="3" class="c-mask"/>
+        <text x="224" y="524" class="t-security" font-size="9" text-anchor="middle">T5 cancel?</text>
+        <path d="M 62 530 L 381 530" class="a-security" data-animate="edge" data-from="clock" data-to="attempt" style="--step:8" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+
+        <!-- Step 9: fence late writes (Attempt -> Worker) -->
+        <rect x="388" y="549" width="104" height="14" rx="3" class="c-mask"/>
+        <text x="440" y="559" class="t-security" font-size="9" text-anchor="middle">fence late writes</text>
+        <path d="M 391 565 L 489 565" class="a-security" data-animate="edge" data-from="attempt" data-to="worker" style="--step:9" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+
+        <!-- Step 10: T6 complete draft (Worker -> Artifacts) -->
+        <rect x="496" y="609" width="104" height="14" rx="3" class="c-mask"/>
+        <text x="548" y="619" class="t-backend" font-size="9" text-anchor="middle">T6 complete draft</text>
+        <path d="M 499 625 L 597 625" class="a-default" data-animate="edge" data-from="worker" data-to="artifact" style="--step:10" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Step 11: T7 compare attemptId (Attempt -> Artifacts) -->
+        <rect x="428" y="644" width="132" height="14" rx="3" class="c-mask"/>
+        <text x="494" y="654" class="t-security" font-size="9" text-anchor="middle">T7 compare attemptId</text>
+        <path d="M 391 660 L 597 660" class="a-security" data-animate="edge" data-from="attempt" data-to="artifact" style="--step:11" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+
+        <!-- Step 12: swap published pointer (Artifacts -> Session) -->
+        <rect x="368" y="679" width="144" height="14" rx="3" class="c-mask"/>
+        <text x="440" y="689" class="t-backend" font-size="9" text-anchor="middle">swap published pointer</text>
+        <path d="M 597 695 L 283 695" class="a-emphasis" data-animate="edge" data-from="artifact" data-to="session" style="--step:12" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Step 13: T8 revision 18 (Session -> SSE) -->
+        <rect x="448" y="714" width="92" height="14" rx="3" class="c-mask"/>
+        <text x="494" y="724" class="t-messagebus" font-size="9" text-anchor="middle">T8 revision 18</text>
+        <path d="M 283 730 L 705 730" class="a-dashed" data-animate="edge" data-from="session" data-to="sse" style="--step:13" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+
+        <!-- Step 14: report.published (SSE -> UI) -->
+        <rect x="386" y="749" width="108" height="14" rx="3" class="c-mask"/>
+        <text x="440" y="759" class="t-muted" font-size="9" text-anchor="middle">report.published</text>
+        <path d="M 705 765 L 175 765" class="a-default" data-animate="edge" data-from="sse" data-to="ui" style="--step:14" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+
+        <!-- Step 15: GET authoritative (UI -> Session) -->
+        <rect x="172" y="784" width="104" height="14" rx="3" class="c-mask"/>
+        <text x="224" y="794" class="t-backend" font-size="9" text-anchor="middle">GET authoritative</text>
+        <path d="M 175 800 L 273 800" class="a-emphasis" data-animate="edge" data-from="ui" data-to="session" style="--step:15" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+
+        <!-- Participants Headers -->
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-mask"/>
         <rect x="19" y="72" width="86" height="54" rx="6" class="c-external" data-animate="node" data-node-id="clock" style="--step:0" stroke-width="1.5"/>
         <text x="62" y="94" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Timeline</text>
@@ -794,15 +810,15 @@
         <text x="710" y="111" class="t-muted" font-size="7" text-anchor="middle">event cursor</text>
 
         <!-- Legend -->
-        <text x="150" y="840" class="t-primary" font-size="10" font-weight="600">Legend</text>
-        <path d="M 150 860 L 184 860" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <text x="193" y="863" class="t-muted" font-size="8">request</text>
-        <path d="M 270 860 L 304 860" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
-        <text x="313" y="863" class="t-muted" font-size="8">return</text>
-        <path d="M 385 860 L 419 860" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <text x="428" y="863" class="t-muted" font-size="8">security</text>
-        <path d="M 530 860 L 564 860" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <text x="573" y="863" class="t-muted" font-size="8">async trace</text>
+        <text x="150" y="845" class="t-primary" font-size="10" font-weight="600">Legend</text>
+        <path d="M 150 865 L 184 865" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <text x="193" y="868" class="t-muted" font-size="8">request</text>
+        <path d="M 270 865 L 304 865" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
+        <text x="313" y="868" class="t-muted" font-size="8">return</text>
+        <path d="M 385 865 L 419 865" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <text x="428" y="868" class="t-muted" font-size="8">security</text>
+        <path d="M 530 865 L 564 865" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <text x="573" y="868" class="t-muted" font-size="8">async trace</text>
       </svg>
     </div>
 
