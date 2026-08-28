@@ -14,7 +14,7 @@
     { "id": "cache", "type": "database", "label": "Provider Cache", "sublabel": "stale-if-error", "pos": [860, 465], "size": [140, 60] },
     { "id": "snapshots", "type": "cloud", "label": "Raw Snapshots", "sublabel": "encrypted objects", "pos": [650, 615], "size": [135, 60] },
     { "id": "secrets", "type": "security", "label": "Secret Manager", "sublabel": "SECTORS_API_KEY", "pos": [860, 115], "size": [140, 60] },
-    { "id": "sectors", "type": "external", "label": "Sectors API", "sublabel": "api.sectors.app/v1", "pos": [1040, 305], "size": [120, 60] }
+    { "id": "sectors", "type": "external", "label": "Sectors API", "sublabel": "sectors.app/v1", "pos": [1040, 305], "size": [100, 60] }
   ],
   "boundaries": [
     { "kind": "region", "label": "Voyager Application Boundary", "wraps": ["web", "auth", "api", "sse", "queue", "worker", "db", "cache", "snapshots", "secrets"] },

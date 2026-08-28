@@ -490,32 +490,36 @@
     svg[data-animation="trace"] [data-animate] {
       animation: none;
     }
+    svg[data-animation="trace"] [data-animate="edge"] {
+      stroke-dasharray: 11 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: voyager-edge-stream 2.8s linear infinite;
+      will-change: stroke-dashoffset, opacity;
+    }
     svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 900ms ease-in-out 1 both;
-      animation-delay: calc(var(--step, 0) * 650ms);
-    }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="edge"] {
-      stroke-dasharray: 10 8;
-      animation: voyager-edge-flow 900ms ease-in-out 1 both;
-      animation-delay: calc(var(--step, 0) * 650ms);
+      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
+      animation-delay: calc(var(--step, 0) * 820ms);
+      will-change: filter, stroke-width, opacity;
     }
     @keyframes voyager-node-flow {
-      0%, 100% { filter: none; stroke-width: 1.5; opacity: 1; }
-      28%, 68% {
-        filter: drop-shadow(0 0 10px var(--arrow-emphasis));
-        stroke-width: 2.6;
+      0% { filter: none; stroke-width: 1.5; opacity: .82; }
+      20%, 72% {
+        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
+        stroke-width: 2.5;
         opacity: 1;
       }
+      100% { filter: none; stroke-width: 1.5; opacity: .9; }
     }
-    @keyframes voyager-edge-flow {
-      0% { stroke-dashoffset: 54; opacity: .38; }
-      35%, 72% { stroke-dashoffset: 0; opacity: 1; }
-      100% { stroke-dashoffset: 0; opacity: .72; }
+    @keyframes voyager-edge-stream {
+      0% { stroke-dashoffset: 60; opacity: .64; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: .64; }
     }
     @media (prefers-reduced-motion: reduce) {
-      svg[data-animation="trace"].voyager-flow-playing [data-animate] {
+      svg[data-animation="trace"] [data-animate] {
         animation: none !important;
         filter: none;
         opacity: 1;
@@ -1259,7 +1263,7 @@
         var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
         return Number.isFinite(value) ? Math.max(max, value) : max;
       }, 0);
-      var cycleMs = maxStep * 650 + 2700;
+      var cycleMs = maxStep * 820 + 3600;
       var timer;
       function play() {
         window.clearTimeout(timer);

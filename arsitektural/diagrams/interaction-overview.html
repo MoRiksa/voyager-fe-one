@@ -490,32 +490,36 @@
     svg[data-animation="trace"] [data-animate] {
       animation: none;
     }
+    svg[data-animation="trace"] [data-animate="edge"] {
+      stroke-dasharray: 11 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: voyager-edge-stream 2.8s linear infinite;
+      will-change: stroke-dashoffset, opacity;
+    }
     svg[data-animation="trace"].voyager-flow-playing [data-animate="node"] {
       transform-box: fill-box;
       transform-origin: center;
-      animation: voyager-node-flow 900ms ease-in-out 1 both;
-      animation-delay: calc(var(--step, 0) * 650ms);
-    }
-    svg[data-animation="trace"].voyager-flow-playing [data-animate="edge"] {
-      stroke-dasharray: 10 8;
-      animation: voyager-edge-flow 900ms ease-in-out 1 both;
-      animation-delay: calc(var(--step, 0) * 650ms);
+      animation: voyager-node-flow 1.65s cubic-bezier(.22, .8, .24, 1) 1 both;
+      animation-delay: calc(var(--step, 0) * 820ms);
+      will-change: filter, stroke-width, opacity;
     }
     @keyframes voyager-node-flow {
-      0%, 100% { filter: none; stroke-width: 1.5; opacity: 1; }
-      28%, 68% {
-        filter: drop-shadow(0 0 10px var(--arrow-emphasis));
-        stroke-width: 2.6;
+      0% { filter: none; stroke-width: 1.5; opacity: .82; }
+      20%, 72% {
+        filter: drop-shadow(0 0 11px var(--arrow-emphasis));
+        stroke-width: 2.5;
         opacity: 1;
       }
+      100% { filter: none; stroke-width: 1.5; opacity: .9; }
     }
-    @keyframes voyager-edge-flow {
-      0% { stroke-dashoffset: 54; opacity: .38; }
-      35%, 72% { stroke-dashoffset: 0; opacity: 1; }
-      100% { stroke-dashoffset: 0; opacity: .72; }
+    @keyframes voyager-edge-stream {
+      0% { stroke-dashoffset: 60; opacity: .64; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: .64; }
     }
     @media (prefers-reduced-motion: reduce) {
-      svg[data-animation="trace"].voyager-flow-playing [data-animate] {
+      svg[data-animation="trace"] [data-animate] {
         animation: none !important;
         filter: none;
         opacity: 1;
@@ -630,10 +634,10 @@
         <path d="M 430 393 L 430 425 L 500 425 L 500 393" class="a-default" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path d="M 529 367 L 579 367" class="a-default" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <path d="M 625 393 L 625 414 L 625 414 L 625 465" class="a-emphasis" data-animate="edge" style="--step:5" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path d="M 300 277 L 300 352 L 220 352 L 220 465" class="a-dashed" data-animate="edge" style="--step:13" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-        <path d="M 430 393 L 430 414 L 430 414 L 430 465" class="a-security" data-animate="edge" style="--step:14" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 300 277 L 300 414 L 300 414 L 300 589" class="a-security" data-animate="edge" style="--step:15" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
-        <path d="M 500 393 L 500 476 L 500 476 L 500 589" class="a-security" data-animate="edge" style="--step:16" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 300 277 L 300 352 L 220 352 L 220 465" class="a-dashed" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <path d="M 430 393 L 430 414 L 430 414 L 430 465" class="a-security" data-animate="edge" style="--step:3" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 300 277 L 300 414 L 300 414 L 300 589" class="a-security" data-animate="edge" style="--step:2" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path d="M 500 393 L 500 476 L 500 476 L 500 589" class="a-security" data-animate="edge" style="--step:4" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
 
         <!-- Nodes -->
         <rect x="42" y="93" width="92" height="52" rx="6" class="c-mask"/>
@@ -673,12 +677,12 @@
         <text x="625" y="379" class="t-muted" font-size="8" text-anchor="middle">dossier</text>
 
         <rect x="174" y="465" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="174" y="465" width="92" height="52" rx="6" class="c-messagebus" data-animate="node" style="--step:14" stroke-width="1.5"/>
+        <rect x="174" y="465" width="92" height="52" rx="6" class="c-messagebus" data-animate="node" style="--step:3" stroke-width="1.5"/>
         <text x="220" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Activity</text>
         <text x="220" y="503" class="t-muted" font-size="8" text-anchor="middle">user-readable</text>
 
         <rect x="384" y="465" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="384" y="465" width="92" height="52" rx="6" class="c-security" data-animate="node" style="--step:15" stroke-width="1.5"/>
+        <rect x="384" y="465" width="92" height="52" rx="6" class="c-security" data-animate="node" style="--step:4" stroke-width="1.5"/>
         <text x="430" y="486" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Trace</text>
         <text x="430" y="503" class="t-muted" font-size="8" text-anchor="middle">sanitized audit</text>
 
@@ -688,12 +692,12 @@
         <text x="625" y="503" class="t-muted" font-size="8" text-anchor="middle">evidence + export</text>
 
         <rect x="254" y="589" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="254" y="589" width="92" height="52" rx="6" class="c-security" data-animate="node" style="--step:17" stroke-width="1.5"/>
+        <rect x="254" y="589" width="92" height="52" rx="6" class="c-security" data-animate="node" style="--step:3" stroke-width="1.5"/>
         <text x="300" y="610" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Clarify</text>
         <text x="300" y="627" class="t-muted" font-size="8" text-anchor="middle">answer + resume</text>
 
         <rect x="454" y="589" width="92" height="52" rx="6" class="c-mask"/>
-        <rect x="454" y="589" width="92" height="52" rx="6" class="c-messagebus" data-animate="node" style="--step:18" stroke-width="1.5"/>
+        <rect x="454" y="589" width="92" height="52" rx="6" class="c-messagebus" data-animate="node" style="--step:5" stroke-width="1.5"/>
         <text x="500" y="610" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Retry</text>
         <text x="500" y="627" class="t-muted" font-size="8" text-anchor="middle">cancel / restart</text>
 
@@ -1294,7 +1298,7 @@
         var value = Number.parseInt(item.style.getPropertyValue('--step'), 10);
         return Number.isFinite(value) ? Math.max(max, value) : max;
       }, 0);
-      var cycleMs = maxStep * 650 + 2700;
+      var cycleMs = maxStep * 820 + 3600;
       var timer;
       function play() {
         window.clearTimeout(timer);

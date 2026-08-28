@@ -93,8 +93,25 @@ try {
           playing: document.querySelector('svg').classList.contains('voyager-flow-playing')
         }
       })()`)
-      if (motion.nodeAnimation !== 'voyager-node-flow' || motion.edgeAnimation !== 'voyager-edge-flow' || !motion.playing) {
+      if (motion.nodeAnimation !== 'voyager-node-flow' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing) {
         failures.push(`${diagram} (${viewport.name}): node/edge motion policy invalid: ${JSON.stringify(motion)}`)
+      }
+      if (diagram === 'activity') {
+        const branchTiming = await evaluate(`(() => {
+          const edges = Array.from(document.querySelectorAll('[data-animate="edge"]'))
+          const nodes = Array.from(document.querySelectorAll('[data-animate="node"]'))
+          return {
+            mainAfterPlan: edges[3]?.style.getPropertyValue('--step'),
+            branchAfterPlan: edges[7]?.style.getPropertyValue('--step'),
+            needsInput: nodes[8]?.style.getPropertyValue('--step'),
+            mainAfterResearch: edges[5]?.style.getPropertyValue('--step'),
+            branchAfterResearch: edges[8]?.style.getPropertyValue('--step'),
+            retry: nodes[9]?.style.getPropertyValue('--step')
+          }
+        })()`)
+        if (branchTiming.mainAfterPlan !== branchTiming.branchAfterPlan || branchTiming.needsInput !== '4' || branchTiming.mainAfterResearch !== branchTiming.branchAfterResearch || branchTiming.retry !== '6') {
+          failures.push(`${diagram} (${viewport.name}): branch timing is not parallel: ${JSON.stringify(branchTiming)}`)
+        }
       }
       const problems = await evaluate(`(() => {
         const overlap = (a, b, inset = 1) => a.x + inset < b.x + b.width && a.x + a.width - inset > b.x && a.y + inset < b.y + b.height && a.y + a.height - inset > b.y
@@ -111,6 +128,13 @@ try {
         const nodeRects = Array.from(document.querySelectorAll('svg rect[class^="c-"], svg rect[class*=" c-"]')).filter(rect => {
           const classes = rect.getAttribute('class') || ''
           return !/c-(mask|lane|region|security-group|grid)/.test(classes) && Number(rect.getAttribute('width')) >= 32 && Number(rect.getAttribute('height')) >= 32
+        })
+        const svgElement = document.querySelector('svg')
+        const viewBox = svgElement.viewBox.baseVal
+        const tightEdges = nodeRects.flatMap(rect => {
+          const box = rect.getBBox()
+          const gaps = { left: box.x - viewBox.x, right: viewBox.x + viewBox.width - box.x - box.width, top: box.y - viewBox.y, bottom: viewBox.y + viewBox.height - box.y - box.height }
+          return Object.entries(gaps).filter(([, gap]) => gap < 16).map(([side]) => 'node too close to svg ' + side + ' edge')
         })
         const overflow = []
         for (const text of texts) {
@@ -131,7 +155,7 @@ try {
         const heading = document.querySelector('.header h1')?.getBoundingClientRect()
         const subtitle = document.querySelector('.subtitle')?.getBoundingClientRect()
         const chromeCollision = toolbar && [heading, subtitle].filter(Boolean).some(box => overlap(toolbar, box, 0)) ? ['toolbar/header text overlap'] : []
-        return [...new Set([...collisions, ...overflow, ...chromeCollision])]
+        return [...new Set([...collisions, ...overflow, ...tightEdges, ...chromeCollision])]
       })()`)
       if (problems.length) failures.push(`${diagram} (${viewport.name}):\n- ${problems.join('\n- ')}`)
     }

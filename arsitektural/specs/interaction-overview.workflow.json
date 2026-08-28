@@ -36,10 +36,10 @@
     { "from": "screener", "to": "peers", "fromSide": "bottom", "toSide": "bottom", "route": "bottom-channel" },
     { "from": "peers", "to": "company" },
     { "from": "company", "to": "report", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "route": "drop" },
-    { "from": "session", "to": "activity", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "drop" },
-    { "from": "screener", "to": "trace", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "drop" },
-    { "from": "session", "to": "clarify", "label": "NEEDS_INPUT", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "drop" },
-    { "from": "peers", "to": "retry", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "drop" }
+    { "from": "session", "to": "activity", "variant": "dashed", "role": "async", "fromSide": "bottom", "toSide": "top", "route": "drop" },
+    { "from": "screener", "to": "trace", "variant": "security", "role": "branch", "fromSide": "bottom", "toSide": "top", "route": "drop" },
+    { "from": "session", "to": "clarify", "label": "NEEDS_INPUT", "variant": "security", "role": "branch", "fromSide": "bottom", "toSide": "top", "route": "drop" },
+    { "from": "peers", "to": "retry", "variant": "security", "role": "branch", "fromSide": "bottom", "toSide": "top", "route": "drop" }
   ],
   "cards": [
     { "dot": "cyan", "title": "Progressive Disclosure", "items": ["Session menjadi pusat konteks", "Screener menuju peers lalu dossier", "Report merangkum tanpa mengganti evidence detail"] },
