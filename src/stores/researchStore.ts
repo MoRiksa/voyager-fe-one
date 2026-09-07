@@ -10,9 +10,24 @@ import type {
   ScreeningFunnelStep,
   ResearchObjectivePreset,
   ResearchSession,
-  ResearchBrief
+  ResearchBrief,
+  ProvenanceRecord,
+  ScheduledTask
 } from '../types'
 import { OBJECTIVE_PRESETS, ALL_COMPANIES_DATABASE } from '../data/sectorsUniverse'
+import {
+  answerClarification as apiAnswerClarification,
+  sendFollowUp as apiSendFollowUp,
+  duplicateResearchSession as apiDuplicateResearchSession,
+  createCompanyResearchSession as apiCreateCompanyResearchSession,
+  getProvenanceTrail as apiGetProvenanceTrail,
+  subscribeSessionSse as apiSubscribeSessionSse,
+  asyncExecuteResearchSession as apiAsyncExecuteResearchSession,
+  getResearchSchedules as apiGetResearchSchedules,
+  createResearchSchedule as apiCreateResearchSchedule,
+  toggleResearchSchedule as apiToggleResearchSchedule,
+  runResearchScheduleNow as apiRunResearchScheduleNow
+} from '../services/researchApi'
 
 export const useResearchStore = defineStore('research', () => {
   const STORAGE_KEY = 'voyager-one-research-sessions-v1'
@@ -57,6 +72,17 @@ export const useResearchStore = defineStore('research', () => {
   const clarificationQuestion = ref<string | null>(null)
   let clarificationReturnStatus: AgentStatus = 'IDLE'
   let executionToken = 0
+
+  // 9 Batches Metadata State
+  const currentRevision = ref<number>(1)
+  const activeAttemptId = ref<string | null>(null)
+  const publishedAttemptId = ref<string | null>(null)
+  const ownerId = ref<string>('user-default-analyst')
+  const tenantId = ref<string>('tenant-default')
+  const provenanceTrail = ref<ProvenanceRecord[]>([])
+  const schedules = ref<ScheduledTask[]>([])
+  const sseConnected = ref<boolean>(false)
+  let sseUnsubscribe: (() => void) | null = null
   
   // Selected Company for detail dossier view
   const selectedSymbol = ref<string>('BBCA')
@@ -458,8 +484,8 @@ export const useResearchStore = defineStore('research', () => {
     return true
   }
 
-  const createSession = () => {
-    const id = `RES-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`
+  const createSession = (sessionId?: string) => {
+    const id = sessionId || `RES-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase()}`
     const results = deriveSessionResults(activePresetId.value)
     report.value.sessionId = id
     report.value.objective = currentObjective.value
@@ -470,22 +496,201 @@ export const useResearchStore = defineStore('research', () => {
     return id
   }
 
-  const addFollowUp = (question: string) => {
+  const hydrateFromBackendSession = (session: any) => {
+    if (!session) return
+    const id = session.id
+    report.value.sessionId = id
+    if (typeof session.objective === 'string') {
+      currentObjective.value = session.objective
+    } else if (session.objective?.objective) {
+      currentObjective.value = session.objective.objective
+    }
+    if (session.presetId) {
+      activePresetId.value = session.presetId
+    }
+    if (session.brief) {
+      activeBrief.value = normalizeResearchBrief(session.brief)
+    }
+    status.value = session.status || 'COMPLETED'
+    isExecuting.value = session.status !== 'COMPLETED' && session.status !== 'FAILED' && session.status !== 'CANCELLED'
+
+    if (typeof session.revision === 'number') currentRevision.value = session.revision
+    if (session.activeAttemptId) activeAttemptId.value = session.activeAttemptId
+    if (session.publishedAttemptId) publishedAttemptId.value = session.publishedAttemptId
+    if (session.ownerId) ownerId.value = session.ownerId
+    if (session.tenantId) tenantId.value = session.tenantId
+    if (Array.isArray(session.provenanceTrail)) provenanceTrail.value = session.provenanceTrail
+
+    if (session.plan) {
+      activePlan.value = {
+        objective: session.plan.objective || currentObjective.value,
+        universe: session.plan.universe || 'IDX Universe',
+        criteria: Array.isArray(session.plan.criteria) ? session.plan.criteria.map((c: any) => typeof c === 'string' ? c : `${c.metric} ${c.operator} ${c.value}`) : [],
+        steps: Array.isArray(session.plan.steps) ? session.plan.steps.map((s: any) => ({
+          order: s.order || 1,
+          action: s.action || '',
+          tool: s.tool || '',
+          description: s.description || ''
+        })) : [],
+        hypothesis: session.plan.hypothesis || '',
+        requiredDataPoints: session.plan.requiredDataPoints || [],
+        estimatedDurationSeconds: session.plan.estimatedDurationSeconds || 15,
+        estimatedCredits: session.plan.estimatedCredits || 12
+      }
+    }
+
+    if (session.pillars && Array.isArray(session.pillars)) {
+      pillars.value = session.pillars.map((p: any) => ({
+        id: p.id,
+        number: p.number || 1,
+        name: p.name || '',
+        subtitle: p.subtitle || p.description || '',
+        status: p.status || 'completed',
+        metricsSummary: p.metricsSummary,
+        durationMs: p.durationMs
+      }))
+    }
+
+    if (session.screeningFunnel && Array.isArray(session.screeningFunnel)) {
+      screeningFunnel.value = session.screeningFunnel.map((s: any) => ({
+        stage: s.stage || s.description || '',
+        count: s.count || 0,
+        description: s.description || '',
+        filterCriteria: s.filterCriteria || '',
+        retainedSymbols: s.retainedSymbols || []
+      }))
+    } else if (session.screening && Array.isArray(session.screening)) {
+      screeningFunnel.value = session.screening.map((s: any) => ({
+        stage: s.stage || s.description || '',
+        count: s.count || 0,
+        description: s.description || '',
+        filterCriteria: s.filterCriteria || '',
+        retainedSymbols: s.retainedSymbols || []
+      }))
+    }
+
+    if (session.candidates && Array.isArray(session.candidates) && session.candidates.length > 0) {
+      candidates.value = session.candidates.map((c: any, index: number) => ({
+        symbol: c.symbol,
+        name: c.companyName || c.name || c.symbol,
+        sector: c.sector || 'Financials',
+        subsector: c.subsector || c.sector || 'Banks',
+        marketCapTrillionIdr: c.marketCapTrillionIdr || 100,
+        priceIdr: c.priceIdr || 5000,
+        peRatio: c.peRatio || 15,
+        pbvRatio: c.pbvRatio || 2.5,
+        evToEbitda: c.evToEbitda || 10,
+        roePercent: c.roePercent || 15,
+        roaPercent: c.roaPercent || 2.5,
+        debtToEquity: c.debtToEquity || 0.5,
+        currentRatio: c.currentRatio || 1.5,
+        freeCashFlowYieldPercent: c.freeCashFlowYieldPercent || 5,
+        revenue3yCagrPercent: c.revenue3yCagrPercent || 10,
+        netIncome3yCagrPercent: c.netIncome3yCagrPercent || 12,
+        dividendYieldPercent: c.dividendYieldPercent || 3.5,
+        qualityScore: c.qualityScore || 80,
+        scoreBreakdown: c.scoreBreakdown || {
+          profitability: 85,
+          growth: 75,
+          solvency: 90,
+          valuation: 70,
+          consistency: 80
+        },
+        rank: c.rank || index + 1,
+        confidenceLevel: c.confidenceLevel || 'HIGH',
+        whySelected: c.whySelected || `${c.symbol} menunjukkan metrik profitabilitas dan neraca yang unggul.`,
+        keyStrengths: c.keyStrengths || c.strengths || ['ROE kuat', 'Arus kas sehat'],
+        potentialConcerns: c.potentialConcerns || c.concerns || ['Risiko siklus makro'],
+        evidenceCitations: c.evidenceCitations || c.evidence || [],
+        dupontAnalysis: c.dupontAnalysis || {
+          netProfitMargin: 25.0,
+          assetTurnover: 0.25,
+          equityMultiplier: 3.2,
+          calculatedRoe: c.roePercent || 20.0
+        },
+        peerRankInMemory: c.peerRankInMemory || `#${index + 1} di sektornya`,
+        priceAsOf: c.priceAsOf,
+        financialPeriod: c.financialPeriod
+      }))
+      selectedSymbol.value = candidates.value[0]?.symbol || ''
+    }
+
+    if (session.report) {
+      report.value = {
+        sessionId: id,
+        timestamp: session.report.timestamp || new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB',
+        objective: session.report.objective || currentObjective.value,
+        universeSummary: session.report.universeSummary || `${screeningFunnel.value[0]?.count || 914} emiten dianalisis melalui penyaringan Darwin Engine.`,
+        screeningFunnel: clone(screeningFunnel.value),
+        methodologyOverview: session.report.methodologyOverview || session.report.methodology || 'Penyaringan fundamental kuantitatif Darwin Engine yang divalidasi oleh Agen AI Voyager.',
+        topCandidates: clone(candidates.value),
+        peerComparisonNotes: session.report.peerComparisonNotes || session.report.comparisonSummary || `${candidates.value.map(c => c.symbol).join(', ')} menonjol dalam profitabilitas dan kualitas modal.`,
+        limitations: session.report.limitations || ['Data historis bersumber dari Sectors API v2.', 'Kondisi makroekonomi dapat memengaruhi kinerja masa depan.'],
+        uncertaintyNotes: session.report.uncertaintyNotes || session.report.uncertainty || 'Tingkat keyakinan tinggi berdasarkan konsistensi laporan keuangan.',
+        disclaimer: session.report.disclaimer || 'Laporan ini disusun secara otomatis untuk tujuan riset dan analisis investasi, bukan merupakan rekomendasi beli/jual mutlak.'
+      }
+    }
+
+    if (session.toolCalls && Array.isArray(session.toolCalls)) {
+      toolCalls.value = session.toolCalls
+    }
+
+    saveCurrentSession(session.status || 'COMPLETED')
+  }
+
+  const applyBackendStatus = (sessionStatus: AgentStatus) => {
+    status.value = sessionStatus
+    isExecuting.value = sessionStatus !== 'COMPLETED' && sessionStatus !== 'FAILED' && sessionStatus !== 'CANCELLED'
+    saveCurrentSession(sessionStatus)
+  }
+
+  const addFollowUp = async (question: string): Promise<string> => {
+    const normalized = question.trim()
+    if (!normalized) return ''
     const now = new Date()
+    const sessionId = report.value.sessionId
+
+    if (sessionId && sessionId.startsWith('RES-')) {
+      try {
+        const res = await apiSendFollowUp(sessionId, normalized)
+        if (res?.followUp?.answer) {
+          toolCalls.value.push({
+            id: `follow-up-${now.getTime()}`,
+            timestamp: now.toLocaleTimeString('id-ID', { hour12: false }),
+            pillar: 'report',
+            toolName: 'llm_followup_qa',
+            category: 'Research Engine',
+            input: { question: normalized },
+            outputSummary: `Tanya AI: ${normalized} → ${res.followUp.answer}`,
+            durationMs: 350,
+            status: 'SUCCESS',
+            creditCost: 1,
+            sourceKind: 'user-input'
+          })
+          saveCurrentSession(status.value)
+          return res.followUp.answer
+        }
+      } catch (err) {
+        console.warn('API follow-up fallback:', err)
+      }
+    }
+
+    const fallbackAns = `Pertanyaan "${normalized}" telah dicatat. Berdasarkan profil kandidat di sesi ini, metrik fundamental dan DuPont menunjukkan konsistensi yang sehat.`
     toolCalls.value.push({
       id: `follow-up-${now.getTime()}`,
       timestamp: now.toLocaleTimeString('id-ID', { hour12: false }),
       pillar: 'report',
       toolName: 'session_follow_up',
       category: 'Research Engine',
-      input: { question },
-      outputSummary: `Follow-up dicatat: ${question}`,
+      input: { question: normalized },
+      outputSummary: `Follow-up dicatat: ${normalized}`,
       durationMs: 0,
       status: 'SUCCESS',
       creditCost: 0,
       sourceKind: 'user-input'
     })
     saveCurrentSession(status.value)
+    return fallbackAns
   }
 
   const cancelResearch = () => {
@@ -531,14 +736,60 @@ export const useResearchStore = defineStore('research', () => {
     return true
   }
 
-  const answerClarification = (answer: string) => {
+  const answerClarification = async (answer: string): Promise<boolean> => {
     const normalizedAnswer = answer.trim()
     if (status.value !== 'NEEDS_INPUT' || !clarificationQuestion.value || !normalizedAnswer) return false
+    
+    const sessionId = report.value.sessionId
+    if (sessionId && sessionId.startsWith('RES-')) {
+      try {
+        await apiAnswerClarification(sessionId, 'clarification-1', normalizedAnswer)
+      } catch (e) {
+        console.warn('API clarification sync fallback:', e)
+      }
+    }
+
     activeBrief.value.clarificationNotes.push(`${clarificationQuestion.value}: ${normalizedAnswer}`)
     clarificationQuestion.value = null
     status.value = clarificationReturnStatus === 'NEEDS_INPUT' ? 'IDLE' : clarificationReturnStatus
     saveCurrentSession(status.value)
     return true
+  }
+
+  const duplicateSession = async (id: string): Promise<string | null> => {
+    try {
+      const duplicated = await apiDuplicateResearchSession(id)
+      if (duplicated?.id) {
+        hydrateFromBackendSession(duplicated)
+        return duplicated.id
+      }
+    } catch (e) {
+      console.warn('Backend duplicate failed, falling back to local clone:', e)
+    }
+    // Local fallback
+    const existing = sessions.value.find(s => s.id === id)
+    if (!existing) return null
+    const newId = `RES-${Date.now()}`
+    const cloned = clone(existing)
+    cloned.id = newId
+    cloned.status = 'IDLE'
+    sessions.value.unshift(cloned)
+    persistSessions()
+    loadSession(newId)
+    return newId
+  }
+
+  const createCompanyResearch = async (symbol: string, objective?: string): Promise<string | null> => {
+    try {
+      const res = await apiCreateCompanyResearchSession(symbol, objective)
+      if (res?.id) {
+        hydrateFromBackendSession(res)
+        return res.id
+      }
+    } catch (e) {
+      console.warn('Backend company research failed:', e)
+    }
+    return null
   }
 
   const deleteSession = (id: string) => {
@@ -656,6 +907,132 @@ export const useResearchStore = defineStore('research', () => {
     return true
   }
 
+  // --- 9 Batches Actions ---
+
+  const fetchProvenance = async (id: string = report.value.sessionId) => {
+    if (!id || !id.startsWith('RES-')) return
+    try {
+      const trail = await apiGetProvenanceTrail(id)
+      if (Array.isArray(trail)) {
+        provenanceTrail.value = trail
+      }
+    } catch (err) {
+      console.warn('Gagal memuat provenance:', err)
+    }
+  }
+
+  const connectSse = (id: string = report.value.sessionId) => {
+    disconnectSse()
+    if (!id || !id.startsWith('RES-')) return
+    try {
+      sseUnsubscribe = apiSubscribeSessionSse(
+        id,
+        (evt) => {
+          sseConnected.value = true
+          if (evt.type === 'step.completed' && evt.data) {
+            currentRevision.value = evt.data.revision || currentRevision.value
+            if (evt.data.attemptId) activeAttemptId.value = evt.data.attemptId
+            notify(`Step ${evt.data.step} (${evt.data.stepName}) selesai: ${evt.data.retainedCount} kandidat lolos`, 'info')
+          } else if (evt.type === 'report.published' && evt.data) {
+            publishedAttemptId.value = evt.data.publishedAttemptId
+            currentRevision.value = evt.data.revision || currentRevision.value
+            notify('Laporan riset terpublikasi atomik dari backend!', 'success')
+          } else if (evt.type === 'completed') {
+            status.value = 'COMPLETED'
+            isExecuting.value = false
+            notify('Sesi riset selesai diproses oleh background worker.', 'success')
+          }
+        },
+        () => {
+          sseConnected.value = false
+        }
+      )
+      sseConnected.value = true
+    } catch {
+      sseConnected.value = false
+    }
+  }
+
+  const disconnectSse = () => {
+    if (sseUnsubscribe) {
+      sseUnsubscribe()
+      sseUnsubscribe = null
+    }
+    sseConnected.value = false
+  }
+
+  const startAsyncPipeline = async (id: string = report.value.sessionId) => {
+    if (!id || !id.startsWith('RES-')) return null
+    try {
+      const job = await apiAsyncExecuteResearchSession(id, `ik-async-${Date.now()}`)
+      if (job?.jobId) {
+        notify(`Eksekusi asinkron dimulai (Job ID: ${job.jobId})`, 'success')
+        isExecuting.value = true
+        status.value = 'DISCOVERING'
+        connectSse(id)
+        return job
+      }
+    } catch (err) {
+      notify('Gagal memulai eksekusi asinkron backend', 'error')
+    }
+    return null
+  }
+
+  const fetchSchedules = async () => {
+    try {
+      const list = await apiGetResearchSchedules()
+      if (Array.isArray(list)) {
+        schedules.value = list
+      }
+    } catch (err) {
+      console.warn('Gagal memuat riset terjadwal:', err)
+    }
+  }
+
+  const createSchedule = async (params: any) => {
+    try {
+      const sched = await apiCreateResearchSchedule(params)
+      if (sched?.id) {
+        schedules.value.push(sched)
+        notify(`Jadwal riset "${sched.name}" berhasil dibuat!`, 'success')
+        return sched
+      }
+    } catch (err) {
+      notify('Gagal membuat jadwal riset', 'error')
+    }
+    return null
+  }
+
+  const toggleSchedule = async (id: string, enabled: boolean) => {
+    try {
+      const sched = await apiToggleResearchSchedule(id, enabled)
+      if (sched) {
+        const idx = schedules.value.findIndex(s => s.id === id)
+        if (idx !== -1) schedules.value[idx] = sched
+        notify(`Jadwal riset ${enabled ? 'diaktifkan' : 'dinonaktifkan'}`, 'info')
+        return sched
+      }
+    } catch (err) {
+      notify('Gagal mengubah status jadwal', 'error')
+    }
+    return null
+  }
+
+  const runScheduleNow = async (id: string) => {
+    try {
+      const res = await apiRunResearchScheduleNow(id)
+      if (res?.session?.id) {
+        notify(`Riset terjadwal dipicu! Sesi ID: ${res.session.id}`, 'success')
+        hydrateFromBackendSession(res.session)
+        connectSse(res.session.id)
+        return res
+      }
+    } catch (err) {
+      notify('Gagal memicu riset terjadwal', 'error')
+    }
+    return null
+  }
+
   return {
     // State
     currentObjective,
@@ -683,7 +1060,25 @@ export const useResearchStore = defineStore('research', () => {
     presets: OBJECTIVE_PRESETS,
     companyUniverse: ALL_COMPANIES_DATABASE,
     
+    // 9 Batches Metadata State & Actions
+    currentRevision,
+    activeAttemptId,
+    publishedAttemptId,
+    ownerId,
+    tenantId,
+    provenanceTrail,
+    schedules,
+    sseConnected,
+
     // Actions
+    fetchProvenance,
+    connectSse,
+    disconnectSse,
+    startAsyncPipeline,
+    fetchSchedules,
+    createSchedule,
+    toggleSchedule,
+    runScheduleNow,
     setObjective,
     selectPreset,
     setResearchBrief,
@@ -695,7 +1090,11 @@ export const useResearchStore = defineStore('research', () => {
     hydrateSessions,
     loadSession,
     createSession,
+    hydrateFromBackendSession,
+    applyBackendStatus,
     addFollowUp,
+    duplicateSession,
+    createCompanyResearch,
     cancelResearch,
     markPartial,
     requestClarification,

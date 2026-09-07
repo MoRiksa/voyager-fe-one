@@ -27,7 +27,13 @@ const statusMeta = (session: ResearchSession) => sessionStatusMeta(session.statu
 const duplicateSession = async (session: ResearchSession) => {
   store.setObjective(session.objective, session.presetId)
   store.setResearchBrief(session.brief)
-  await router.push('/research/new')
+  const newId = await store.duplicateSession(session.id)
+  if (newId) {
+    store.notify(`Sesi riset berhasil diduplikasi: ${newId}`, 'success')
+    await router.push(`/research/${newId}`)
+  } else {
+    await router.push('/research/new')
+  }
 }
 
 const removeSession = (id: string) => {

@@ -5,7 +5,7 @@ import { useResearchStore } from '../stores/researchStore'
 import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
 import DataProvenance from '../components/DataProvenance.vue'
-import { Activity, AlertTriangle, ArrowRight, Clock3, MessageSquare, RotateCcw, Send, Square, Terminal } from '@lucide/vue'
+import { Activity, AlertTriangle, ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Clock3, Code2, Loader2, MessageSquare, RotateCcw, Send, Square, Terminal } from '@lucide/vue'
 
 const store = useResearchStore()
 const route = useRoute()
@@ -23,8 +23,124 @@ const contractBanners: Record<string, { title: string; description: string; clas
 }
 const contractBanner = computed(() => contractBanners[String(store.status)])
 
-watch(() => String(route.params.id), id => {
-  sessionFound.value = id === store.report.sessionId || store.sessions.some(session => session.id === id)
+import { onUnmounted } from 'vue'
+import { getResearchSessionFull, runResearchStep } from '../services/researchApi'
+
+const activeStep = ref<number | null>(null)
+const stepStatuses = ref<Record<number, 'pending' | 'running' | 'completed' | 'failed'>>({
+  1: 'pending',
+  2: 'pending',
+  3: 'pending',
+  4: 'pending',
+  5: 'pending'
+})
+
+const stepResponses = ref<Record<number, any>>({})
+const expandedResponseStep = ref<number | null>(null)
+
+const toggleStepResponse = (stepOrder: number) => {
+  expandedResponseStep.value = expandedResponseStep.value === stepOrder ? null : stepOrder
+}
+
+let isPipelineRunning = false
+
+const runStepPipeline = async (id: string) => {
+  if (isPipelineRunning) return
+  if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(store.status) && store.candidates.length > 0) {
+    for (let i = 1; i <= 5; i++) stepStatuses.value[i] = 'completed'
+    return
+  }
+  isPipelineRunning = true
+  store.isExecuting = true
+  let previousSymbols: string[] = []
+
+  try {
+    for (let step = 1; step <= 5; step++) {
+      activeStep.value = step
+      stepStatuses.value[step] = 'running'
+
+      if (step === 1) {
+        store.status = 'DISCOVERING'
+        if (store.pillars[0]) store.pillars[0].status = 'active'
+      } else if (step === 2 || step === 3) {
+        store.status = 'SCREENING'
+        if (store.pillars[0]) store.pillars[0].status = 'completed'
+        if (store.pillars[1]) store.pillars[1].status = 'active'
+      } else if (step === 4) {
+        store.status = 'RANKING'
+        if (store.pillars[1]) store.pillars[1].status = 'completed'
+        if (store.pillars[2]) store.pillars[2].status = 'active'
+        if (store.pillars[3]) store.pillars[3].status = 'active'
+      } else if (step === 5) {
+        store.status = 'REPORTING'
+        if (store.pillars[2]) store.pillars[2].status = 'completed'
+        if (store.pillars[3]) store.pillars[3].status = 'completed'
+        if (store.pillars[4]) store.pillars[4].status = 'active'
+      }
+
+      const res = await runResearchStep(id, step, previousSymbols)
+      previousSymbols = res.retainedSymbols
+      stepStatuses.value[step] = 'completed'
+      stepResponses.value[step] = res
+    }
+
+    const fullSession = await getResearchSessionFull(id)
+    if (fullSession) {
+      store.hydrateFromBackendSession(fullSession)
+      if (stepResponses.value[5]?.retainedSymbols) {
+        const step5Symbols: string[] = stepResponses.value[5].retainedSymbols
+        store.candidates.sort((a, b) => {
+          const indexA = step5Symbols.indexOf(a.symbol)
+          const indexB = step5Symbols.indexOf(b.symbol)
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB
+          if (indexA !== -1) return -1
+          if (indexB !== -1) return 1
+          return 0
+        })
+        store.candidates.forEach((c, idx) => { c.rank = idx + 1 })
+      }
+    }
+    store.status = 'COMPLETED'
+    store.pillars.forEach(p => { p.status = 'completed' })
+  } catch (err) {
+    console.error('Step pipeline failed:', err)
+    if (activeStep.value) stepStatuses.value[activeStep.value] = 'failed'
+    store.status = 'FAILED'
+  } finally {
+    isPipelineRunning = false
+    store.isExecuting = false
+    activeStep.value = null
+  }
+}
+
+watch(() => String(route.params.id), async id => {
+  if (!id) return
+  const loaded = store.loadSession(id)
+  if (loaded) {
+    sessionFound.value = true
+    if (store.status !== 'COMPLETED' && store.status !== 'FAILED' && store.status !== 'CANCELLED') {
+      void runStepPipeline(id)
+    } else {
+      for (let i = 1; i <= 5; i++) stepStatuses.value[i] = 'completed'
+    }
+  } else {
+    try {
+      const backendSession = await getResearchSessionFull(id)
+      if (backendSession) {
+        store.hydrateFromBackendSession(backendSession)
+        sessionFound.value = true
+        if (backendSession.status !== 'COMPLETED' && backendSession.status !== 'FAILED' && backendSession.status !== 'CANCELLED') {
+          void runStepPipeline(id)
+        } else {
+          for (let i = 1; i <= 5; i++) stepStatuses.value[i] = 'completed'
+        }
+        return
+      }
+    } catch {
+      // ignore
+    }
+    sessionFound.value = id === store.report.sessionId || store.sessions.some(session => session.id === id)
+  }
 }, { immediate: true })
 
 const activePillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
@@ -45,17 +161,36 @@ const sessionDescription = computed(() => activePillar.value?.subtitle || (store
       : 'Riset sudah disiapkan dan akan segera dimulai.'))
 const progressLabel = computed(() => activePillar.value?.name || (store.status === 'COMPLETED' ? 'Riset selesai' : store.status === 'PARTIAL' ? 'Hasil parsial' : store.status === 'NEEDS_INPUT' ? 'Menunggu klarifikasi' : store.status === 'CANCELLED' ? 'Riset dibatalkan' : store.status === 'FAILED' ? 'Proses terputus' : 'Menyiapkan riset'))
 
-const askFollowUp = () => {
-  if (!followUp.value.trim()) return
-  store.addFollowUp(followUp.value.trim())
-  followUpResponse.value = 'Catatan telah disimpan pada sesi ini. Dataset prototype tidak dihitung ulang oleh catatan.'
-  followUp.value = ''
+const isSubmittingFollowUp = ref(false)
+const isSubmittingClarification = ref(false)
+
+const askFollowUp = async () => {
+  if (!followUp.value.trim() || isSubmittingFollowUp.value) return
+  isSubmittingFollowUp.value = true
+  followUpResponse.value = 'Menganalisis pertanyaan dengan engine Voyager One...'
+  try {
+    const answer = await store.addFollowUp(followUp.value.trim())
+    followUpResponse.value = answer || 'Catatan telah disimpan pada sesi riset ini.'
+    followUp.value = ''
+  } catch {
+    followUpResponse.value = 'Gagal mengirim pertanyaan lanjutan ke engine riset.'
+  } finally {
+    isSubmittingFollowUp.value = false
+  }
 }
 
-const answerClarification = () => {
-  if (!store.answerClarification(clarificationAnswer.value)) return
-  clarificationAnswer.value = ''
-  store.notify('Klarifikasi disimpan pada brief sesi.', 'success')
+const answerClarification = async () => {
+  if (!clarificationAnswer.value.trim() || isSubmittingClarification.value) return
+  isSubmittingClarification.value = true
+  try {
+    const success = await store.answerClarification(clarificationAnswer.value.trim())
+    if (success) {
+      clarificationAnswer.value = ''
+      store.notify('Klarifikasi disimpan pada brief sesi.', 'success')
+    }
+  } finally {
+    isSubmittingClarification.value = false
+  }
 }
 
 const cancel = () => {
@@ -130,18 +265,65 @@ const retry = () => {
             <div><dt class="text-sm font-bold text-slate-900">Kriteria diterapkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="criterion in store.activePlan.criteria" :key="criterion">{{ criterion }}</li><li v-if="!store.activePlan.criteria.length">Belum ada kriteria aktif.</li></ul></dd></div>
             <div><dt class="text-sm font-bold text-slate-900">Data yang dibutuhkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="dataPoint in store.activePlan.requiredDataPoints" :key="dataPoint">{{ dataPoint }}</li><li v-if="!store.activePlan.requiredDataPoints.length">Belum ada data wajib.</li></ul></dd></div>
           </dl>
-          <h3 class="mt-6 text-sm font-bold text-slate-900">Urutan eksekusi</h3>
+          <h3 class="mt-6 text-sm font-bold text-slate-900">Urutan eksekusi (5 Steps Endpoint)</h3>
           <ol class="mt-3 space-y-2">
-            <li v-for="step in store.activePlan.steps" :key="`${step.order}-${step.action}`" class="grid grid-cols-[2rem_1fr] gap-3 rounded-xl border border-slate-200 p-4">
-              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-700">{{ step.order }}</span>
-              <div><div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h4 class="text-sm font-bold text-slate-900">{{ step.action }}</h4><code class="text-[10px] text-slate-500">{{ step.tool }}</code></div><p class="mt-1 text-xs leading-5 text-slate-500">{{ step.description }}</p></div>
+            <li v-for="step in store.activePlan.steps" :key="`${step.order}-${step.action}`" 
+                class="grid grid-cols-[2.5rem_1fr] gap-3 rounded-xl border p-4 transition-all duration-200"
+                :class="stepStatuses[step.order] === 'running' ? 'border-blue-400 bg-blue-50/60 shadow-sm' : stepStatuses[step.order] === 'completed' ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-white'">
+              <div class="flex items-center justify-center">
+                <span v-if="stepStatuses[step.order] === 'running'" class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-mono text-xs font-bold text-white shadow-sm">
+                  <Loader2 class="h-4 w-4 animate-spin text-white" />
+                </span>
+                <span v-else-if="stepStatuses[step.order] === 'completed'" class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 font-mono text-xs font-bold text-white shadow-sm">
+                  ✓
+                </span>
+                <span v-else class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-700">
+                  {{ step.order }}
+                </span>
+              </div>
+              <div>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <h4 class="text-sm font-bold text-slate-900">{{ step.action }}</h4>
+                  <code class="text-[10px] text-slate-500">POST /steps/{{ step.order }}</code>
+                  <span v-if="stepStatuses[step.order] === 'running'" class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800 animate-pulse">Memproses endpoint step {{ step.order }}...</span>
+                  <span v-else-if="stepStatuses[step.order] === 'completed'" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Selesai</span>
+                </div>
+                <p class="mt-1 text-xs leading-5 text-slate-500">{{ step.description }}</p>
+                <div class="mt-2">
+                  <button 
+                    v-if="stepResponses[step.order]" 
+                    type="button" 
+                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2F64A8] hover:underline"
+                    @click="toggleStepResponse(step.order)"
+                  >
+                    <Code2 class="h-3.5 w-3.5" />
+                    {{ expandedResponseStep === step.order ? 'Sembunyikan Response JSON' : '🔍 Cek Response JSON' }}
+                    <ChevronDown v-if="expandedResponseStep !== step.order" class="h-3 w-3" />
+                    <ChevronUp v-else class="h-3 w-3" />
+                  </button>
+                </div>
+                <div v-if="expandedResponseStep === step.order && stepResponses[step.order]" class="mt-3 rounded-xl border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200 shadow-inner">
+                  <div class="mb-2 flex items-center justify-between border-b border-slate-700 pb-1.5 text-[11px] font-mono text-slate-400">
+                    <span>POST /api/v1/research-sessions/{{ store.report.sessionId }}/steps/{{ step.order }}</span>
+                    <span class="rounded bg-emerald-950 px-1.5 py-0.5 font-bold text-emerald-400">200 OK</span>
+                  </div>
+                  <pre class="max-h-60 overflow-y-auto font-mono text-[11px] leading-4 text-emerald-300">{{ JSON.stringify(stepResponses[step.order], null, 2) }}</pre>
+                </div>
+              </div>
             </li>
             <li v-if="!store.activePlan.steps.length" class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">Langkah eksekusi belum disusun.</li>
           </ol>
         </section>
 
         <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
-           <div class="mb-4 flex items-end justify-between"><div><p class="section-kicker">{{ store.status === 'COMPLETED' ? 'Hasil akhir' : store.status === 'PARTIAL' ? 'Hasil parsial' : 'Menunggu hasil' }}</p><h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas</h2></div><router-link v-if="store.candidates.length >= 2 && (store.status === 'COMPLETED' || store.status === 'PARTIAL')" :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link></div>
+           <div class="mb-4 flex items-end justify-between">
+             <div>
+               <p class="section-kicker">{{ store.status === 'COMPLETED' ? 'Hasil akhir' : store.status === 'PARTIAL' ? 'Hasil parsial' : 'Menunggu hasil' }}</p>
+               <h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas (Hasil Step 5 - Seleksi Akhir)</h2>
+               <p v-if="stepResponses[5]?.retainedSymbols" class="mt-1 text-xs font-semibold text-emerald-700">Urutan terurut hasil Step 5: {{ stepResponses[5].retainedSymbols.join(', ') }}</p>
+             </div>
+             <router-link v-if="store.candidates.length >= 2 && (store.status === 'COMPLETED' || store.status === 'PARTIAL')" :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link>
+           </div>
           <div v-if="store.candidates.length" class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
            <div v-else-if="store.status === 'COMPLETED'" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur, lalu gunakan riset ini sebagai template untuk menyesuaikan kriteria.</p><div class="mt-5 flex flex-wrap justify-center gap-2"><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau tahap seleksi</router-link><router-link to="/research/new" class="button-primary">Ubah kriteria</router-link></div></div>
            <div v-else class="rounded-2xl border border-blue-200 bg-blue-50 p-8 text-center"><Clock3 class="mx-auto h-5 w-5 text-[#407EC9]" /><h3 class="mt-3 font-bold text-slate-900">Kandidat belum tersedia</h3><p class="mt-2 text-sm text-slate-600">Hasil akhir akan muncul otomatis setelah proses riset selesai.</p></div>

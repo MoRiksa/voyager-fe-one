@@ -180,6 +180,45 @@ export interface ResearchReport {
   disclaimer: string
 }
 
+export interface ProvenanceRecord {
+  provenanceId: string
+  sessionId: string
+  attemptId: string | null
+  revision: number
+  action: string
+  provider: string
+  endpoint?: string
+  sourceRef: string
+  inputDigest?: string
+  outputDigest?: string
+  auditDetails?: any
+  timestamp: string
+}
+
+export interface ScheduledTask {
+  id: string
+  name: string
+  cronExpression: string
+  objective: string
+  market: 'IDX' | 'SGX'
+  requestedCandidates: number
+  enabled: boolean
+  lastRunAt?: string | null
+  nextRunAt?: string | null
+  runCount: number
+}
+
+export interface ResearchJob {
+  jobId: string
+  sessionId: string
+  attemptId: string
+  type: string
+  step?: number
+  status: 'queued' | 'processing' | 'completed' | 'failed'
+  error?: string
+  createdAt: string
+}
+
 export interface ResearchSession {
   id: string
   createdAt: string
@@ -196,4 +235,10 @@ export interface ResearchSession {
   candidates: CandidateCompany[]
   report: ResearchReport
   creditsSpent: number
+  revision?: number
+  activeAttemptId?: string | null
+  publishedAttemptId?: string | null
+  ownerId?: string
+  tenantId?: string
+  provenanceTrail?: ProvenanceRecord[]
 }

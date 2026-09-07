@@ -33,6 +33,7 @@ const navItems = computed(() => [
       { names: ['home'], label: 'Beranda', path: '/', icon: Home },
       { names: ['research-library'], label: 'Pustaka riset', path: '/research', icon: History },
       { names: ['research-new'], label: 'Riset baru', path: '/research/new', icon: Search },
+      { names: ['schedules'], label: 'Riset terjadwal', path: '/schedules', icon: Compass },
     ]
   },
   {

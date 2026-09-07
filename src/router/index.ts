@@ -113,6 +113,12 @@ const router = createRouter({
       meta: { title: 'Laporan Riset' }
     },
     {
+      path: '/schedules',
+      name: 'schedules',
+      component: () => import('../views/SchedulesView.vue'),
+      meta: { title: 'Riset Terjadwal' }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),

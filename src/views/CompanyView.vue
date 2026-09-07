@@ -1,13 +1,31 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import CompanySupplementalAnalysis from '../components/CompanySupplementalAnalysis.vue'
 import DataProvenance from '../components/DataProvenance.vue'
-import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, AlertTriangle, Database, GitCompare, Landmark, LineChart, Scale, WalletCards } from '@lucide/vue'
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, AlertTriangle, Database, GitCompare, Landmark, LineChart, Scale, WalletCards, Sparkles } from '@lucide/vue'
 
 const route = useRoute()
+const router = useRouter()
 const store = useResearchStore()
+const isLaunchingResearch = ref(false)
+
+const launchCompanyResearch = async () => {
+  if (!company.value || isLaunchingResearch.value) return
+  isLaunchingResearch.value = true
+  try {
+    const newSessionId = await store.createCompanyResearch(company.value.symbol)
+    if (newSessionId) {
+      store.notify(`Sesi riset khusus ${company.value.symbol} telah disiapkan.`, 'success')
+      await router.push(`/research/${newSessionId}`)
+    }
+  } catch {
+    store.notify('Gagal memulai riset emiten.', 'error')
+  } finally {
+    isLaunchingResearch.value = false
+  }
+}
 const company = computed(() => store.candidates.find(candidate => candidate.symbol === String(route.params.symbol).toUpperCase()))
 const formatIdr = (value: number) => new Intl.NumberFormat('id-ID').format(value)
 const compactSource = (source: string) => source.startsWith('Derived')
@@ -88,7 +106,14 @@ const dupontParts = computed(() => company.value ? [
           <p class="mt-2 text-base text-slate-300">{{ company.name }}</p>
           <p class="mt-6 max-w-3xl text-sm leading-6 text-slate-200">{{ company.whySelected }}</p>
         </div>
-        <div class="max-w-56 rounded-2xl border border-white/15 bg-white/8 p-5 text-center"><span class="text-xs text-blue-200">Skor kualitas</span><strong class="mt-1 block font-mono text-4xl">{{ company.qualityScore }}</strong><span class="text-xs text-slate-400">dari 100</span><p class="mt-2 text-xs leading-5 text-blue-100">{{ scoreInterpretation }}</p></div>
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-full max-w-56 rounded-2xl border border-white/15 bg-white/8 p-5 text-center"><span class="text-xs text-blue-200">Skor kualitas</span><strong class="mt-1 block font-mono text-4xl">{{ company.qualityScore }}</strong><span class="text-xs text-slate-400">dari 100</span><p class="mt-2 text-xs leading-5 text-blue-100">{{ scoreInterpretation }}</p></div>
+          <button type="button" :disabled="isLaunchingResearch" class="button-secondary w-full justify-center bg-white/10 text-white hover:bg-white/20 border-white/20" @click="launchCompanyResearch">
+            <Sparkles class="h-4 w-4 text-amber-300" />
+            <span v-if="isLaunchingResearch">Memulai...</span>
+            <span v-else>Riset mendalam {{ company.symbol }}</span>
+          </button>
+        </div>
       </div>
     </header>
 
