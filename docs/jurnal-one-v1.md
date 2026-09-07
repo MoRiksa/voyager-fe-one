@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Aktif, baseline audit selesai, implementasi korektif belum dimulai |
-| Last updated | 2026-09-07 |
+| Status | Aktif, baseline dan review UI/UX/CX selesai, implementasi korektif belum dimulai |
+| Last updated | 2026-09-08 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
 | Frontend repository | `https://github.com/MoRiksa/voyager-fe-one` |
@@ -208,7 +208,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Scaling | PM2 single instance wajib untuk konsistensi saat ini | Scale setelah queue/event/idempotency shared | Deferred |
 | SGX | Schema menerima SGX, engine tetap IDX; capabilities bilang disabled | Reject SGX sampai contract/data/formula siap | Blocked |
 | Global company | Route ada tetapi keputusan produk belum dibekukan | Implementasikan penuh atau hapus dari IA/API | Decision |
-| UI complexity | Fundamental workflow luas dan technical detail mudah ikut tampil | Task-first, one primary action, progressive disclosure | Review next |
+| UI complexity | Fundamental workflow luas, route terduplikasi, dan istilah internal terlalu menonjol | Library sebagai pusat kerja; session sebagai induk hasil; audit melalui progressive disclosure | Reviewed; implementation pending |
 | Technical analysis | Belum menjadi domain produk | Dirancang setelah fundamental E2E stabil | Deferred |
 
 ## 6. Bukti Runtime Yang Wajib Dipertahankan
@@ -497,57 +497,234 @@ Acceptance:
 - [ ] Failure provider memiliki explicit degraded/recovery state.
 - [ ] Deploy/rollback tidak merusak session aktif atau published artifact.
 
-## 9. UI/UX/CX Review Berikutnya
+## 9. Keputusan UI/UX/CX Voyager One
 
-Review UI/UX/CX dilakukan setelah jurnal ini dibuat dan sebelum technical
-analysis ditambahkan. Review tidak boleh mengubah visual identity secara acak;
-fokusnya mengurangi beban kognitif sambil mempertahankan trust dan evidence.
+Review pada 2026-09-08 mengaudit route, navigasi desktop/mobile, beban kognitif,
+copy lifecycle, trust, dan accessibility. Keputusan ini mempertahankan visual
+identity yang ada, tetapi menyederhanakan model mental menjadi dua tingkat:
+**Pustaka Riset** sebagai pusat kerja dan **Sesi Riset** sebagai induk seluruh
+hasil. URL kontekstual boleh dipertahankan untuk deep-link dan browser history,
+tetapi bukan berarti setiap URL menjadi destinasi navigasi global.
 
-### 9.1 Pertanyaan yang harus dijawab
+### 9.1 Primary persona dan jobs-to-be-done
 
-- Siapa primary user V1 dan keputusan apa yang sedang dibuat?
-- Berapa banyak konsep yang harus dipahami sebelum memulai riset?
-- Informasi apa yang harus tampil pada first read, second read, dan audit view?
-- Apakah `pillars`, `attempt`, `revision`, `queue`, `trace`, dan `provenance`
-  perlu terlihat sebagai istilah utama atau hanya detail audit?
-- Apakah Research, Results, Reports, Screener, Peers, Activity, Trace, Schedules,
-  Methodology, dan Glossary menghasilkan navigation overload?
-- Apa satu primary action pada setiap route?
-- Bagaimana active, needs-input, partial, failed, cancelled, dan completed state
-  dijelaskan tanpa menuntut user memahami arsitektur backend?
-- Kapan user perlu melihat warning, confidence, missing data, stale cache, dan
-  formula details?
-- Bagaimana dua device dan reconnect dijelaskan tanpa memperlihatkan state
-  management internal?
-- Bagaimana technical analysis nanti masuk tanpa mencampur thesis fundamental,
-  market timing context, dan trading recommendation?
+Primary persona V1 adalah analis fundamental atau investor mandiri Indonesia yang
+menilai perusahaan IDX untuk menentukan kandidat mana yang layak masuk tahap due
+diligence lebih lanjut. Voyager membantu menyusun shortlist yang dapat dijelaskan;
+Voyager tidak memberi instruksi beli, jual, sizing, atau timing transaksi.
 
-### 9.2 Prinsip evaluasi
+Jobs-to-be-done utama:
 
-- Task first, architecture second.
-- Satu primary action per context.
-- Progressive disclosure.
-- Jangan menjadikan produk generic chatbot.
-- Jangan menyembunyikan methodology, evidence, limitations, atau audit.
-- Jangan mengubah semua data menjadi cards; gunakan format terbaik untuk tugas.
-- Mobile bukan desktop yang diperkecil.
-- Status harus menjawab: apa yang terjadi, apakah user perlu bertindak, dan apa
-  yang aman untuk dilihat sekarang.
-- Technical detail harus tersedia tanpa mengganggu alur keputusan utama.
+1. Menyatakan tujuan, cakupan, batas risiko, dan kriteria riset tanpa merakit
+   pipeline internal.
+2. Mengetahui progres dan apakah tindakan diperlukan tanpa memahami queue,
+   attempt, revision, endpoint, atau batch.
+3. Memahami perusahaan yang lolos dan gugur beserta alasan yang konsisten.
+4. Membandingkan kandidat dengan metrik, unit, periode, dan cohort yang setara.
+5. Membaca kesimpulan dahulu, lalu memeriksa bukti, sumber, formula, dan
+   keterbatasan bila diperlukan.
+6. Membuka kembali atau membagikan hasil yang sama tanpa perubahan state lokal
+   atau perbedaan antar-device.
 
-### 9.3 Deliverable review UI/UX/CX
+### 9.2 Information architecture target
 
-- [ ] Primary persona dan jobs-to-be-done.
-- [ ] Journey map fundamental research end-to-end.
-- [ ] Inventory route dan feature; keep, merge, move, hide, atau remove.
-- [ ] Revised information architecture.
-- [ ] State/copy matrix untuk lifecycle dan errors.
-- [ ] Progressive disclosure matrix per route.
-- [ ] Mobile navigation dan data-presentation strategy.
-- [ ] Accessibility risks dan remediation priority.
-- [ ] CX trust model: freshness, source, confidence, warning, limitation.
-- [ ] Technical-analysis integration principles dan boundaries.
-- [ ] Usability acceptance criteria sebelum implementasi visual.
+```text
+Pustaka Riset
+  -> Buat Riset
+  -> Sesi Riset
+     -> Ringkasan dan status
+     -> Hasil seleksi
+        -> Analisis perusahaan
+     -> Perbandingan kandidat
+     -> Laporan final
+     -> Detail pendukung
+        -> Aktivitas
+        -> Metodologi dan istilah
+        -> Sumber, keterbatasan, dan audit teknis
+```
+
+Aturan navigasi:
+
+- Navigasi global desktop dan mobile hanya memuat Pustaka Riset, Riset Baru, dan
+  bantuan kontekstual bila dibutuhkan.
+- Sesi Riset menyediakan navigasi lokal Ringkasan, Seleksi, Perbandingan, dan
+  Laporan. Company selalu berada dalam konteks session/revision.
+- Activity, Trace, Methodology, dan Glossary dibuka dari konteks hasil sebagai
+  drawer, disclosure, atau halaman bantuan sekunder; tidak menjadi menu utama.
+- Schedules disembunyikan sampai scheduler durable benar-benar tersedia.
+- Beranda tidak menjadi dashboard kedua. `/` mengarahkan atau menyatu dengan
+  Pustaka Riset.
+- Navbar tidak menampilkan klaim implementasi seperti `SSE Realtime`,
+  `Idempotent & Bearer Auth`, revision, atau batch. Tampilkan status berguna bagi
+  user; detail koneksi dan revision hanya pada diagnostics/audit.
+
+### 9.3 Route decision matrix
+
+| Route | Keputusan | Peran target |
+| --- | --- | --- |
+| `/` | Merge | Redirect atau render Pustaka Riset; jangan menjadi pusat kerja kedua. |
+| `/research` | Keep | Landing utama: cari, filter, lanjutkan, dan buat riset. |
+| `/research/new` | Keep | Form brief dengan satu aksi utama: mulai riset. |
+| `/research/:id` | Keep | Induk session: status, ringkasan, next action, dan hasil terbit terakhir. |
+| `/research/:id/screener` | Keep contextual | Funnel authoritative dan alasan retained/excluded. |
+| `/research/:id/peers` | Keep contextual | Perbandingan kandidat dalam cohort/revision yang sama. |
+| `/research/:id/report` | Keep contextual | Artefak final yang fokus pada keputusan dan siap diekspor. |
+| `/research/:id/company/:symbol` | Keep contextual | Due diligence kandidat dalam konteks session. |
+| `/research/:id/activity` | Move | Detail pendukung dari status session; bukan navigasi global. |
+| `/research/:id/trace` | Hide | Audit teknis privileged melalui progressive disclosure. |
+| `/company/:symbol` | Remove | Tanpa session/revision, data dan provenance menjadi ambigu. |
+| `/screener` | Remove | Alias tanpa session dan source of truth yang jelas. |
+| `/peers` | Remove | Alias tanpa cohort/session. |
+| `/activity` | Remove | Alias global menduplikasi aktivitas session. |
+| `/trace` | Remove | Alias global membuka detail internal tanpa konteks. |
+| `/report` | Remove | Alias global menduplikasi laporan session. |
+| `/methodology` | Move | Bantuan kontekstual dari score, filter, dan report. |
+| `/glossary` | Move | Definisi inline; halaman bantuan sekunder bila masih diperlukan. |
+| `/schedules` | Hide | Tunggu persistence, trigger, timezone, dan recovery terverifikasi. |
+| Catch-all | Keep | Not-found yang menawarkan kembali ke Pustaka Riset. |
+
+Removal berarti route tidak tampil dan akhirnya dihapus setelah internal links,
+bookmarks yang didukung, analytics, dan redirect policy diperiksa. Tidak perlu
+mempertahankan alias yang belum pernah menjadi kontrak publik.
+
+### 9.4 Journey end-to-end dan primary action
+
+| Context | Informasi utama | Primary action |
+| --- | --- | --- |
+| Pustaka Riset | Session terbaru, status, freshness, pencarian | `Buat riset` |
+| Riset Baru | Objective, universe, horizon, kriteria, jumlah kandidat, preview | `Mulai riset` |
+| Needs input | Pertanyaan, alasan, dampak bila tidak dijawab | `Kirim jawaban` |
+| Session aktif | Pekerjaan berjalan, progres, hasil aman yang tersedia | `Batalkan riset` |
+| Session partial/failed | Hasil valid, bagian gagal, alasan, recovery | `Coba lagi` |
+| Session selesai | Kesimpulan, shortlist, warning, waktu, sumber | `Buka laporan` |
+| Seleksi | Funnel, kriteria, retained/excluded, alasan | `Bandingkan kandidat` |
+| Perusahaan | Thesis, risiko, metrik, evidence, limitation | `Kembali ke perbandingan` |
+| Perbandingan | Tabel setara, differentiator, missing data, ranking | `Buka laporan` |
+| Laporan | Keputusan, kandidat, risks, evidence, disclosure | `Ekspor laporan` |
+| Diagnostics/audit | Request ID, revision, attempt, events, raw refs | `Salin referensi` |
+
+Duplicate, delete, dan pengaturan bukan primary action. Tempatkan sebagai menu
+sekunder dengan confirmation sesuai dampaknya. Jangan tampilkan CTA menuju hasil
+yang belum tersedia; jelaskan status dan tindakan yang valid.
+
+### 9.5 Lifecycle state dan copy
+
+| State backend | Copy utama | Apa yang aman dilihat | Recovery/action |
+| --- | --- | --- | --- |
+| `IDLE` | `Siap memulai riset` | Brief dan preview | `Mulai riset` |
+| `NEEDS_INPUT` | `Riset memerlukan jawaban Anda` | Brief, progres sebelum jeda, pertanyaan | `Kirim jawaban` |
+| Active states | `Riset sedang berjalan` + tahap berbahasa user | Published result lama dan progres baru | `Batalkan riset` |
+| `PARTIAL` | `Riset selesai dengan data terbatas` | Bagian valid, missing data, warnings | `Coba lagi` atau `Buka laporan` |
+| `FAILED` | `Riset belum dapat diselesaikan` | Published result lama bila ada, alasan aman | `Coba lagi` |
+| `CANCELLED` | `Riset dibatalkan` | Published result lama dan progres sebelum batal | `Mulai ulang` |
+| `COMPLETED` | `Riset selesai` | Seluruh published artifact satu revision | `Buka laporan` |
+
+Copy error wajib menjawab: apa yang terjadi, apakah data lama tetap aman, apakah
+user perlu bertindak, dan tindakan berikutnya. Kode HTTP, provider exception,
+queue, endpoint, attempt, dan stack trace tidak menjadi copy utama. `401` meminta
+login ulang, `403` menjelaskan akses, `404` menawarkan kembali ke library, `409`
+memuat ulang snapshot, `422` menandai field, `429` memberi waktu retry, dan `503`
+menjaga hasil lama serta menawarkan retry.
+
+### 9.6 Progressive disclosure
+
+| Tingkat baca | Konten | Bentuk |
+| --- | --- | --- |
+| First read | Status, conclusion, shortlist, alasan utama, warning material, next action | Heading, concise summary, table/list; bukan kumpulan cards seragam. |
+| Second read | Metrik, peer comparison, screening reasons, confidence, missing data, freshness | Tabel responsif, expandable sections, definitions inline. |
+| Third read | Evidence, source refs, formula/version, methodology, limitations | Disclosure atau detail pane yang tetap dapat di-link. |
+| Audit view | Request ID, revision, attempt, events, provider/raw snapshot refs | Privileged diagnostics; bukan alur keputusan utama. |
+
+Istilah `pillar`, `batch`, `endpoint`, `queue`, `trace`, `revision`, dan `attempt`
+hanya tampil di audit view. Istilah finansial yang diperlukan diberi definisi
+inline; glossary tidak menjadi prasyarat memahami halaman.
+
+### 9.7 Trust model
+
+| Elemen | Aturan presentasi |
+| --- | --- |
+| Source | Nama provider/dokumen dan source period; jangan menyetarakan `Sectors`, `local gateway`, dan fixture. |
+| Freshness | `As of` dan fetched/generated time dipisahkan; stale diberi label sebelum conclusion. |
+| Confidence | Hanya tampil bila definisi dan derivation tersedia; bukan pengganti evidence. |
+| Missing | Tampilkan `Tidak tersedia`, bukan nol, estimasi tersembunyi, atau narasi sukses. |
+| Derived | Tampilkan formula/version, input refs, currency, unit, dan rounding policy. |
+| Warning | Dekat dengan angka atau conclusion yang terdampak, bukan hanya banner global. |
+| Limitation | Jelaskan cakupan yang tidak dianalisis dan dampaknya pada conclusion. |
+| Provenance | Report, dossier, peer, dan screening memakai session, attempt, revision, dan source refs yang sama. |
+| Demo | Seluruh session berlabel `Data contoh`; fixture dan live data tidak dicampur. |
+
+Trust strip ringkas pada first/second read memuat source, `as of`, freshness, dan
+warning count. Detail provenance dibuka saat diminta. Label transport seperti SSE
+atau bearer auth tidak menambah kepercayaan user dan harus dihapus dari navbar.
+
+### 9.8 Mobile dan accessibility
+
+Strategi mobile:
+
+- Bottom navigation maksimum tiga tujuan stabil: Pustaka, Riset Baru, dan Sesi
+  aktif bila ada. Navigasi tahap berada di dalam session.
+- Jangan membuat link ke session fixture ketika belum ada session aktif.
+- Tabel perbandingan mempertahankan label baris dan identitas kandidat saat
+  horizontal scroll; sediakan mode daftar per kandidat untuk layar sempit.
+- Sticky controls tidak boleh menutup content, focus target, keyboard virtual,
+  atau safe-area. Touch target minimum 44 x 44 CSS pixels.
+- Status, source, warning, dan primary action tampil sebelum detail teknis.
+
+Acceptance accessibility:
+
+- [ ] Setelah client-side navigation, fokus pindah ke heading utama dan perubahan
+  judul halaman diumumkan secara dapat diprediksi.
+- [ ] Semua workflow dapat diselesaikan dengan keyboard tanpa focus trap atau
+  urutan fokus yang berubah tak terduga.
+- [ ] Dialog/drawer memiliki label, initial focus, Escape, focus containment, dan
+  focus return; background inert saat terbuka.
+- [ ] Perubahan lifecycle penting diumumkan melalui satu live region yang tidak
+  mengulang setiap polling/SSE event.
+- [ ] Status dan chart tidak bergantung pada warna; visualisasi memiliki ringkasan
+  atau data table ekuivalen.
+- [ ] Loading, error, empty, partial, stale, dan offline/reconnecting state dapat
+  dibedakan oleh screen reader.
+- [ ] Text zoom 200%, viewport 320 CSS pixels, landscape mobile, reduced motion,
+  dan high contrast tidak kehilangan content atau action.
+- [ ] NVDA/Firefox dan VoiceOver/Safari melewati create, clarification, progress,
+  comparison, report, error recovery, dan reconnect journey.
+
+### 9.9 Milestone dan vertical slices
+
+| Milestone | Exit criteria | Status |
+| --- | --- | --- |
+| Demo Ready | Satu-user backend-authoritative; no fabricated production data; canonical IA; create sampai report lulus; failure jujur. | Not started |
+| Beta Ready | Real auth/ownership; durable state; responsive dan keyboard audit lulus; provider/reconnect/retry teruji. | Not started |
+| Production Ready | Security, concurrency, load, backup/restore, screen reader, observability, deploy, dan rollback lulus; no P0/P1. | Not started |
+
+| Slice | Owner | Dependency | Status | Evidence commit/PR | Deployment |
+| --- | --- | --- | --- | --- | --- |
+| 1. Auth, ownership, canonical execution, OpenAPI | Backend + Product | D-001 sampai D-003 | Planned | - | Not deployed |
+| 2. Full brief, lifecycle, candidate count, attempt fence | Backend | Slice 1 | Planned | - | Not deployed |
+| 3. No synthetic data, source refs, screening truth | Backend + Data | Slice 2 | Planned | - | Not deployed |
+| 4. Frontend server-state migration dan error recovery | Frontend | Slices 1-3 | Planned | - | Not deployed |
+| 5. Simplified IA, lifecycle copy, trust, mobile/a11y | Frontend + Product | Slice 4 | Planned | - | Not deployed |
+| 6. Durable store, worker, event stream, scheduler | Backend + Ops | D-004 sampai D-006 | Planned | - | Not deployed |
+| 7. E2E, security, accessibility, operations | FE + BE + Ops | Slices 1-6 | Planned | - | Not deployed |
+
+### 9.10 Review deliverables dan acceptance
+
+- [x] Primary persona dan jobs-to-be-done.
+- [x] Journey map fundamental research end-to-end.
+- [x] Inventory route dan feature; keep, merge, move, hide, atau remove.
+- [x] Revised information architecture.
+- [x] State/copy matrix untuk lifecycle dan errors.
+- [x] Progressive disclosure matrix per context.
+- [x] Mobile navigation dan data-presentation strategy.
+- [x] Accessibility risks dan remediation priority.
+- [x] CX trust model: freshness, source, confidence, warning, limitation.
+- [x] Technical-analysis integration principles dan boundaries.
+- [x] Usability acceptance criteria sebelum implementasi visual.
+
+UI/UX/CX dianggap terimplementasi hanya bila usability test membuktikan user
+dapat membuat riset, memahami status, menemukan shortlist, menjelaskan alasan
+retained/excluded, membandingkan kandidat, menemukan source/limitation, dan pulih
+dari error tanpa bantuan serta tanpa istilah arsitektur internal.
 
 ## 10. Voyager Two V1 - Technical Analysis
 
@@ -559,11 +736,11 @@ dan definition of ready berada di [`voyager-two-v1.md`](voyager-two-v1.md).
 - [x] Tetapkan Voyager One untuk seluruh delivery fundamental dan pekerjaan
   end-to-end selain technical analysis.
 - [x] Tetapkan Voyager Two khusus technical analysis.
-- [ ] Selesaikan review UI/UX/CX Voyager One sebelum menetapkan IA Voyager Two.
+- [x] Selesaikan review UI/UX/CX Voyager One sebelum menetapkan IA Voyager Two.
 - [ ] Stabilkan fundamental end-to-end sebelum implementasi Voyager Two dimulai.
 - [ ] Tutup definition of ready di `voyager-two-v1.md`.
 
-## 11. Keputusan Terbuka
+## 11. Decision Log
 
 | ID | Keputusan | Opsi | Status |
 | --- | --- | --- | --- |
@@ -573,7 +750,7 @@ dan definition of ready berada di [`voyager-two-v1.md`](voyager-two-v1.md).
 | D-004 | Database | PostgreSQL; managed alternative | Open |
 | D-005 | Durable queue | Redis/BullMQ; managed queue; DB jobs | Open |
 | D-006 | Event retention | DB table; Redis stream; managed event stream | Open |
-| D-007 | Global company route | Full implementation; remove route | Open |
+| D-007 | Global company route | Remove route; company wajib session-scoped | Accepted 2026-09-08, Product |
 | D-008 | Credits | Billing ledger; estimate only; remove | Open |
 | D-009 | SGX | Defer; release with explicit formula/currency support | Deferred |
 | D-010 | Report exports | User report only; separate privileged audit export | Open |
@@ -588,6 +765,21 @@ Setiap keputusan yang ditutup harus mencatat:
 - alasan dan tradeoff;
 - dampak frontend/backend/data/UX;
 - migration atau rollback path.
+
+### D-007 - Global company route
+
+- Date: 2026-09-08.
+- Decision owner: Product.
+- Choice: hapus `/company/:symbol`; company wajib dibuka melalui
+  `/research/:id/company/:symbol`.
+- Reason/tradeoff: company data membutuhkan session, cohort, revision, dan
+  provenance yang jelas. Global browsing ditunda daripada menampilkan analisis
+  ambigu; konsekuensinya, Voyager One belum menjadi standalone company explorer.
+- Impact: frontend menghapus global link/route; backend tidak perlu menambah
+  global company contract; data dan UX tetap terikat published session artifact.
+- Migration/rollback: audit internal links dan analytics, lalu hapus route. Tambah
+  redirect ke Pustaka Riset hanya bila bookmark usage terbukti; route dapat
+  dipulihkan melalui keputusan baru bila global company contract dirancang.
 
 ## 12. Definition of Done End-to-End
 
@@ -684,3 +876,44 @@ Next smallest slice:
 
 - Tutup keputusan Fase 1: auth, execution flow, canonical response roots, dan SSE
   auth. Setelah itu implementasikan security gate sebelum migrasi state frontend.
+
+### 2026-09-08 - Review UI/UX/CX Voyager One
+
+Status: verified untuk keputusan pengalaman; implementasi pending.
+
+Actual before:
+
+- Route global dan route session menduplikasi Screener, Peers, Activity, Trace,
+  Report, dan Company.
+- Navbar menonjolkan revision, SSE, idempotency, auth, dan istilah implementasi.
+- Session dan Report mengulang terlalu banyak hasil dan detail audit.
+- Trust labels, lifecycle copy, mobile hierarchy, dan focus navigation belum
+  konsisten.
+
+Changes:
+
+- Menetapkan analis fundamental/investor mandiri Indonesia sebagai primary
+  persona dan due-diligence shortlist sebagai keputusan utama.
+- Menetapkan Pustaka Riset sebagai pusat kerja dan Sesi Riset sebagai induk hasil.
+- Membekukan route disposition, primary actions, lifecycle copy, progressive
+  disclosure, trust model, mobile strategy, dan accessibility gates.
+- Menetapkan milestone Demo Ready, Beta Ready, Production Ready, dan tujuh
+  vertical slices dengan dependency serta evidence field.
+
+Evidence:
+
+- Source audit terhadap router, desktop/mobile navigation, seluruh view,
+  provenance component, status handling, dan accessibility behavior.
+- Keputusan dan acceptance criteria tercatat pada Bagian 9 jurnal ini.
+
+Open risks:
+
+- Keputusan auth, SSE auth, datastore, queue, dan event retention masih terbuka.
+- Native NVDA/VoiceOver dan visual device audit belum dijalankan.
+- Route simplification belum diimplementasikan dan masih memerlukan redirect/link
+  inventory sebelum removal.
+
+Next smallest slice:
+
+- Tutup D-001 sampai D-003, lalu implementasikan Slice 1 sebagai security dan
+  contract gate sebelum perubahan visual atau state migration.
