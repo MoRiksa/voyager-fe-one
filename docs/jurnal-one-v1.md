@@ -187,7 +187,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Execution ownership | Backend `start` sudah enqueue satu job; frontend masih memanggil `/execute` dan `/steps` | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Backend verified; frontend blocked |
 | Lifecycle | Backend completion membersihkan active attempt; frontend masih mensimulasikan status | Backend menjalankan lifecycle dan clear active attempt atomik | Backend partial; frontend blocked |
 | Attempt fence | Worker memverifikasi attempt sebelum dan sesudah setiap provider await | Old/cancelled attempt tidak dapat menulis/publish | Backend verified for current worker |
-| Revision guard | Frontend tidak mengirim `If-Match`; backend tidak enforce CAS | Mutasi rawan race wajib revision guard dan 409 recovery | Blocked |
+| Revision guard | Backend mewajibkan `If-Match` pada start/cancel/retry; frontend belum mengirimnya | Seluruh mutasi rawan race memakai revision guard dan recovery | Backend partial; frontend blocked |
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
 | SSE contract | Event names dan envelope custom; no dedupe/gap guard | Contract event registry, replay, dedupe, revision gap refetch | Blocked |
@@ -329,8 +329,8 @@ Tujuan: session, lifecycle, revision, attempt, dan command dimiliki backend.
 - [ ] Implementasikan owner-scoped paginated session list.
 - [ ] Implementasikan search, status filter, sort, page, dan pageSize.
 - [ ] Stable `Idempotency-Key` untuk create/start/retry/duplicate/answer.
-- [ ] `If-Match` diwajibkan pada mutation rawan race.
-- [ ] Stale revision menghasilkan structured 409.
+- [x] `If-Match` diwajibkan pada start, cancel, dan retry.
+- [x] Missing precondition menghasilkan 428; malformed 400; stale revision 409.
 - [ ] Start/retry membuat tepat satu active attempt.
 - [ ] Hanya satu active attempt per session.
 - [ ] Worker commit memverifikasi active attempt setelah setiap async boundary.
@@ -348,7 +348,7 @@ Acceptance:
 - [ ] Request candidate count 2 menghasilkan maksimum 2 kandidat.
 - [ ] Double-click start menghasilkan satu attempt.
 - [ ] Cancel saat provider call berjalan tidak dapat dipublikasi terlambat.
-- [ ] Retry lama tidak dapat menimpa attempt baru.
+- [x] Retry lama tidak dapat menimpa attempt baru pada current single-process worker.
 - [ ] Completed session memiliki `activeAttemptId: null`.
 - [ ] Semua successful mutation menaikkan revision tepat sekali.
 
@@ -704,7 +704,7 @@ Acceptance accessibility:
 | Slice | Owner | Dependency | Status | Evidence commit/PR | Deployment |
 | --- | --- | --- | --- | --- | --- |
 | 1. Canonical execution contract dan OpenAPI | Backend + Product | D-003 | Backend verified; frontend pending | `2a11f73` | Not deployed |
-| 2. Full brief, lifecycle, candidate count, attempt fence | Backend | Slice 1 | Planned | - | Not deployed |
+| 2. Full brief, lifecycle, candidate count, attempt fence | Backend | Slice 1 | In progress | `2a11f73`, `6b8593d` | Not deployed |
 | 3. No synthetic data, source refs, screening truth | Backend + Data | Slice 2 | Planned | - | Not deployed |
 | 4. Frontend server-state migration dan error recovery | Frontend | Slices 1-3 | Planned | - | Not deployed |
 | 5. Simplified IA, lifecycle copy, trust, mobile/a11y | Frontend + Product | Slice 4 | Planned | - | Not deployed |
@@ -862,6 +862,16 @@ Pada setiap batch pekerjaan:
 6. Centang item hanya jika bukti tersedia.
 7. Catat blocker dan residual risk.
 8. Commit jurnal bersama perubahan yang membuat statusnya berubah.
+
+Untuk mencegah proses terlihat freeze:
+
+- Batasi command verifikasi normal maksimal 30 detik; hentikan dan pecah per file
+  bila melewati batas.
+- Jalankan typecheck dan test fokus setelah setiap perubahan inti sebelum full
+  suite.
+- Berikan status antar-tahap saat discovery, edit, focused verification, full
+  verification, dan push selesai.
+- Hindari subagent atau audit luas ketika file dan akar masalah sudah diketahui.
 
 Format catatan perubahan:
 
@@ -1034,3 +1044,36 @@ Next smallest slice:
 
 - Mulai Slice 2: lifecycle transition, revision guard, retry/cancel fence, dan
   canonical error envelope sebelum frontend server-state migration.
+
+### 2026-09-08 - Lifecycle revision guards
+
+Status: backend verified; Slice 2 in progress.
+
+Changes:
+
+- Start, cancel, dan retry mewajibkan `If-Match`.
+- Missing, malformed, dan stale revision menghasilkan 428, 400, dan 409.
+- Cancel hanya berlaku pada session dengan active attempt dan active lifecycle.
+- Retry hanya berlaku dari failed, partial, atau cancelled dan langsung enqueue
+  attempt baru.
+- Stale worker memeriksa attempt setelah provider await sebelum memutasi status.
+- CORS, README, dan OpenAPI diselaraskan dengan revision precondition.
+
+Evidence:
+
+- Backend commit `6b8593d`.
+- Typecheck, build, 29 tests, dan focused OpenAPI/lifecycle tests lulus.
+- Full suite selesai 4,85 detik dengan timeout 30 detik.
+
+Open risks:
+
+- Repository file masih mengembalikan mutable object references dan belum
+  transactional; CAS belum aman lintas process sampai durable store tersedia.
+- Error envelope lain di luar start/cancel/retry belum distandardisasi.
+- Frontend belum mengirim `If-Match`; backend commit belum dideploy agar UI live
+  tidak terputus.
+
+Next smallest slice:
+
+- Standarkan error envelope/request ID dan allowed transition registry, lalu
+  migrasikan frontend create/start agar backend dapat dideploy tanpa regresi.
