@@ -280,25 +280,26 @@ Status fase:
 
 | Fase | Nama | Status | Estimasi awal satu engineer |
 | --- | --- | --- | --- |
-| 1 | Contract and Security Gate | Not started | 2-4 hari kerja |
+| 1 | Contract Gate | Not started | 1-2 hari kerja |
 | 2 | Backend Authoritative Core | Not started | 3-5 hari kerja |
 | 3 | Data Fidelity and Artifact Contract | Not started | 5-8 hari kerja |
 | 4 | Frontend Server-State Migration | Not started | 4-7 hari kerja |
 | 5 | Durable Worker, SSE, and Scheduler | Not started | 7-12 hari kerja |
-| 6 | Contract Tests and Production Hardening | Not started | 4-7 hari kerja |
+| 6 | Auth, Security, Contract Tests, and Production Hardening | Not started | 6-11 hari kerja |
 
 Total awal:
 
-- Demo satu-user yang benar tanpa data palsu: fase 1-4 versi minimal,
-  sekitar 10-16 hari kerja.
+- Development preview satu-user tanpa data palsu: fase 1-4 versi minimal,
+  sekitar 9-14 hari kerja. Ini bukan Demo Ready selama auth ditunda.
 - Production multi-user aman dan durable: seluruh fase, sekitar 25-43 hari kerja.
 - Dua engineer frontend/backend paralel: sekitar 15-25 hari kerja, tergantung
   keputusan auth, database, queue, dan scope artifact.
 
-### Fase 1 - Contract and Security Gate
+### Fase 1 - Contract Gate
 
-Tujuan: tidak ada implementasi baru di atas kontrak ambigu atau API publik yang
-praktis tanpa auth.
+Tujuan: tidak ada implementasi baru di atas kontrak ambigu. Auth dan ownership
+ditunda berdasarkan D-013 agar tidak memblokir development, tetapi tetap menjadi
+P0 release gate pada Fase 6.
 
 - [ ] Nyatakan kontrak normatif: jurnal + OpenAPI `/api/v1`.
 - [ ] Pilih satu execution flow dan tandai `/execute`, `/steps`, atau
@@ -308,27 +309,15 @@ praktis tanpa auth.
 - [ ] Bekukan error envelope dan recovery action.
 - [ ] Bekukan status lifecycle dan allowed transitions.
 - [ ] Bekukan SSE event registry dan envelope.
-- [ ] Pilih auth: OIDC bearer atau same-origin BFF cookie.
-- [ ] Pilih SSE auth yang kompatibel dengan browser.
-- [ ] Hapus static `voyager-dev-token` dan `X-Voyager-Token` dari frontend.
-- [ ] Backend menolak missing, malformed, expired, wrong issuer/audience token.
-- [ ] Terapkan owner/tenant authorization pada semua session, job, schedule,
-  event, report, export, trace, dan knowledge operation.
-- [ ] Pindahkan idempotency setelah authentication.
-- [ ] Scope idempotency dengan principal, method, route, key, dan body digest.
-- [ ] Terapkan exact production CORS policy sesuai auth strategy.
 - [ ] Tambahkan rate limit dan quota untuk operasi mahal.
 - [ ] Putuskan global company route.
 - [ ] Reject SGX sampai capability benar-benar aktif.
 
 Acceptance:
 
-- [ ] Anonymous protected request menghasilkan 401.
-- [ ] Forged/expired token menghasilkan 401.
-- [ ] Missing scope menghasilkan 403.
-- [ ] User A tidak dapat membaca atau mengubah resource User B.
-- [ ] Idempotency response tidak dapat direplay lintas user/path/body.
 - [ ] OpenAPI tervalidasi dan menjadi fixture contract tests.
+- [ ] Development flow create -> start -> worker -> snapshot terdokumentasi dan
+  tidak bergantung pada auth palsu sebagai bukti production readiness.
 
 ### Fase 2 - Backend Authoritative Core
 
@@ -465,10 +454,19 @@ Acceptance:
 - [ ] Dua instance tidak menggandakan publication.
 - [ ] Schedule benar-benar berjalan sesuai cron dan owner timezone.
 
-### Fase 6 - Contract Tests and Production Hardening
+### Fase 6 - Auth, Security, Contract Tests, and Production Hardening
 
 Tujuan: CI dan operasi membuktikan sistem aman, benar, dan dapat dipulihkan.
 
+- [ ] Pilih dan implementasikan auth browser/API.
+- [ ] Pilih dan implementasikan SSE auth yang kompatibel dengan browser.
+- [ ] Hapus static `voyager-dev-token` dan `X-Voyager-Token` dari frontend.
+- [ ] Backend menolak missing, malformed, expired, dan forged credentials.
+- [ ] Terapkan owner/tenant authorization pada semua session, job, schedule,
+  event, report, export, trace, dan knowledge operation.
+- [ ] Pindahkan idempotency setelah authentication dan scope dengan principal,
+  method, route, key, serta body digest.
+- [ ] Terapkan exact production CORS policy sesuai auth strategy.
 - [ ] Generate/validate OpenAPI dalam CI.
 - [ ] Cross-repo contract tests berjalan pada setiap perubahan API.
 - [ ] E2E create/start/progress/completion test.
@@ -491,6 +489,11 @@ Tujuan: CI dan operasi membuktikan sistem aman, benar, dan dapat dipulihkan.
 
 Acceptance:
 
+- [ ] Anonymous protected request menghasilkan 401.
+- [ ] Invalid/expired credential menghasilkan 401.
+- [ ] Missing permission menghasilkan 403.
+- [ ] User A tidak dapat membaca atau mengubah resource User B.
+- [ ] Idempotency response tidak dapat direplay lintas user/path/body.
 - [ ] Seluruh required CI gate hijau.
 - [ ] Tidak ada P0/P1 security finding terbuka.
 - [ ] Tidak ada synthetic financial value pada production.
@@ -693,19 +696,21 @@ Acceptance accessibility:
 
 | Milestone | Exit criteria | Status |
 | --- | --- | --- |
-| Demo Ready | Satu-user backend-authoritative; no fabricated production data; canonical IA; create sampai report lulus; failure jujur. | Not started |
+| Development Preview | Satu-user backend-authoritative; no fabricated data; canonical IA; create sampai report lulus; non-public dan tanpa data sensitif. | Not started |
+| Demo Ready | Development Preview lulus dan auth/ownership minimum terverifikasi. | Blocked by D-013 |
 | Beta Ready | Real auth/ownership; durable state; responsive dan keyboard audit lulus; provider/reconnect/retry teruji. | Not started |
 | Production Ready | Security, concurrency, load, backup/restore, screen reader, observability, deploy, dan rollback lulus; no P0/P1. | Not started |
 
 | Slice | Owner | Dependency | Status | Evidence commit/PR | Deployment |
 | --- | --- | --- | --- | --- | --- |
-| 1. Auth, ownership, canonical execution, OpenAPI | Backend + Product | D-001 sampai D-003 | Planned | - | Not deployed |
+| 1. Canonical execution contract dan OpenAPI | Backend + Product | D-003 | Planned | - | Not deployed |
 | 2. Full brief, lifecycle, candidate count, attempt fence | Backend | Slice 1 | Planned | - | Not deployed |
 | 3. No synthetic data, source refs, screening truth | Backend + Data | Slice 2 | Planned | - | Not deployed |
 | 4. Frontend server-state migration dan error recovery | Frontend | Slices 1-3 | Planned | - | Not deployed |
 | 5. Simplified IA, lifecycle copy, trust, mobile/a11y | Frontend + Product | Slice 4 | Planned | - | Not deployed |
 | 6. Durable store, worker, event stream, scheduler | Backend + Ops | D-004 sampai D-006 | Planned | - | Not deployed |
-| 7. E2E, security, accessibility, operations | FE + BE + Ops | Slices 1-6 | Planned | - | Not deployed |
+| 7. Auth, ownership, dan authenticated SSE | Backend + Frontend | D-001, D-002, Slice 6 | Deferred by D-013 | - | Not deployed |
+| 8. E2E, security, accessibility, operations | FE + BE + Ops | Slices 1-7 | Planned | - | Not deployed |
 
 ### 9.10 Review deliverables dan acceptance
 
@@ -756,6 +761,7 @@ dan definition of ready berada di [`voyager-two-v1.md`](voyager-two-v1.md).
 | D-010 | Report exports | User report only; separate privileged audit export | Open |
 | D-011 | Preview deployments | Stable preview domain; allowlist automation; same-origin proxy | Open |
 | D-012 | Technical analysis role | Context layer; ranking input; separate workflow | Discovery pending |
+| D-013 | Auth delivery order | Implement first; defer until final hardening | Accepted 2026-09-08, deferred to Fase 6 |
 
 Setiap keputusan yang ditutup harus mencatat:
 
@@ -780,6 +786,27 @@ Setiap keputusan yang ditutup harus mencatat:
 - Migration/rollback: audit internal links dan analytics, lalu hapus route. Tambah
   redirect ke Pustaka Riset hanya bila bookmark usage terbukti; route dapat
   dipulihkan melalui keputusan baru bila global company contract dirancang.
+
+### D-013 - Defer auth during development
+
+- Date: 2026-09-08.
+- Decision owner: Product.
+- Choice: lanjutkan contract, backend-authoritative flow, data fidelity, frontend
+  migration, dan durability lebih dahulu; implementasikan auth/ownership pada
+  Fase 6 sebelum Demo Ready atau release apa pun.
+- Reason/tradeoff: pemilihan identity strategy menghambat development inti saat
+  user masih admin-created dan model account expiry belum final. Kecepatan
+  development diterima dengan risiko bahwa environment tanpa auth tidak aman.
+- Impact: D-001 dan D-002 tetap open; auth palsu/guest tidak boleh dianggap
+  production-ready; test development menggunakan data non-sensitif; Demo Ready,
+  Beta Ready, dan Production Ready diblokir sampai security acceptance lulus.
+- Guardrails: jangan menambah user eksternal, data sensitif, atau akses publik
+  yang dipromosikan; jangan membangun fitur baru yang bergantung pada token stub;
+  seluruh repository/service API tetap menerima principal boundary agar ownership
+  dapat dipasang tanpa redesign.
+- Migration/rollback: tutup D-001 dan D-002, implementasikan Slice 7, jalankan
+  auth/IDOR/tenant/SSE tests, lalu buka release gate. Auth dapat diprioritaskan
+  kembali kapan saja tanpa membatalkan slices kontrak dan data.
 
 ## 12. Definition of Done End-to-End
 
@@ -915,5 +942,36 @@ Open risks:
 
 Next smallest slice:
 
-- Tutup D-001 sampai D-003, lalu implementasikan Slice 1 sebagai security dan
-  contract gate sebelum perubahan visual atau state migration.
+- Tutup D-003 dan implementasikan Slice 1 sebagai canonical execution contract
+  serta OpenAPI. D-001 dan D-002 tetap menjadi release blocker pada Slice 7.
+
+### 2026-09-08 - Auth ditunda sampai final hardening
+
+Status: accepted untuk urutan delivery; security tetap blocked.
+
+Actual before:
+
+- Slice 1 mengharuskan keputusan auth sebelum contract dan lifecycle development.
+- Identity strategy belum final karena kebutuhan admin-created account, account
+  expiry, resource server, dan topology masih dievaluasi.
+
+Changes:
+
+- Memindahkan implementasi auth, ownership, authenticated SSE, dan auth-scoped
+  idempotency ke Fase 6/Slice 7.
+- Menambahkan Development Preview sebagai milestone non-public dan non-sensitive.
+- Mempertahankan Demo Ready, Beta Ready, dan Production Ready sebagai blocked
+  sampai auth serta ownership terverifikasi.
+
+Evidence:
+
+- D-013 dan guardrails tercatat pada Decision Log.
+
+Open risks:
+
+- Backend production saat ini masih menerima guest/arbitrary token dan tidak
+  menegakkan owner/tenant. Endpoint tersebut tidak aman untuk penggunaan publik.
+
+Next smallest slice:
+
+- Tutup D-003, bekukan OpenAPI dan execution flow, lalu implementasikan Slice 1.
