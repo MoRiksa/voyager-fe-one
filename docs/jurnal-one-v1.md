@@ -158,9 +158,11 @@ tidak boleh dimasukkan ke dokumen.
 
 - [x] Frontend build lulus dengan `VITE_BACKEND_URL` eksplisit.
 - [x] Frontend smoke test lulus untuk 19 routes.
-- [ ] Frontend interaction test lulus terhadap backend test instance.
+- [ ] Full frontend interaction test lulus terhadap backend test instance.
 - [x] Backend typecheck dan build lulus.
-- [x] Backend unit test lulus: 10 files, 28 tests.
+- [x] Backend unit test lulus: 12 files, 30 tests.
+- [x] Focused browser contract smoke lulus terhadap backend lokal untuk create,
+  start, `If-Match`, dan authoritative snapshot.
 - [ ] Backend tests membuktikan provider success, bukan hanya fallback saat LLM
   atau Sectors gagal.
 - [ ] Cross-repository contract test tersedia di CI.
@@ -181,13 +183,13 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Browser token | Static `voyager-dev-token` ada dalam bundle | Tidak ada static secret/token; auth berasal dari session/user | Blocked |
 | Ownership | `ownerId`/`tenantId` disimpan tetapi tidak diperiksa | Semua query/mutation scoped owner dan tenant | Blocked |
 | CORS | Production origin allowlist aktif | Exact allowlist sesuai auth strategy; preview diputuskan | Partial |
-| Create payload | Frontend tidak mengirim full `brief` | Objective, preset, dan seluruh brief dikirim | Blocked |
-| Candidate count | Backend memakai `brief.candidateCount` sebagai field tunggal; frontend belum mengirim full brief | Request 2 menghasilkan maksimum 2 | Backend verified; frontend blocked |
+| Create payload | Frontend mengirim objective, preset, dan full `brief` IDX | Objective, preset, dan seluruh brief dikirim | Verified |
+| Candidate count | Backend dan frontend memakai `brief.candidateCount` sebagai field tunggal | Request 2 menghasilkan maksimum 2 | Verified |
 | Source of truth | Backend dan `localStorage` sama-sama menyimpan artifact | Backend database authoritative; localStorage preference only | Blocked |
-| Execution ownership | Backend `start` sudah enqueue satu job; frontend masih memanggil `/execute` dan `/steps` | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Backend verified; frontend blocked |
-| Lifecycle | Backend completion membersihkan active attempt; frontend masih mensimulasikan status | Backend menjalankan lifecycle dan clear active attempt atomik | Backend partial; frontend blocked |
+| Execution ownership | Frontend memakai create -> start; backend worker menjalankan pipeline dan frontend refetch snapshot | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Verified untuk create/start/polling |
+| Lifecycle | Backend completion membersihkan active attempt; halaman sesi menghidrasi status dan artefak dari snapshot backend | Backend menjalankan lifecycle dan clear active attempt atomik | Partial; command lain belum authoritative |
 | Attempt fence | Worker memverifikasi attempt sebelum dan sesudah setiap provider await | Old/cancelled attempt tidak dapat menulis/publish | Backend verified for current worker |
-| Revision guard | Backend mewajibkan `If-Match` pada start/cancel/retry; frontend belum mengirimnya | Seluruh mutasi rawan race memakai revision guard dan recovery | Backend partial; frontend blocked |
+| Revision guard | Frontend mengirim `If-Match` saat start; cancel/retry frontend masih lokal | Seluruh mutasi rawan race memakai revision guard dan recovery | Partial |
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
 | SSE contract | Event names dan envelope custom; no dedupe/gap guard | Contract event registry, replay, dedupe, revision gap refetch | Blocked |
@@ -200,7 +202,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Dossier root | Backend/client memakai `candidate` | Root canonical `dossier` atau kontrak dibekukan konsisten | Decision |
 | Peer root | Backend/client memakai `benchmarks` | Root canonical `peerBenchmarks` atau kontrak dibekukan konsisten | Decision |
 | Activity root | Backend/client memakai `activities` | Root canonical `activity` atau kontrak dibekukan konsisten | Decision |
-| Errors | Fixed frontend messages; mixed backend shapes | Structured envelope, request ID, violations, warnings, recovery | Blocked |
+| Errors | Backend menambahkan UUID request ID pada header dan JSON; beberapa controller masih memakai legacy shape | Structured envelope, request ID, violations, warnings, recovery | Partial |
 | Clarification | Frontend membuat ID `clarification-1`; backend tidak membuat real clarification | Backend-issued clarification entity dan persisted return status | Blocked |
 | Cancel/retry/delete | Sebagian aksi hanya mengubah local state | Semua command authoritative di backend | Blocked |
 | Persistence | Session JSON files; writes non-atomic; queue/events/idempotency/schedule memory-only | Transactional durable store dan durable jobs/events | Blocked |
@@ -829,8 +831,8 @@ Setiap keputusan yang ditutup harus mencatat:
 Voyager One V1 belum selesai sampai seluruh pernyataan berikut benar:
 
 - [ ] User dapat login dan hanya melihat resource miliknya.
-- [ ] User dapat membuat full research brief tanpa field hilang.
-- [ ] Backend menyusun dan menjalankan plan tanpa orchestration frontend.
+- [x] User dapat membuat full research brief tanpa field hilang.
+- [x] Backend menyusun dan menjalankan plan tanpa orchestration frontend.
 - [ ] Session dapat dipantau, direfresh, dan dibuka dari dua device.
 - [ ] Clarification, cancel, retry, dan failure recovery konsisten.
 - [ ] Screening retained/excluded dan reasons authoritative.
@@ -1077,3 +1079,53 @@ Next smallest slice:
 
 - Standarkan error envelope/request ID dan allowed transition registry, lalu
   migrasikan frontend create/start agar backend dapat dideploy tanpa regresi.
+
+### 2026-09-08 - Request ID dan canonical frontend execution
+
+Status: verified untuk create/start/refetch; deployment pending.
+
+Actual before:
+
+- Response backend belum memiliki request ID konsisten.
+- Frontend mengirim payload create legacy, memanggil `/execute` dan `/steps`, serta
+  tidak mengirim revision saat start.
+- Halaman sesi mengorkestrasi lima step dan menulis status hasil sendiri.
+
+Changes:
+
+- Backend membuat satu UUID per request, mengekspos `X-Request-ID`, dan
+  menambahkannya ke JSON envelope termasuk validation/global errors.
+- OpenAPI mendokumentasikan request ID sebagai bagian wajib response envelope.
+- Frontend mengirim full brief IDX dan `If-Match` dari revision create ketika
+  memanggil canonical start.
+- Halaman sesi menghapus orchestration `/steps` dan polling snapshot backend
+  sampai terminal; empty candidates dan nullable attempt IDs diperlakukan sebagai
+  state authoritative.
+- UI menghapus label endpoint step dan response JSON sintetis.
+
+Evidence:
+
+- Backend commit `18d3d44`; typecheck, build, 12 files/30 tests lulus.
+- Frontend commit `db1902e`; build dan 19-route smoke lulus.
+- `npm run test:canonical-flow` lulus dan mencegah referensi `/steps`, `/execute`,
+  `runResearchStep`, atau `executeResearchSession` kembali ke flow runtime.
+- Browser smoke terhadap backend lokal membuktikan create HTTP 201 dengan full
+  brief, start HTTP 202 dengan `If-Match: 1`, lalu GET snapshot terminal revision
+  7 dengan lima kandidat.
+
+Open risks:
+
+- Backend baru dan frontend baru belum dideploy bersama; production tetap memakai
+  kontrak lama sampai deployment terkoordinasi.
+- Cancel/retry, SSE refetch, session library, dan localStorage masih belum
+  sepenuhnya backend-authoritative.
+- Sebagian controller backend masih mengembalikan legacy `{ error }`; request ID
+  konsisten tetapi seluruh error envelope belum selesai.
+- Auth, ownership, static browser token, dan durable persistence tetap release
+  blocker berdasarkan D-013.
+
+Next smallest slice:
+
+- Migrasikan cancel/retry ke `If-Match` dan authoritative refetch, lalu ubah SSE
+  menjadi change signal yang selalu memicu snapshot refresh sebelum deployment
+  frontend/backend terkoordinasi.
