@@ -182,11 +182,11 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Ownership | `ownerId`/`tenantId` disimpan tetapi tidak diperiksa | Semua query/mutation scoped owner dan tenant | Blocked |
 | CORS | Production origin allowlist aktif | Exact allowlist sesuai auth strategy; preview diputuskan | Partial |
 | Create payload | Frontend tidak mengirim full `brief` | Objective, preset, dan seluruh brief dikirim | Blocked |
-| Candidate count | `brief.candidateCount` dapat dikalahkan default top-level 5 | Satu canonical field; request 2 menghasilkan maksimum 2 | Blocked |
+| Candidate count | Backend memakai `brief.candidateCount` sebagai field tunggal; frontend belum mengirim full brief | Request 2 menghasilkan maksimum 2 | Backend verified; frontend blocked |
 | Source of truth | Backend dan `localStorage` sama-sama menyimpan artifact | Backend database authoritative; localStorage preference only | Blocked |
-| Execution ownership | Frontend memanggil `/execute`, lalu `/steps`; store juga punya async flow | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Blocked |
-| Lifecycle | Banyak status hanya disimulasikan frontend; completed masih punya active attempt | Backend menjalankan lifecycle dan clear active attempt atomik | Blocked |
-| Attempt fence | Queue membawa attempt ID tetapi worker commit tidak memverifikasi ulang | Old/cancelled attempt tidak dapat menulis/publish | Blocked |
+| Execution ownership | Backend `start` sudah enqueue satu job; frontend masih memanggil `/execute` dan `/steps` | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Backend verified; frontend blocked |
+| Lifecycle | Backend completion membersihkan active attempt; frontend masih mensimulasikan status | Backend menjalankan lifecycle dan clear active attempt atomik | Backend partial; frontend blocked |
+| Attempt fence | Worker memverifikasi attempt sebelum dan sesudah setiap provider await | Old/cancelled attempt tidak dapat menulis/publish | Backend verified for current worker |
 | Revision guard | Frontend tidak mengirim `If-Match`; backend tidak enforce CAS | Mutasi rawan race wajib revision guard dan 409 recovery | Blocked |
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
@@ -301,10 +301,10 @@ Tujuan: tidak ada implementasi baru di atas kontrak ambigu. Auth dan ownership
 ditunda berdasarkan D-013 agar tidak memblokir development, tetapi tetap menjadi
 P0 release gate pada Fase 6.
 
-- [ ] Nyatakan kontrak normatif: jurnal + OpenAPI `/api/v1`.
-- [ ] Pilih satu execution flow dan tandai `/execute`, `/steps`, atau
+- [x] Nyatakan kontrak normatif: jurnal + OpenAPI `/api/v1`.
+- [x] Pilih satu execution flow dan tandai `/execute`, `/steps`, atau
   `/async-execute` sebagai internal/deprecated/removed.
-- [ ] Bekukan request create/preview full brief.
+- [x] Bekukan request create full brief; preview alignment tetap Slice 2.
 - [ ] Bekukan named roots seluruh response.
 - [ ] Bekukan error envelope dan recovery action.
 - [ ] Bekukan status lifecycle dan allowed transitions.
@@ -315,8 +315,8 @@ P0 release gate pada Fase 6.
 
 Acceptance:
 
-- [ ] OpenAPI tervalidasi dan menjadi fixture contract tests.
-- [ ] Development flow create -> start -> worker -> snapshot terdokumentasi dan
+- [x] OpenAPI tervalidasi dan menjadi fixture contract tests.
+- [x] Development flow create -> start -> worker -> snapshot terdokumentasi dan
   tidak bergantung pada auth palsu sebagai bukti production readiness.
 
 ### Fase 2 - Backend Authoritative Core
@@ -703,7 +703,7 @@ Acceptance accessibility:
 
 | Slice | Owner | Dependency | Status | Evidence commit/PR | Deployment |
 | --- | --- | --- | --- | --- | --- |
-| 1. Canonical execution contract dan OpenAPI | Backend + Product | D-003 | Planned | - | Not deployed |
+| 1. Canonical execution contract dan OpenAPI | Backend + Product | D-003 | Backend verified; frontend pending | `2a11f73` | Not deployed |
 | 2. Full brief, lifecycle, candidate count, attempt fence | Backend | Slice 1 | Planned | - | Not deployed |
 | 3. No synthetic data, source refs, screening truth | Backend + Data | Slice 2 | Planned | - | Not deployed |
 | 4. Frontend server-state migration dan error recovery | Frontend | Slices 1-3 | Planned | - | Not deployed |
@@ -751,7 +751,7 @@ dan definition of ready berada di [`voyager-two-v1.md`](voyager-two-v1.md).
 | --- | --- | --- | --- |
 | D-001 | Auth browser/API | OIDC bearer; BFF secure cookie | Open |
 | D-002 | SSE auth | Fetch stream bearer; same-origin cookie/BFF; signed short-lived stream token | Open |
-| D-003 | Canonical execution endpoint | Start auto-enqueues; explicit execute command; internal worker route | Recommended: start auto-enqueues |
+| D-003 | Canonical execution endpoint | Start auto-enqueues; explicit execute command; internal worker route | Accepted 2026-09-08: start auto-enqueues |
 | D-004 | Database | PostgreSQL; managed alternative | Open |
 | D-005 | Durable queue | Redis/BullMQ; managed queue; DB jobs | Open |
 | D-006 | Event retention | DB table; Redis stream; managed event stream | Open |
@@ -771,6 +771,22 @@ Setiap keputusan yang ditutup harus mencatat:
 - alasan dan tradeoff;
 - dampak frontend/backend/data/UX;
 - migration atau rollback path.
+
+### D-003 - Canonical execution endpoint
+
+- Date: 2026-09-08.
+- Decision owner: Product + Backend.
+- Choice: `POST /research-sessions/:id/start` membuat satu active attempt dan
+  langsung enqueue pipeline; response `202` memuat `session` dan `job`.
+- Reason/tradeoff: satu command mencegah frontend, synchronous endpoint, step
+  endpoint, dan worker menjalankan pipeline yang sama. Job masih process-local
+  sampai Slice 6, sehingga flow ini belum durable terhadap restart.
+- Impact: `/steps/:step`, `/execute`, dan `/async-execute` tidak lagi terdaftar
+  sebagai route publik; frontend harus berhenti memanggil endpoint tersebut dan
+  menggunakan SSE hanya sebagai signal untuk authoritative GET.
+- Migration/rollback: frontend berpindah ke create -> start -> snapshot. Internal
+  service methods dipertahankan untuk worker sampai pipeline direfaktor; route
+  alternatif hanya dapat dipulihkan melalui keputusan kontrak baru.
 
 ### D-007 - Global company route
 
@@ -975,3 +991,46 @@ Open risks:
 Next smallest slice:
 
 - Tutup D-003, bekukan OpenAPI dan execution flow, lalu implementasikan Slice 1.
+
+### 2026-09-08 - Canonical start execution backend
+
+Status: backend verified; frontend migration pending.
+
+Actual before:
+
+- Start hanya membuat attempt; `/execute`, `/steps`, dan `/async-execute` dapat
+  menjalankan pipeline secara terpisah.
+- Worker tidak menegakkan queued attempt ID dan completion menyisakan active
+  attempt.
+- Create menerima payload legacy sehingga candidate count memiliki dua sumber.
+
+Changes:
+
+- Start membuat satu attempt dan enqueue satu job, serta mengembalikan HTTP 202.
+- Repeated start pada active attempt mengembalikan job yang sama.
+- Worker memverifikasi attempt sebelum dan setelah provider await.
+- Completion memindahkan attempt ke published dan membersihkan active attempt.
+- Full brief menjadi create contract dan `brief.candidateCount` menjadi sumber
+  tunggal.
+- Menambahkan `GET /openapi.json`; menghapus route publik step/execute/async.
+- Job lookup sekarang harus cocok dengan session ID pada URL.
+
+Evidence:
+
+- Backend commit `2a11f73`.
+- `npm run typecheck`, `npm run build`, dan 29 tests lulus.
+- Regression test membuktikan candidate count 2 menghasilkan dua kandidat,
+  completion memiliki `activeAttemptId: null`, repeated start tidak membuat job
+  kedua, dan job tidak dapat dibaca melalui session ID lain.
+
+Open risks:
+
+- Frontend production masih memakai payload/endpoint lama dan belum kompatibel
+  dengan contract baru sampai Slice 4 dimigrasikan.
+- Queue, events, dan idempotency masih process-local.
+- Auth dan ownership tetap ditunda dan memblokir release berdasarkan D-013.
+
+Next smallest slice:
+
+- Mulai Slice 2: lifecycle transition, revision guard, retry/cancel fence, dan
+  canonical error envelope sebelum frontend server-state migration.
