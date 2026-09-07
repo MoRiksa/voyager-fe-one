@@ -1,0 +1,221 @@
+{
+  "text": "Sectors Financial API\n\n\nGet Started\nAPI Playground\nAPI Key Management\nIncorporate Real Financial Data into your AI and Financial Workflows.\n1\nExperiment with Financial API endpoints\n\nIn-browser experimentation with various Sectors Financial API endpoints to understand their functionalities and responses. Whilst in Demo Mode (not signed in), the returned values are mock data to demonstate the data structure. Signing in with Sectors Insider allows you to use your API key to get actual data from Sectors.\n\n2\nTest different parameters\n\nModify and test different parameters for each API endpoint to see how they affect the responses directly in the built-in browser environment.\n\n3\nQuery Builder for Deterministic Requests\n\nUtilize the Query Builder feature to construct API requests that are deterministic and fitting for structured data retrieval and automation tasks. The query is a composition of SQL-like vocabulary, and can directly be copied from the Query Builder into your own applications.\n\n\n\nv2 Playground\nNatural Language Query\nDeterministic Query Builder\nSectors Financial API Docs\nAvailable Endpoints\nINDONESIA (IDX)\nCompany Screener\nGETCompanies Screener\nGETFree Float Market Analysis\nHelper Lists\nDetailed Reports\nTransaction Data\nRankings\nIPO & Performance\nNews & Filings\nBrokers\nSINGAPORE (SGX)\nSGX - Company Screener\nGETSGX Companies Screener\nSGX - Helper Lists\nSGX - Detailed Reports\nSGX - Transaction Data\nSGX - Rankings\nSGX - News & Filings\nMALAYSIA (KLSE)\nKLSE\nGETList KLSE companies filtered by sector\nGETTop KLSE companies by classification\nGETFull company report for a KLSE-listed symbol\nGETList all KLSE sectors\nMINING (EXTENSION)\nCompanies\nGETList Mining Companies\nGETMining Company Detail\nGETMining Company Financials\nGETMining Company Ownership\nGETMining Company Performance\nCommodities & Trade\nProduction & Sites\nContracts & Licenses\nSectors API Playground\n\nWhilst in Demo Mode, the returned values are mock data to demonstrate each API endpoint's functionality. When you sign in with Sectors Insider, you can initiate API requests with your API key to get actual data from Sectors.\n\nSubsectors\nDemo Mode\n\nList of all IDX sub-sector slugs (with parent sector).\n\nhttps://api.sectors.app\nLaunch!\nHandcrafted by\n\nSupertype\n\nFinancial data, intelligence & APIs for Southeast Asia\n\nNear-complete IDX & SGX coverage, refreshed daily. Serving 40,000 financial workflows each month.\n\nGet the weekly market brief\n\nSubscribe\n\nWe do not resell your data and respect your privacy.\n\nInstagram\nLinkedIn\nDiscord\n\nFor organization & enterprise enquiries, email help@sectors.app\n\nPlatform\n\nExplore & analyze\n\nAI-Powered Search\nSectors AI Chat\nStock Screener\nPeer Comparison\nWorkflow Automations\n\nBuild with Sectors\n\nSectors Financial API\nAPI Documentation\nAPI for IDX\nFinancial API Workshops\nIndonesia (IDX)\n\nMarkets\n\nIndonesia Financial Data\nMost Traded Stocks on IDX\nTop Brokers in Indonesia\nIndonesia Foreign Flow\nConglomerates & Groups\nBUMN (Persero) Companies\nIDX Economic Sectors\n\nNews & insights\n\nIndonesia Financial News\nIDX Weekly Digest\nDividend Calendar\nStock Lists\n\nTop Indonesian stocks\n\nLargest by Market Cap\nTop Dividend Stocks\nMost Profitable Companies\nValue (Low P/E) Stocks\nTop Gainers Today\nTop YoY Earnings Growth\n\nSingapore\n\nSingapore (SGX) Data\nSingapore Financial News\nLargest Singapore Companies\nTop Dividend Stocks (SGX)\nSingapore Conglomerates & Groups\nCompany\n\nSectors\n\nPricing & Plans\nFAQ\nSectors for Enterprise\nOur Data Operations\nMining, Metals & Minerals\nReal Estate Investment Trusts\n\nLearn & community\n\nDev Logs & Changelog\nCommunity Bulletin\nAbout Asset Quality (NPL)\nAbout Bank Liquidity\nOur Financial Search Architecture\nIndonesia\nSingapore\nMalaysia\nTerms of Service\nPrivacy Policy\nSitemap\n\n© 2024 - 2026 Supertype Pte. Ltd. (and subsidiary PT. Supertype Teknologi Nusantara). All rights reserved.\n\nBuilt with ❤️ in Southeast Asia by\nSupertype",
+  "links": [
+    {
+      "text": "",
+      "href": "https://sectors.app/"
+    },
+    {
+      "text": "Sectors Financial API Docs",
+      "href": "https://docs.sectors.app/get-started/v2/overview"
+    },
+    {
+      "text": "Instagram",
+      "href": "https://www.instagram.com/sectorsapp"
+    },
+    {
+      "text": "LinkedIn",
+      "href": "https://www.linkedin.com/company/sectorsapp/"
+    },
+    {
+      "text": "Discord",
+      "href": "https://discord.gg/TAnZMmNS4X"
+    },
+    {
+      "text": "help@sectors.app",
+      "href": "mailto:help@sectors.app"
+    },
+    {
+      "text": "AI-Powered Search",
+      "href": "https://sectors.app/search"
+    },
+    {
+      "text": "Sectors AI Chat",
+      "href": "https://sectors.app/chat"
+    },
+    {
+      "text": "Stock Screener",
+      "href": "https://sectors.app/screener"
+    },
+    {
+      "text": "Peer Comparison",
+      "href": "https://sectors.app/peers"
+    },
+    {
+      "text": "Workflow Automations",
+      "href": "https://sectors.app/workflow"
+    },
+    {
+      "text": "Sectors Financial API",
+      "href": "https://sectors.app/api"
+    },
+    {
+      "text": "API Documentation",
+      "href": "https://docs.sectors.app/"
+    },
+    {
+      "text": "API for IDX",
+      "href": "https://sectors.app/api-for-idx"
+    },
+    {
+      "text": "Financial API Workshops",
+      "href": "https://sectors.app/financial-api-workshops"
+    },
+    {
+      "text": "Indonesia Financial Data",
+      "href": "https://sectors.app/indonesia"
+    },
+    {
+      "text": "Most Traded Stocks on IDX",
+      "href": "https://sectors.app/indonesia/most-traded"
+    },
+    {
+      "text": "Top Brokers in Indonesia",
+      "href": "https://sectors.app/idx/broker"
+    },
+    {
+      "text": "Indonesia Foreign Flow",
+      "href": "https://sectors.app/idx/foreign-flow"
+    },
+    {
+      "text": "Conglomerates & Groups",
+      "href": "https://sectors.app/indonesia/group"
+    },
+    {
+      "text": "BUMN (Persero) Companies",
+      "href": "https://sectors.app/indonesia/bumn"
+    },
+    {
+      "text": "IDX Economic Sectors",
+      "href": "https://sectors.app/indonesia/economic-sectors"
+    },
+    {
+      "text": "Indonesia Financial News",
+      "href": "https://sectors.app/indonesia/news"
+    },
+    {
+      "text": "IDX Weekly Digest",
+      "href": "https://sectors.app/indonesia/2026/latest"
+    },
+    {
+      "text": "Dividend Calendar",
+      "href": "https://sectors.app/indonesia/calendars/dividend-calendar"
+    },
+    {
+      "text": "Largest by Market Cap",
+      "href": "https://sectors.app/indonesia/largest-company-in-indonesia-by-market-cap"
+    },
+    {
+      "text": "Top Dividend Stocks",
+      "href": "https://sectors.app/indonesia/top-dividend-stocks-indonesia"
+    },
+    {
+      "text": "Most Profitable Companies",
+      "href": "https://sectors.app/indonesia/most-profitable-companies-in-indonesia"
+    },
+    {
+      "text": "Value (Low P/E) Stocks",
+      "href": "https://sectors.app/indonesia/companies-in-indonesia-by-pe-ratio-value-investing"
+    },
+    {
+      "text": "Top Gainers Today",
+      "href": "https://sectors.app/indonesia/top-gainers-indonesia"
+    },
+    {
+      "text": "Top YoY Earnings Growth",
+      "href": "https://sectors.app/indonesia/lists/top-30-yoy-earning-growth"
+    },
+    {
+      "text": "Singapore (SGX) Data",
+      "href": "https://sectors.app/singapore"
+    },
+    {
+      "text": "Singapore Financial News",
+      "href": "https://sectors.app/singapore/news"
+    },
+    {
+      "text": "Largest Singapore Companies",
+      "href": "https://sectors.app/singapore/largest-company-in-singapore-by-market-cap"
+    },
+    {
+      "text": "Top Dividend Stocks (SGX)",
+      "href": "https://sectors.app/singapore/top-dividend-stocks-singapore"
+    },
+    {
+      "text": "Singapore Conglomerates & Groups",
+      "href": "https://sectors.app/singapore/group"
+    },
+    {
+      "text": "Pricing & Plans",
+      "href": "https://sectors.app/pricing"
+    },
+    {
+      "text": "FAQ",
+      "href": "https://sectors.app/faq"
+    },
+    {
+      "text": "Sectors for Enterprise",
+      "href": "https://sectors.app/enterprise"
+    },
+    {
+      "text": "Our Data Operations",
+      "href": "https://sectors.app/data-operations"
+    },
+    {
+      "text": "Mining, Metals & Minerals",
+      "href": "https://mining.sectors.app/"
+    },
+    {
+      "text": "Real Estate Investment Trusts",
+      "href": "https://reits.sectors.app/"
+    },
+    {
+      "text": "Dev Logs & Changelog",
+      "href": "https://sectors.app/release"
+    },
+    {
+      "text": "Community Bulletin",
+      "href": "https://sectors.app/bulletin"
+    },
+    {
+      "text": "About Asset Quality (NPL)",
+      "href": "https://sectors.app/finance/asset-quality"
+    },
+    {
+      "text": "About Bank Liquidity",
+      "href": "https://sectors.app/finance/bank-liquidity"
+    },
+    {
+      "text": "Our Financial Search Architecture",
+      "href": "https://sectors.app/bulletin/search-architecture"
+    },
+    {
+      "text": "Indonesia",
+      "href": "https://sectors.app/indonesia"
+    },
+    {
+      "text": "Singapore",
+      "href": "https://sectors.app/singapore"
+    },
+    {
+      "text": "Malaysia",
+      "href": "https://sectors.app/malaysia"
+    },
+    {
+      "text": "Terms of Service",
+      "href": "https://sectors.app/terms-of-service"
+    },
+    {
+      "text": "Privacy Policy",
+      "href": "https://sectors.app/privacy"
+    },
+    {
+      "text": "Sitemap",
+      "href": "https://sectors.app/sitemap.xml"
+    },
+    {
+      "text": "Supertype",
+      "href": "https://supertype.ai/"
+    }
+  ]
+}

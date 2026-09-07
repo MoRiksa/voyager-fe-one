@@ -90,6 +90,20 @@ const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecut
 
     <!-- Right: Subtle Status & Clean Action Button -->
     <div class="flex shrink-0 items-center gap-2">
+      <!-- 9 Batches Metadata Badges -->
+      <div class="hidden sm:flex items-center gap-1.5 text-[10px] font-mono">
+        <span class="rounded bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-indigo-700 font-semibold">
+          rev {{ store.currentRevision }}
+        </span>
+        <span v-if="store.sseConnected" class="rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-emerald-700 font-semibold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          SSE Realtime
+        </span>
+        <span class="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-slate-600 font-medium">
+          Idempotent & Bearer Auth
+        </span>
+      </div>
+
       <!-- Subtle Minimal Status Pill -->
       <div role="status" aria-live="polite" class="status-badge" :class="statusMeta.className">
         <span 

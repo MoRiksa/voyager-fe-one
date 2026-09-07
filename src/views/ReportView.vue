@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Info
 } from '@lucide/vue'
+import { exportReportFile } from '../services/researchApi'
 
 const store = useResearchStore()
 const router = useRouter()
@@ -131,6 +132,15 @@ const handleExportMarkdown = async () => {
   exportError.value = ''
   await nextTick()
   try {
+    if (store.report.sessionId?.startsWith('RES-')) {
+      try {
+        await exportReportFile(store.report.sessionId, 'markdown')
+        store.notify('Laporan Markdown berhasil diunduh dari engine.', 'success')
+        return
+      } catch (beErr) {
+        console.warn('Backend export fallback:', beErr)
+      }
+    }
     const content = `# Laporan Riset Finansial — Voyager One
 **ID sesi:** ${store.report.sessionId}
 **Dibuat pada:** ${store.report.timestamp}
@@ -221,6 +231,15 @@ const handleExportJson = async () => {
   exportError.value = ''
   await nextTick()
   try {
+    if (store.report.sessionId?.startsWith('RES-')) {
+      try {
+        await exportReportFile(store.report.sessionId, 'json')
+        store.notify('Data laporan JSON berhasil diunduh dari engine.', 'success')
+        return
+      } catch (beErr) {
+        console.warn('Backend export fallback:', beErr)
+      }
+    }
     const content = JSON.stringify({
     report: store.report,
     screeningFunnel: store.screeningFunnel,

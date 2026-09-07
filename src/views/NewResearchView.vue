@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchBrief, ResearchObjectivePreset } from '../types'
+import { createResearchSession, executeResearchSession, getResearchSessionFull, startResearchSession } from '../services/researchApi'
 import { ArrowRight, Check, Search, SlidersHorizontal } from '@lucide/vue'
 
 const store = useResearchStore()
@@ -36,7 +37,8 @@ const dimensions = [
   { id: 'segments', label: 'Segmen usaha', availability: 'akan digunakan bila tersedia' },
   { id: 'forward', label: 'Estimasi forward', availability: 'akan digunakan bila tersedia' }
 ]
-const estimatedDuration = computed(() => ({ Ringkas: '4-7 menit', Standar: '8-12 menit', Mendalam: '15-25 menit' }[researchDepth.value] || '8-12 menit'))
+const durationMap: Record<string, string> = { Ringkas: '4-7 menit', Standar: '8-12 menit', Mendalam: '15-25 menit' }
+const estimatedDuration = computed(() => durationMap[researchDepth.value] || '8-12 menit')
 const selectedDimensionLabels = computed(() => dimensions.filter(item => optionalDimensions.value.includes(item.id)).map(item => item.label))
 
 watch(objective, value => {
@@ -71,8 +73,26 @@ const submit = async () => {
     optionalDimensions: [...optionalDimensions.value]
   })
   store.activePlan.objective = objective.value.trim()
-  const sessionId = store.createSession()
-  void store.runAutonomousResearch(sessionId)
+  let sessionId: string
+  try {
+    const created = await createResearchSession({
+      objective: objective.value.trim(),
+      market: market.value,
+      requestedCandidates: candidateCount.value,
+      ...(selectedPreset.value !== 'custom' ? { presetId: selectedPreset.value } : {})
+    })
+    sessionId = created.id
+    await startResearchSession(sessionId)
+    store.createSession(sessionId)
+    void executeResearchSession(sessionId).then(fullSession => {
+      if (fullSession) store.hydrateFromBackendSession(fullSession)
+    }).catch(err => {
+      console.warn('Backend execution error:', err)
+    })
+  } catch (requestError) {
+    error.value = requestError instanceof Error ? requestError.message : 'Backend tidak dapat dihubungi.'
+    return
+  }
   await router.push(`/research/${sessionId}`)
 }
 </script>
