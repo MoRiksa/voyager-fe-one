@@ -4,6 +4,9 @@ Voyager One adalah workspace riset finansial Vue untuk mendemonstrasikan alur ri
 
 ## Status saat ini
 
+Acuan status, gap actual-vs-expected, fase delivery, checklist, dan definition of
+done end-to-end tersedia di [`docs/jurnal-one-v1.md`](docs/jurnal-one-v1.md).
+
 - Alur frontend lengkap: membuat brief, menjalankan simulasi, memantau sesi, meninjau funnel, membandingkan kandidat, membuka analisis perusahaan, memeriksa aktivitas dan audit, serta mengekspor laporan.
 - Dataset `prototype-fixture-v1` berisi delapan perusahaan: BBCA, BMRI, ICBP, UNTR, AMRT, BBRI, TLKM, dan ASII.
 - Penyaringan deterministik hanya memakai field yang tersedia pada fixture. Keanggotaan simbol pada setiap tahap menjadi sumber yang sama untuk kandidat, perbandingan, audit, dan laporan.
