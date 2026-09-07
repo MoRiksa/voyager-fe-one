@@ -32,7 +32,8 @@ export type ResearchStepResponse = {
 
 export type CreateResearchResponse = ResearchSessionResponse
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+const backendUrl = import.meta.env.VITE_BACKEND_URL?.replace(/\/+$/, '')
+if (!backendUrl) throw new Error('VITE_BACKEND_URL is required.')
 const validStatuses = new Set<string>([
   'IDLE',
   'UNDERSTANDING',
