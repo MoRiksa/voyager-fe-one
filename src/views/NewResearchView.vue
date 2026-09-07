@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchBrief, ResearchObjectivePreset } from '../types'
-import { createResearchSession, executeResearchSession, getResearchSessionFull, startResearchSession } from '../services/researchApi'
+import { createResearchSession, startResearchSession } from '../services/researchApi'
 import { ArrowRight, Check, Search, SlidersHorizontal } from '@lucide/vue'
 
 const store = useResearchStore()
@@ -11,7 +11,7 @@ const router = useRouter()
 const objective = ref(store.currentObjective)
 const selectedPreset = ref(store.activePresetId)
 const error = ref('')
-const market = ref<ResearchBrief['market']>(store.activeBrief.market)
+const market = ref<'IDX'>('IDX')
 const sectorScope = ref(store.activeBrief.sectorScope)
 const indexScope = ref(store.activeBrief.indexScope)
 const candidateCount = ref(store.activeBrief.candidateCount)
@@ -77,18 +77,22 @@ const submit = async () => {
   try {
     const created = await createResearchSession({
       objective: objective.value.trim(),
-      market: market.value,
-      requestedCandidates: candidateCount.value,
+      brief: {
+        market: market.value,
+        sectorScope: sectorScope.value,
+        indexScope: indexScope.value,
+        candidateCount: candidateCount.value,
+        researchDepth: researchDepth.value,
+        useSectorMetrics: useSectorMetrics.value,
+        optionalDimensions: [...optionalDimensions.value],
+        clarificationNotes: []
+      },
       ...(selectedPreset.value !== 'custom' ? { presetId: selectedPreset.value } : {})
     })
     sessionId = created.id
-    await startResearchSession(sessionId)
+    const started = await startResearchSession(sessionId, created.session?.revision ?? 0)
     store.createSession(sessionId)
-    void executeResearchSession(sessionId).then(fullSession => {
-      if (fullSession) store.hydrateFromBackendSession(fullSession)
-    }).catch(err => {
-      console.warn('Backend execution error:', err)
-    })
+    store.hydrateFromBackendSession(started.session)
   } catch (requestError) {
     error.value = requestError instanceof Error ? requestError.message : 'Backend tidak dapat dihubungi.'
     return

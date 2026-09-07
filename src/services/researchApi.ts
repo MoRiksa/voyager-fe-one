@@ -1,6 +1,7 @@
 import type {
   AgentStatus,
   CandidateCompany,
+  ResearchBrief,
   ResearchReport,
   ResearchSession,
   ScreeningFunnelStep,
@@ -9,25 +10,14 @@ import type {
 
 export type CreateResearchRequest = {
   readonly objective: string
-  readonly market: 'IDX' | 'SGX'
-  readonly requestedCandidates: number
   readonly presetId?: string
-  readonly brief?: Record<string, any>
+  readonly brief: ResearchBrief & { readonly market: 'IDX' }
 }
 
 export type ResearchSessionResponse = {
   readonly id: string
   readonly status: AgentStatus
   readonly session?: ResearchSession
-}
-
-export type ResearchStepResponse = {
-  readonly step: number
-  readonly name: string
-  readonly retainedSymbols: string[]
-  readonly count: number
-  readonly inputSymbols: string[]
-  readonly filterCriteria: string
 }
 
 export type CreateResearchResponse = ResearchSessionResponse
@@ -88,9 +78,10 @@ export const createResearchSession = async (
   return { id: payload.session.id, status: payload.session.status, session: payload.session }
 }
 
-export const startResearchSession = async (id: string): Promise<ResearchSessionResponse> => {
+export const startResearchSession = async (id: string, revision: number): Promise<ResearchSessionResponse> => {
   const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/start`, {
-    method: 'POST'
+    method: 'POST',
+    headers: { 'If-Match': String(revision) }
   })
   if (!response.ok) throw new Error('Backend gagal memulai sesi riset.')
   const payload: any = await response.json()
@@ -115,44 +106,6 @@ export const getResearchSessionFull = async (id: string): Promise<ResearchSessio
   if (!response.ok) throw new Error('Backend gagal memuat detail sesi riset.')
   const payload: any = await response.json()
   if (!payload?.session?.id) throw new Error('Sesi riset tidak ditemukan di backend.')
-  return payload.session
-}
-
-export const runResearchStep = async (
-  id: string,
-  step: number,
-  previousSymbols: string[]
-): Promise<ResearchStepResponse> => {
-  const response = await fetch(
-    `${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/steps/${step}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ previousSymbols })
-    }
-  )
-  if (!response.ok) throw new Error('Backend gagal menjalankan langkah riset.')
-  const payload: any = await response.json()
-  if (!payload?.step?.name || !Array.isArray(payload.step.retainedSymbols)) {
-    throw new Error('Response backend tidak memiliki hasil langkah riset yang valid.')
-  }
-  return {
-    step: payload.step.step,
-    name: payload.step.name,
-    retainedSymbols: payload.step.retainedSymbols,
-    count: payload.step.count,
-    inputSymbols: payload.step.inputSymbols,
-    filterCriteria: payload.step.filterCriteria
-  }
-}
-
-export const executeResearchSession = async (id: string): Promise<ResearchSession> => {
-  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/execute`, {
-    method: 'POST'
-  })
-  if (!response.ok) throw new Error('Backend gagal mengeksekusi pipeline riset.')
-  const payload: any = await response.json()
-  if (!payload?.session?.id) throw new Error('Response backend tidak memiliki sesi riset yang valid.')
   return payload.session
 }
 

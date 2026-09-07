@@ -515,8 +515,8 @@ export const useResearchStore = defineStore('research', () => {
     isExecuting.value = session.status !== 'COMPLETED' && session.status !== 'FAILED' && session.status !== 'CANCELLED'
 
     if (typeof session.revision === 'number') currentRevision.value = session.revision
-    if (session.activeAttemptId) activeAttemptId.value = session.activeAttemptId
-    if (session.publishedAttemptId) publishedAttemptId.value = session.publishedAttemptId
+    if ('activeAttemptId' in session) activeAttemptId.value = session.activeAttemptId
+    if ('publishedAttemptId' in session) publishedAttemptId.value = session.publishedAttemptId
     if (session.ownerId) ownerId.value = session.ownerId
     if (session.tenantId) tenantId.value = session.tenantId
     if (Array.isArray(session.provenanceTrail)) provenanceTrail.value = session.provenanceTrail
@@ -569,7 +569,7 @@ export const useResearchStore = defineStore('research', () => {
       }))
     }
 
-    if (session.candidates && Array.isArray(session.candidates) && session.candidates.length > 0) {
+    if (Array.isArray(session.candidates)) {
       candidates.value = session.candidates.map((c: any, index: number) => ({
         symbol: c.symbol,
         name: c.companyName || c.name || c.symbol,
