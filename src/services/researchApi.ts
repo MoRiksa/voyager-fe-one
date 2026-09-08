@@ -109,6 +109,33 @@ export const getResearchSessionFull = async (id: string): Promise<ResearchSessio
   return payload.session
 }
 
+export const getResearchSessions = async (): Promise<ResearchSession[]> => {
+  const response = await fetch(`${backendUrl}/api/v1/research-sessions`)
+  if (!response.ok) throw new Error('Backend gagal memuat pustaka riset.')
+  const payload: any = await response.json()
+  if (!Array.isArray(payload?.sessions)) throw new Error('Response backend tidak memiliki daftar sesi yang valid.')
+  return payload.sessions.map((session: any) => ({
+    ...session,
+    objective: typeof session.objective === 'string' ? session.objective : session.objective?.objective || '',
+    presetId: session.presetId || 'custom',
+    brief: session.brief || {
+      market: 'IDX', sectorScope: 'Semua sektor', indexScope: 'Semua indeks', candidateCount: 5,
+      researchDepth: 'Standar', useSectorMetrics: true, optionalDimensions: [], clarificationNotes: []
+    },
+    clarificationReturnStatus: session.clarificationReturnStatus || 'IDLE',
+    plan: session.plan || { objective: '', universe: '', criteria: [], steps: [], hypothesis: '', requiredDataPoints: [], estimatedDurationSeconds: 0, estimatedCredits: 0 },
+    pillars: Array.isArray(session.pillars) ? session.pillars : [],
+    toolCalls: Array.isArray(session.toolCalls) ? session.toolCalls : [],
+    screeningFunnel: Array.isArray(session.screeningFunnel) ? session.screeningFunnel : Array.isArray(session.screening) ? session.screening : [],
+    candidates: Array.isArray(session.candidates) ? session.candidates : [],
+    report: session.report || {
+      sessionId: session.id, timestamp: session.updatedAt, objective: '', universeSummary: 'Belum ada hasil akhir.',
+      screeningFunnel: [], methodologyOverview: '', topCandidates: [], peerComparisonNotes: '', limitations: [], uncertaintyNotes: '', disclaimer: ''
+    },
+    creditsSpent: session.creditsSpent || 0
+  }))
+}
+
 export const getCandidates = async (id: string): Promise<CandidateCompany[]> => {
   const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/candidates`)
   if (!response.ok) throw new Error('Gagal mengambil daftar kandidat.')
@@ -257,8 +284,11 @@ export const createCompanyResearchSession = async (
   return payload.session
 }
 
-export const deleteResearchSession = async (id: string): Promise<boolean> => {
-  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}`, { method: 'DELETE' })
+export const deleteResearchSession = async (id: string, revision: number): Promise<boolean> => {
+  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'If-Match': String(revision) }
+  })
   return response.ok
 }
 

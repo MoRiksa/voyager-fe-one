@@ -23,6 +23,8 @@ import {
   cancelResearchSession as apiCancelResearchSession,
   retryResearchSession as apiRetryResearchSession,
   getResearchSessionFull as apiGetResearchSessionFull,
+  getResearchSessions as apiGetResearchSessions,
+  deleteResearchSession as apiDeleteResearchSession,
   getProvenanceTrail as apiGetProvenanceTrail,
   subscribeSessionSse as apiSubscribeSessionSse,
   asyncExecuteResearchSession as apiAsyncExecuteResearchSession,
@@ -459,6 +461,16 @@ export const useResearchStore = defineStore('research', () => {
     else loadSession(recentSessions.value[0].id)
   }
 
+  const refreshSessions = async () => {
+    try {
+      sessions.value = await apiGetResearchSessions()
+      persistSessions()
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const loadSession = (id: string) => {
     const session = sessions.value.find(item => item.id === id)
     if (!session) return false
@@ -811,8 +823,12 @@ export const useResearchStore = defineStore('research', () => {
     return null
   }
 
-  const deleteSession = (id: string) => {
-    if (sessions.value.length <= 1) return false
+  const deleteSession = async (id: string) => {
+    const session = sessions.value.find(item => item.id === id)
+    if (!session || typeof session.revision !== 'number' || !await apiDeleteResearchSession(id, session.revision)) {
+      await refreshSessions()
+      return false
+    }
     sessions.value = sessions.value.filter(session => session.id !== id)
     persistSessions()
     if (report.value.sessionId === id && recentSessions.value[0]) loadSession(recentSessions.value[0].id)
@@ -1106,6 +1122,7 @@ export const useResearchStore = defineStore('research', () => {
     openMethodology,
     closeMethodology,
     hydrateSessions,
+    refreshSessions,
     loadSession,
     createSession,
     hydrateFromBackendSession,

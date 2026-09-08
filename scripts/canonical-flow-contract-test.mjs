@@ -17,6 +17,10 @@ assert.match(store, /apiGetResearchSessionFull\(id\)\.then\(hydrateFromBackendSe
 assert.doesNotMatch(store, /evt\.type ===/)
 assert.match(store, /activeStatuses\.has\(session\.status\)/)
 assert.match(app, /route\.name !== 'research-session'/)
+assert.match(api, /getResearchSessions[\s\S]*\/research-sessions`\)/)
+assert.match(api, /deleteResearchSession[\s\S]*method: 'DELETE'[\s\S]*'If-Match': String\(revision\)/)
+assert.match(store, /sessions\.value = await apiGetResearchSessions\(\)/)
+assert.match(store, /await refreshSessions\(\)[\s\S]*return false/)
 assert.doesNotMatch(runtime, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
 
 console.log('Canonical create/start/refetch contract verified')

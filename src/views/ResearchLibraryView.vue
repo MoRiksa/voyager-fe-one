@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchSession } from '../types'
@@ -12,6 +12,14 @@ const router = useRouter()
 const query = ref('')
 const statusFilter = ref<'all' | 'completed' | 'active' | 'attention'>('all')
 const pendingDeleteId = ref<string | null>(null)
+const isLoading = ref(false)
+const deletingId = ref<string | null>(null)
+
+onMounted(async () => {
+  isLoading.value = true
+  await store.refreshSessions()
+  isLoading.value = false
+})
 
 const filteredSessions = computed(() => store.recentSessions.filter(session => {
   const matchesQuery = `${sessionTitle(session)} ${session.objective} ${session.id}`.toLowerCase().includes(query.value.trim().toLowerCase())
@@ -24,6 +32,7 @@ const filteredSessions = computed(() => store.recentSessions.filter(session => {
 
 const sessionTitle = (session: ResearchSession) => store.presets.find(preset => preset.id === session.presetId)?.title || 'Riset khusus'
 const statusMeta = (session: ResearchSession) => sessionStatusMeta(session.status)
+const canDelete = (session: ResearchSession) => !['UNDERSTANDING', 'PLANNING', 'DISCOVERING', 'SCREENING', 'RANKING', 'RESEARCHING', 'COMPARING', 'VALIDATING', 'REPORTING'].includes(session.status)
 const duplicateSession = async (session: ResearchSession) => {
   store.setObjective(session.objective, session.presetId)
   store.setResearchBrief(session.brief)
@@ -36,8 +45,11 @@ const duplicateSession = async (session: ResearchSession) => {
   }
 }
 
-const removeSession = (id: string) => {
-  if (store.deleteSession(id)) store.notify('Sesi riset dihapus dari pustaka.', 'success')
+const removeSession = async (id: string) => {
+  deletingId.value = id
+  const deleted = await store.deleteSession(id)
+  deletingId.value = null
+  store.notify(deleted ? 'Sesi riset dihapus dari pustaka.' : 'Sesi gagal dihapus. Muat ulang pustaka lalu coba lagi.', deleted ? 'success' : 'error')
   pendingDeleteId.value = null
 }
 </script>
@@ -48,7 +60,7 @@ const removeSession = (id: string) => {
       <div class="max-w-3xl">
         <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Pustaka riset</p>
         <h1 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Temukan dan lanjutkan riset Anda</h1>
-        <p class="mt-3 text-sm leading-6 text-slate-300">Buka kembali hasil, tinjau laporan, atau gunakan riset lama sebagai titik awal. Semua sesi tersimpan pada browser ini.</p>
+        <p class="mt-3 text-sm leading-6 text-slate-300">Buka kembali hasil, tinjau laporan, atau gunakan riset lama sebagai titik awal. Daftar sesi dimuat dari workspace backend.</p>
       </div>
       <router-link to="/research/new" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Mulai riset baru <ArrowRight class="h-4 w-4" /></router-link>
     </header>
@@ -65,7 +77,7 @@ const removeSession = (id: string) => {
     </section>
 
     <section aria-labelledby="library-results-title">
-      <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Tersimpan lokal</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p class="hidden text-xs text-slate-500 sm:block">Maksimal lima sesi pada mode demonstrasi</p></div>
+      <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Workspace backend</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p v-if="isLoading" role="status" class="text-xs text-slate-500">Memuat sesi...</p></div>
       <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mb-4" />
 
       <div v-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
@@ -78,8 +90,8 @@ const removeSession = (id: string) => {
             <router-link :to="`/research/${session.id}`" class="button-primary">Buka riset <ArrowRight class="h-4 w-4" /></router-link>
             <router-link v-if="session.status === 'COMPLETED' || (session.status === 'PARTIAL' && session.candidates.length)" :to="`/research/${session.id}/report`" class="button-secondary"><FileText class="h-4 w-4" /> {{ session.status === 'PARTIAL' ? 'Laporan parsial' : 'Laporan' }}</router-link>
             <button type="button" :data-testid="`library-duplicate-${session.id}`" class="button-secondary" @click="duplicateSession(session)"><Copy class="h-4 w-4" /> Gunakan sebagai template</button>
-            <div v-if="pendingDeleteId === session.id" class="flex items-center gap-1"><button type="button" data-testid="library-confirm-delete" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50" @click="removeSession(session.id)">Hapus</button><button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600" @click="pendingDeleteId = null">Batal</button></div>
-            <button v-else type="button" class="icon-button ml-auto disabled:opacity-35" :disabled="store.recentSessions.length <= 1" :aria-label="`Hapus ${sessionTitle(session)}`" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>
+             <div v-if="pendingDeleteId === session.id" class="flex items-center gap-1"><button type="button" data-testid="library-confirm-delete" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50" :disabled="deletingId === session.id" @click="removeSession(session.id)">{{ deletingId === session.id ? 'Menghapus...' : 'Hapus' }}</button><button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600" :disabled="deletingId === session.id" @click="pendingDeleteId = null">Batal</button></div>
+             <button v-else type="button" class="icon-button ml-auto disabled:cursor-not-allowed disabled:opacity-35" :disabled="!canDelete(session)" :aria-label="canDelete(session) ? `Hapus ${sessionTitle(session)}` : 'Batalkan riset sebelum menghapus sesi'" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>
           </div>
         </article>
       </div>
