@@ -118,6 +118,8 @@ const answerClarification = async () => {
     if (success) {
       clarificationAnswer.value = ''
       store.notify('Klarifikasi disimpan pada brief sesi.', 'success')
+    } else {
+      store.notify('Sesi berubah atau klarifikasi gagal. Status terbaru sudah dimuat.', 'error')
     }
   } finally {
     isSubmittingClarification.value = false
@@ -173,8 +175,6 @@ const retry = async () => {
         <div class="flex shrink-0 flex-wrap gap-2">
           <button v-if="store.isExecuting" type="button" data-testid="session-cancel" class="button-secondary text-rose-700" :disabled="isSubmittingLifecycle" @click="cancel"><Square class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Membatalkan...' : 'Batalkan' }}</button>
           <button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status)" type="button" data-testid="session-retry" class="button-secondary" :disabled="isSubmittingLifecycle" @click="retry"><RotateCcw class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Memulai...' : 'Jalankan ulang' }}</button>
-          <button v-if="store.status === 'COMPLETED'" type="button" data-testid="session-mark-partial" class="button-secondary" @click="store.markPartial()">Simulasikan parsial</button>
-          <button v-if="store.status === 'COMPLETED'" type="button" data-testid="session-request-clarification" class="button-secondary" @click="store.requestClarification('Apakah prioritas utama Anda pertumbuhan, valuasi, atau dividen?')">Minta klarifikasi</button>
           <template v-if="store.status === 'COMPLETED' || (store.status === 'PARTIAL' && store.candidates.length)">
           <router-link v-if="store.candidates.length >= 2" data-testid="session-next" :to="`/research/${store.report.sessionId}/screener`" class="button-primary">Lihat cara kandidat dipilih <ArrowRight class="h-4 w-4" /></router-link>
           <router-link v-else-if="store.candidates.length === 1" data-testid="session-next" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-primary">Buka analisis kandidat <ArrowRight class="h-4 w-4" /></router-link>

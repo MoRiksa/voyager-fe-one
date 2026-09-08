@@ -214,8 +214,11 @@ export const retryResearchSession = async (id: string, revision: number): Promis
   return payload.session
 }
 
-export const duplicateResearchSession = async (id: string): Promise<ResearchSession> => {
-  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/duplicate`, { method: 'POST' })
+export const duplicateResearchSession = async (id: string, revision: number): Promise<ResearchSession> => {
+  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/duplicate`, {
+    method: 'POST',
+    headers: { 'If-Match': String(revision) }
+  })
   if (!response.ok) throw new Error('Gagal menduplikasi sesi riset.')
   const payload: any = await response.json()
   return payload.session
@@ -224,13 +227,14 @@ export const duplicateResearchSession = async (id: string): Promise<ResearchSess
 export const answerClarification = async (
   id: string,
   clarificationId: string,
-  answer: string
+  answer: string,
+  revision: number
 ): Promise<ResearchSession> => {
   const response = await fetch(
     `${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/clarifications/${encodeURIComponent(clarificationId)}/answer`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'If-Match': String(revision) },
       body: JSON.stringify({ answer })
     }
   )

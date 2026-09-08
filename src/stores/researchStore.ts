@@ -76,6 +76,7 @@ export const useResearchStore = defineStore('research', () => {
   const totalCredits = ref<number>(10000)
   const activeBrief = ref<ResearchBrief>(defaultResearchBrief())
   const clarificationQuestion = ref<string | null>(null)
+  const clarificationId = ref<string | null>(null)
   let clarificationReturnStatus: AgentStatus = 'IDLE'
   let executionToken = 0
 
@@ -497,8 +498,12 @@ export const useResearchStore = defineStore('research', () => {
     isDetailModalOpen.value = false
     isExecuting.value = false
     executionToken += 1
-    clarificationQuestion.value = session.status === 'NEEDS_INPUT'
-      ? [...session.toolCalls].reverse().find(call => call.toolName === 'clarification_request')?.input.question as string || null
+    const clarificationCall = session.status === 'NEEDS_INPUT'
+      ? [...session.toolCalls].reverse().find(call => call.toolName === 'clarification_request')
+      : undefined
+    clarificationQuestion.value = clarificationCall?.input.question as string || null
+    clarificationId.value = clarificationCall
+      ? String(clarificationCall.input.clarificationId || clarificationCall.id)
       : null
     return true
   }
@@ -734,80 +739,37 @@ export const useResearchStore = defineStore('research', () => {
     }
   }
 
-  const markPartial = () => {
-    executionToken += 1
-    isExecuting.value = false
-    status.value = 'PARTIAL'
-    normalizeActivePillars()
-    saveCurrentSession('PARTIAL')
-  }
-
-  const requestClarification = (question: string) => {
-    const normalizedQuestion = question.trim()
-    if (!normalizedQuestion) return false
-    clarificationReturnStatus = ['IDLE', 'PARTIAL', 'CANCELLED', 'FAILED', 'COMPLETED'].includes(status.value) ? status.value : 'IDLE'
-    executionToken += 1
-    isExecuting.value = false
-    clarificationQuestion.value = normalizedQuestion
-    status.value = 'NEEDS_INPUT'
-    toolCalls.value.push({
-      id: `clarification-${toolCalls.value.length + 1}`,
-      timestamp: new Date().toLocaleTimeString('id-ID', { hour12: false }),
-      pillar: 'planner',
-      toolName: 'clarification_request',
-      category: 'Research Engine',
-      input: { question: normalizedQuestion },
-      outputSummary: `Klarifikasi diminta: ${normalizedQuestion}`,
-      durationMs: 0,
-      status: 'SUCCESS',
-      creditCost: 0,
-      sourceKind: 'user-input'
-    })
-    saveCurrentSession('NEEDS_INPUT')
-    return true
-  }
-
   const answerClarification = async (answer: string): Promise<boolean> => {
     const normalizedAnswer = answer.trim()
-    if (status.value !== 'NEEDS_INPUT' || !clarificationQuestion.value || !normalizedAnswer) return false
-    
+    if (status.value !== 'NEEDS_INPUT' || !clarificationId.value || !normalizedAnswer) return false
     const sessionId = report.value.sessionId
-    if (sessionId && sessionId.startsWith('RES-')) {
+    try {
+      const session = await apiAnswerClarification(sessionId, clarificationId.value, normalizedAnswer, currentRevision.value)
+      hydrateFromBackendSession(session)
+      return true
+    } catch {
       try {
-        await apiAnswerClarification(sessionId, 'clarification-1', normalizedAnswer)
-      } catch (e) {
-        console.warn('API clarification sync fallback:', e)
+        hydrateFromBackendSession(await apiGetResearchSessionFull(sessionId))
+      } catch {
+        // Preserve the last authoritative snapshot if recovery also fails.
       }
+      return false
     }
-
-    activeBrief.value.clarificationNotes.push(`${clarificationQuestion.value}: ${normalizedAnswer}`)
-    clarificationQuestion.value = null
-    status.value = clarificationReturnStatus === 'NEEDS_INPUT' ? 'IDLE' : clarificationReturnStatus
-    saveCurrentSession(status.value)
-    return true
   }
 
   const duplicateSession = async (id: string): Promise<string | null> => {
+    const source = sessions.value.find(session => session.id === id)
+    if (!source || typeof source.revision !== 'number') return null
     try {
-      const duplicated = await apiDuplicateResearchSession(id)
+      const duplicated = await apiDuplicateResearchSession(id, source.revision)
       if (duplicated?.id) {
         hydrateFromBackendSession(duplicated)
         return duplicated.id
       }
-    } catch (e) {
-      console.warn('Backend duplicate failed, falling back to local clone:', e)
+    } catch {
+      await refreshSessions()
     }
-    // Local fallback
-    const existing = sessions.value.find(s => s.id === id)
-    if (!existing) return null
-    const newId = `RES-${Date.now()}`
-    const cloned = clone(existing)
-    cloned.id = newId
-    cloned.status = 'IDLE'
-    sessions.value.unshift(cloned)
-    persistSessions()
-    loadSession(newId)
-    return newId
+    return null
   }
 
   const createCompanyResearch = async (symbol: string, objective?: string): Promise<string | null> => {
@@ -1131,8 +1093,6 @@ export const useResearchStore = defineStore('research', () => {
     duplicateSession,
     createCompanyResearch,
     cancelResearch,
-    markPartial,
-    requestClarification,
     answerClarification,
     retryResearch,
     deleteSession,
