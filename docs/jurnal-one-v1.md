@@ -1360,3 +1360,61 @@ Open risks:
 - Provider-success probe belum menjadi automated test dan tidak menggantikan
   test fallback/error handling.
 - Credential yang pernah dikirim melalui chat harus dirotasi setelah verifikasi.
+
+### 2026-09-08 - Fail-closed screening dan DuPont correction
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Financial screening memasukkan kembali seluruh input bila kurang dari lima
+  perusahaan lolos, sehingga emiten gagal dapat muncul sebagai kandidat.
+- Quality stage mengurutkan seluruh input tetapi tidak menerapkan ambang kualitas
+  `>= 80` yang ditampilkan kepada user.
+- Rumus DuPont membagi hasil persentase dengan 100 dua kali, sehingga ROE sekitar
+  20% dihitung menjadi sekitar 0,2%; minimum-pool rollback menyamarkan defect ini.
+- Report menyimpan funnel hard-coded yang dapat berbeda dari stage session aktual.
+- Unit suite dapat memanggil gateway LLM eksternal ketika `.env` lokal berisi key.
+
+Changes:
+
+- Financial screening sekarang fail closed dan tidak pernah mengembalikan simbol
+  yang gagal ROE atau Debt/Equity.
+- Quality stage hanya mempertahankan skor `>= 80`, mengurutkan kandidat yang lolos,
+  dan menyimpan alasan `LOW_QUALITY_SCORE` untuk yang dikeluarkan.
+- DuPont ROE dihitung sebagai margin persen dikali asset turnover dan equity
+  multiplier, tanpa pembagian persen kedua.
+- Candidate count tetap maximum; pipeline dapat menghasilkan lebih sedikit atau
+  nol kandidat jika tidak ada yang memenuhi kriteria.
+- Report funnel disinkronkan ke persisted session funnel setelah final stage.
+- Vitest dan interaction backend memakai LLM loopback agar deterministic, cepat,
+  tidak berbiaya, dan tidak bergantung provider; provider asli tetap diuji dengan
+  probe manual terpisah.
+- Smoke rendered checks tidak lagi memakai fake session ID untuk layar berbasis
+  data. HTTP routing tetap mencakup 19 route; deep screens dicakup interaction test
+  dengan session backend nyata.
+
+Evidence:
+
+- Focused engine tests membuktikan satu/zero passer tidak dibackfill, skor 79
+  dikeluarkan, kandidat qualified diurutkan, dan DuPont 20% tetap lolos threshold.
+- Backend full suite lulus: 13 files, 37 tests; build dan `git diff --check` lulus.
+- Frontend build, canonical contract, full interaction test, dan smoke lulus;
+  smoke mencakup 19 HTTP routes serta lima rendered routes data-independent.
+- Interaction authoritative menghasilkan tiga kandidat qualified dan tetap lulus
+  untuk screener, peers, report, export, duplicate, library reload, dan delete.
+
+Open risks:
+
+- Discovery dan unavailable company report masih memiliki synthetic fixture
+  fallback; missing-value fidelity dan explicit source-kind belum selesai.
+- Frontend hydrator masih mengganti missing/zero candidate fields dengan angka
+  default; nullable metric contract harus dimigrasikan bersama backend.
+- Preview/preset criteria belum dikompilasi dari rule set yang sama dengan engine,
+  dan exclusion reasons belum dipersist sebagai stage artifact canonical.
+
+Next smallest slice:
+
+- Hentikan synthetic provider fallback pada unavailable data, pertahankan missing
+  sebagai null, lalu migrasikan frontend types/hydrator agar tidak menciptakan
+  angka finansial pengganti.

@@ -18,7 +18,7 @@ const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const backendDirectory = fileURLToPath(new URL('../../voyager-be-one', import.meta.url))
 const backend = spawn(npmCmd, ['exec', 'tsx', 'src/server.ts'], {
   cwd: backendDirectory,
-  env: { ...process.env, NODE_ENV: 'test', HOST: '127.0.0.1', PORT: '3001', CORS_ORIGIN: appUrl },
+  env: { ...process.env, NODE_ENV: 'test', HOST: '127.0.0.1', PORT: '3001', CORS_ORIGIN: appUrl, LLM_BASE_URL: 'http://127.0.0.1:1/v1', LLM_API_KEY: '' },
   stdio: 'ignore',
   detached: process.platform !== 'win32'
 })
