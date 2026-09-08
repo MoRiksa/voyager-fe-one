@@ -76,7 +76,7 @@ const handleInspect = () => {
       </div>
       <p data-testid="metric-guide" class="mb-4 text-[11px] leading-5 text-slate-500">Skor 80+ masuk shortlist. ROE menunjukkan laba terhadap modal, P/E harga terhadap laba, utang/modal tingkat leverage, dan FCF yield kas bebas relatif terhadap nilai perusahaan. Bandingkan terutama dalam sektor yang sama.</p>
       <dl class="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500">
-        <div><dt>Sumber</dt><dd class="mt-0.5 font-semibold text-slate-700">Fixture v1</dd></div>
+        <div><dt>Sumber</dt><dd class="mt-0.5 font-semibold text-slate-700">Sectors API / turunan Voyager</dd></div>
         <div><dt>Periode keuangan</dt><dd class="mt-0.5 font-mono font-semibold text-slate-700">{{ candidate.financialPeriod || 'Tidak tersedia' }}</dd></div>
       </dl>
 
@@ -112,7 +112,7 @@ const handleInspect = () => {
     <!-- Card Action Button -->
     <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
       <span class="text-[11px] font-mono text-slate-500">
-        {{ candidate.peerRankInMemory }}
+        {{ candidate.peerRankInMemory || 'Benchmark peer tidak tersedia' }}
       </span>
 
       <div class="flex items-center gap-1">

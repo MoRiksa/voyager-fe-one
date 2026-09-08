@@ -57,7 +57,7 @@ watch(() => store.report?.sessionId, (newId) => {
       </div>
       <div>
         <dt class="font-semibold text-slate-500">Periode keuangan</dt>
-        <dd class="mt-0.5 font-mono text-slate-800">{{ financialPeriod || 'FY2025/Q4 Audited' }}</dd>
+        <dd class="mt-0.5 font-mono text-slate-800">{{ financialPeriod || unavailable }}</dd>
       </div>
       <div>
         <dt class="font-semibold text-slate-500">Laporan Dibuat</dt>

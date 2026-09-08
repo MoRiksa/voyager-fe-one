@@ -503,7 +503,8 @@ try {
   if (mobileRanking.cards !== sessionResult.symbols.length || mobileRanking.desktopTableVisible) throw new Error(`Report mobile ranking is not responsive: ${JSON.stringify(mobileRanking)}`)
   if (await evaluate('Boolean(document.querySelector("#report-panel-summary"))')) throw new Error('Report rendered more than the selected section')
   await evaluate(`document.querySelector('#report-tab-candidates').click()`)
-  if (!await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report omitted consistency score factor')
+  if (!await evaluate(`(() => { const session = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}'); return session.candidates.every(candidate => Number.isFinite(candidate.scoreBreakdown.profitability) && Number.isFinite(candidate.scoreBreakdown.solvency) && Number.isFinite(candidate.scoreBreakdown.valuation) && candidate.scoreBreakdown.growth === undefined && candidate.scoreBreakdown.consistency === undefined) })()`)) throw new Error('Candidate score factors did not preserve unavailable data')
+  if (await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report published unavailable consistency score')
   await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)
   await waitFor(() => evaluate('location.pathname === "/research"'), 'Report did not return to research library')
   interactionStage = 'library'

@@ -45,14 +45,14 @@ const toggleExpand = (id: string) => {
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-500 font-semibold uppercase">Sumber data</span>
-        <div class="text-lg font-mono font-bold text-[#2F64A8] mt-2">Fixture v1</div>
-        <span class="text-xs text-slate-500 font-mono">Prototype lokal</span>
+        <div class="text-lg font-mono font-bold text-[#2F64A8] mt-2">{{ store.screeningFunnel[0]?.sourceKind === 'voyager-derived' ? 'Voyager derived' : 'Fixture v1' }}</div>
+        <span class="text-xs text-slate-500 font-mono">{{ store.screeningFunnel[0]?.sourceRef || 'fixture://prototype-fixture-v1' }}</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <span class="text-xs text-slate-500 font-semibold uppercase">Input awal</span>
         <div class="text-2xl font-mono font-bold text-slate-900 mt-1">{{ inputCount }}</div>
-        <span class="text-xs text-slate-500 font-medium">Perusahaan fixture</span>
+        <span class="text-xs text-slate-500 font-medium">Perusahaan dalam artifact</span>
       </div>
 
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">

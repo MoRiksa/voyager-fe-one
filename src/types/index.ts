@@ -80,10 +80,10 @@ export interface ToolCallLog {
 
 export interface ScoreBreakdown {
   profitability: number // 0-100 (weight 25%)
-  growth: number        // 0-100 (weight 25%)
+  growth?: number       // unavailable until historical data is sourced
   solvency: number      // 0-100 (weight 20%)
   valuation: number     // 0-100 (weight 20%)
-  consistency: number   // 0-100 (weight 10%)
+  consistency?: number  // unavailable until historical data is sourced
 }
 
 export interface DuPontAnalysis {
@@ -114,15 +114,15 @@ export interface CandidateCompany {
   priceIdr: number
   peRatio: number
   pbvRatio: number
-  evToEbitda: number
+  evToEbitda?: number
   roePercent: number
   roaPercent: number
   debtToEquity: number
-  currentRatio: number
+  currentRatio?: number
   freeCashFlowYieldPercent: number
-  revenue3yCagrPercent: number
-  netIncome3yCagrPercent: number
-  dividendYieldPercent: number
+  revenue3yCagrPercent?: number
+  netIncome3yCagrPercent?: number
+  dividendYieldPercent?: number
   
   // Derived Intelligence
   qualityScore: number // 0 - 100 derived score
@@ -143,7 +143,7 @@ export interface CandidateCompany {
     period?: string
   }[]
   dupontAnalysis: DuPontAnalysis
-  peerRankInMemory: string
+  peerRankInMemory?: string
 
   // Optional API-backed presentation data
   priceAsOf?: string
@@ -169,6 +169,8 @@ export interface ScreeningFunnelStep {
   excludedSymbols?: string[]
   excludedCount?: number
   reasons?: ScreeningReason[]
+  sourceKind?: 'voyager-derived' | 'prototype-fixture'
+  sourceRef?: string
 }
 
 export interface ScreeningReason {

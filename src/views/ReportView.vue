@@ -50,10 +50,11 @@ const analyticalHighlights = computed(() => store.candidates.slice(0, 3))
 const hasReportData = computed(() => store.screeningFunnel.length > 0 || store.candidates.length > 0)
 const evidenceSourceLabel = (source: string) => source.startsWith('Derived')
   ? `Turunan · ${source.split('/').pop()}`
-  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
+  : source.startsWith('http') ? `Sectors API · ${source.split('/').filter(Boolean).slice(-2).join('/')}` : source
 const evidenceSources = computed(() => [...new Set(store.candidates.flatMap(candidate => candidate.evidenceCitations.map(citation => evidenceSourceLabel(citation.source))).filter(Boolean))])
 const financialPeriods = computed(() => [...new Set(store.candidates.map(candidate => candidate.financialPeriod).filter(Boolean))].join(', '))
 const priceDates = computed(() => [...new Set(store.candidates.map(candidate => candidate.priceAsOf).filter(Boolean))].join(', '))
+const metric = (value: number | undefined, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
 const evidenceTiming = (citation: { period?: string; asOf?: string }) => [citation.period && `Periode: ${citation.period}`, citation.asOf && `Per tanggal: ${citation.asOf}`].filter(Boolean).join(' | ')
 watch(() => store.report.sessionId, () => {
   selectedTicker.value = store.candidates[0]?.symbol || ''
@@ -175,7 +176,7 @@ ${store.candidates.map(c => `### #${c.rank} ${c.symbol} — ${c.name}
 - **Skor kualitas:** ${c.qualityScore}/100
 - **Sektor:** ${c.sector} (${c.subsector})
 - **DuPont tiga tahap:** Net margin: ${c.dupontAnalysis.netProfitMargin}% × Asset turnover: ${c.dupontAnalysis.assetTurnover}x × Leverage: ${c.dupontAnalysis.equityMultiplier}x = **ROE terhitung ${c.dupontAnalysis.calculatedRoe}%**
-- **Komponen skor:** Profitabilitas (${c.scoreBreakdown.profitability}/100), Solvabilitas (${c.scoreBreakdown.solvency}/100), Valuasi (${c.scoreBreakdown.valuation}/100), Pertumbuhan (${c.scoreBreakdown.growth}/100)
+- **Komponen skor:** ${[['Profitabilitas', c.scoreBreakdown.profitability], ['Solvabilitas', c.scoreBreakdown.solvency], ['Valuasi', c.scoreBreakdown.valuation], ['Pertumbuhan', c.scoreBreakdown.growth], ['Konsistensi', c.scoreBreakdown.consistency]].filter(([, value]) => Number.isFinite(value)).map(([label, value]) => `${label} (${value}/100)`).join(', ')}
 - **Alasan dipilih:** ${c.whySelected}
 
 #### Kekuatan utama:
@@ -245,7 +246,8 @@ const handleExportJson = async () => {
     screeningFunnel: store.screeningFunnel,
     auditEvents: store.toolCalls,
      provenance: {
-       sourceKind: 'prototype-fixture',
+       sourceKind: store.screeningFunnel[0]?.sourceKind || 'prototype-fixture',
+       sourceRef: store.screeningFunnel[0]?.sourceRef || 'fixture://prototype-fixture-v1',
        datasetId: 'prototype-fixture-v1',
        inputSymbols: store.screeningFunnel[0]?.retainedSymbols || [],
        financialPeriods: financialPeriods.value ? financialPeriods.value.split(', ') : [],
@@ -381,7 +383,7 @@ const useAsTemplate = async () => {
                Riset pasar modal Indonesia
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-               Hasil penyaringan dan analisis lima faktor terhadap dataset prototype.
+               Hasil penyaringan dan analisis faktor yang memiliki data pendukung.
             </p>
           </div>
 
@@ -394,7 +396,7 @@ const useAsTemplate = async () => {
             <span class="text-slate-300">•</span>
             <div>
               <span class="text-xs text-slate-500 font-mono uppercase block">Sumber</span>
-              <strong class="text-[#2F64A8] font-mono">Fixture v1</strong>
+              <strong class="text-[#2F64A8] font-mono">{{ store.screeningFunnel[0]?.sourceKind === 'voyager-derived' ? 'Voyager derived' : 'Fixture v1' }}</strong>
             </div>
             <span class="text-slate-300">•</span>
             <div>
@@ -501,7 +503,7 @@ const useAsTemplate = async () => {
                 <td class="py-3.5 px-4 text-right font-bold text-slate-900 tabular-nums">{{ c.roePercent }}%</td>
                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">{{ c.peRatio }}x</td>
                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">{{ c.debtToEquity }}x</td>
-                <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">+{{ c.revenue3yCagrPercent }}%</td>
+                 <td class="py-3.5 px-4 text-right text-slate-700 tabular-nums">{{ metric(c.revenue3yCagrPercent, '%') }}</td>
                 <td class="py-3.5 px-4 text-right font-bold text-slate-900 tabular-nums">{{ c.freeCashFlowYieldPercent }}%</td>
                 <td class="py-3.5 px-4 font-sans text-slate-600 text-[11px]">
                   <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono">

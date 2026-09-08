@@ -31,7 +31,7 @@ const store = useResearchStore()
          Cara skor dihitung
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Pahami lima faktor penilaian, cara membaca hasil, dan batas penggunaan skor dalam proses riset.
+         Pahami faktor yang tersedia, cara membaca hasil, dan batas penggunaan skor dalam proses riset.
       </p>
     </div>
 
@@ -73,35 +73,27 @@ const store = useResearchStore()
 
     <!-- Scoring Formula Details -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
-       <h2 class="text-lg font-bold text-slate-900">2. Lima faktor penilaian</h2>
+       <h2 class="text-lg font-bold text-slate-900">2. Faktor penilaian aktif</h2>
       <p class="text-xs text-slate-600 leading-relaxed">
-         Skor kualitas merangkum profitabilitas, pertumbuhan, solvabilitas, valuasi, dan konsistensi pada skala 0 sampai 100.
+         Skor kualitas aktif memakai profitabilitas, solvabilitas, dan valuasi yang memiliki data pendukung pada skala 0 sampai 100.
       </p>
 
       <div class="p-4 rounded-xl bg-[#407EC9]/5 border border-[#407EC9]/20 font-mono text-xs text-slate-800 space-y-2">
         <div class="font-bold text-[#2F64A8] text-sm">
-          Skor Kualitas = (0.25 × P) + (0.25 × G) + (0.20 × S) + (0.20 × V) + (0.10 × C)
+          Skor Kualitas = ((0.25 × P) + (0.20 × S) + (0.20 × V)) ÷ 0.65
         </div>
-        <div class="text-[11px] text-slate-600 pt-2 border-t border-[#407EC9]/20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-sans">
+        <div class="text-[11px] text-slate-600 pt-2 border-t border-[#407EC9]/20 grid grid-cols-1 sm:grid-cols-3 gap-3 font-sans">
           <div>
             <strong class="text-slate-900 block">Profitabilitas (25%)</strong>
-            ROE, ROA, dan margin dari nilai fixture; belum dinormalisasi terhadap sektor.
-          </div>
-          <div>
-            <strong class="text-slate-900 block">Pertumbuhan (25%)</strong>
-            CAGR pendapatan dan laba bersih tiga tahun.
+            ROE dan margin dari laporan provider; belum dinormalisasi terhadap sektor.
           </div>
           <div>
             <strong class="text-slate-900 block">Solvabilitas (20%)</strong>
-            Debt/Equity, current ratio, dan posisi kas.
+            Debt/Equity dari laporan provider.
           </div>
           <div>
             <strong class="text-slate-900 block">Valuasi (20%)</strong>
-            P/E, P/BV, dan EV/EBITDA berdasarkan nilai fixture dan ambang absolut.
-          </div>
-          <div>
-            <strong class="text-slate-900 block">Konsistensi (10%)</strong>
-            Stabilitas laba dan dividen dalam beberapa periode.
+            P/E dan P/BV berdasarkan laporan provider serta ambang absolut.
           </div>
         </div>
       </div>
@@ -110,7 +102,7 @@ const store = useResearchStore()
         <div v-for="band in [{ range: '90-100', label: 'Sangat kuat', text: 'Profil menonjol dalam ruang lingkup yang dievaluasi.' }, { range: '80-89', label: 'Kuat', text: 'Fundamental baik dengan tradeoff yang perlu diperiksa.' }, { range: '70-79', label: 'Campuran', text: 'Memerlukan analisis tambahan sebelum diprioritaskan.' }, { range: '<70', label: 'Tidak diprioritaskan', text: 'Tidak memenuhi kombinasi kriteria sesi saat ini.' }]" :key="band.range" class="rounded-xl border border-slate-200 p-4"><span class="font-mono text-sm font-bold text-[#2F64A8]">{{ band.range }}</span><h3 class="mt-2 text-sm font-bold text-slate-900">{{ band.label }}</h3><p class="mt-1 text-xs leading-5 text-slate-500">{{ band.text }}</p></div>
       </div>
       <p class="rounded-xl bg-amber-50 p-4 text-xs leading-5 text-amber-950">Skor digunakan untuk memprioritaskan riset, bukan untuk memprediksi return. Bank dan perusahaan non-finansial juga memerlukan metrik sektoral yang berbeda.</p>
-      <p class="rounded-xl bg-blue-50 p-4 text-xs leading-5 text-blue-950">Formula di atas adalah formula target metodologi. Pada mode demonstrasi, komponen dan skor akhir merupakan nilai fixture model yang ditampilkan apa adanya, bukan hasil perhitungan ulang atau skor pasar terstandarisasi.</p>
+      <p class="rounded-xl bg-blue-50 p-4 text-xs leading-5 text-blue-950">Pertumbuhan dan konsistensi sengaja tidak diberi skor sampai data historis yang diperlukan tersedia. Bobot faktor aktif dinormalisasi agar absence tidak diperlakukan sebagai nol.</p>
     </div>
 
     <!-- Scoring Limitations -->
@@ -134,8 +126,8 @@ const store = useResearchStore()
           <p class="mt-1 text-xs leading-5 text-amber-800">Estimasi analis dan forward P/E belum tersedia. Skor hanya mencerminkan kinerja masa lalu.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <h3 class="text-xs font-bold text-amber-900">Konsistensi tanpa validasi</h3>
-          <p class="mt-1 text-xs leading-5 text-amber-800">Skor konsistensi 80-99 belum divalidasi dari data kuartalan historis yang sebenarnya.</p>
+          <h3 class="text-xs font-bold text-amber-900">Konsistensi belum dinilai</h3>
+          <p class="mt-1 text-xs leading-5 text-amber-800">Faktor konsistensi tidak masuk skor sampai data kuartalan historis yang sebenarnya tersedia.</p>
         </div>
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
           <h3 class="text-xs font-bold text-amber-900">Tanpa filter likuiditas</h3>

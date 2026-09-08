@@ -183,7 +183,7 @@ export const useResearchStore = defineStore('research', () => {
     const financiallyQualified = eligible.filter(company => {
       if (presetId === 'obj-banking-moat') return company.roePercent > 15
       if (presetId === 'obj-consumer-growth') return company.debtToEquity < 0.8 && company.freeCashFlowYieldPercent > 0
-      if (presetId === 'obj-dividend-fcf') return company.dividendYieldPercent > 6 && company.freeCashFlowYieldPercent > 0 && company.currentRatio > 1
+      if (presetId === 'obj-dividend-fcf') return Number.isFinite(company.dividendYieldPercent) && company.dividendYieldPercent! > 6 && company.freeCashFlowYieldPercent > 0 && Number.isFinite(company.currentRatio) && company.currentRatio! > 1
       return company.roePercent > 12 && company.debtToEquity < 1.5
     })
     const qualityShortlist = financiallyQualified.filter(company => company.qualityScore >= 80).sort((a, b) => b.qualityScore - a.qualityScore || a.symbol.localeCompare(b.symbol))
@@ -193,7 +193,9 @@ export const useResearchStore = defineStore('research', () => {
       count: companies.length,
       description,
       filterCriteria: criteria,
-      retainedSymbols: companies.map(company => company.symbol)
+      retainedSymbols: companies.map(company => company.symbol),
+      sourceKind: 'prototype-fixture',
+      sourceRef: 'fixture://prototype-fixture-v1'
     })
     const funnel = [
       stage('Dataset awal', 'Perusahaan fixture yang termasuk dalam ruang lingkup tujuan riset.', preset?.universe || 'Seluruh dataset prototype', scoped),
@@ -589,7 +591,9 @@ export const useResearchStore = defineStore('research', () => {
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
         excludedCount: typeof s.excludedCount === 'number' ? s.excludedCount : undefined,
-        reasons: Array.isArray(s.reasons) ? s.reasons : undefined
+        reasons: Array.isArray(s.reasons) ? s.reasons : undefined,
+        sourceKind: s.sourceKind,
+        sourceRef: s.sourceRef
       }))
     } else if (session.screening && Array.isArray(session.screening)) {
       screeningFunnel.value = session.screening.map((s: any) => ({
@@ -601,7 +605,9 @@ export const useResearchStore = defineStore('research', () => {
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
         excludedCount: typeof s.excludedCount === 'number' ? s.excludedCount : undefined,
-        reasons: Array.isArray(s.reasons) ? s.reasons : undefined
+        reasons: Array.isArray(s.reasons) ? s.reasons : undefined,
+        sourceKind: s.sourceKind,
+        sourceRef: s.sourceRef
       }))
     }
 
@@ -633,9 +639,17 @@ export const useResearchStore = defineStore('research', () => {
         potentialConcerns: c.potentialConcerns || c.concerns || ['Risiko siklus makro'],
         evidenceCitations: c.evidenceCitations || c.evidence || [],
         dupontAnalysis: c.dupontAnalysis,
-        peerRankInMemory: c.peerRankInMemory || `#${index + 1} di sektornya`,
+        peerRankInMemory: c.peerRankInMemory,
         priceAsOf: c.priceAsOf,
-        financialPeriod: c.financialPeriod
+        financialPeriod: c.financialPeriod,
+        indexMembership: c.indexMembership,
+        listingPerformance: c.listingPerformance,
+        forwardEstimates: c.forwardEstimates,
+        segments: c.segments,
+        esg: c.esg,
+        ownershipManagement: c.ownershipManagement,
+        dividendHistory: c.dividendHistory,
+        trends: c.trends
       }))
       selectedSymbol.value = candidates.value[0]?.symbol || ''
     }

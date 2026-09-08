@@ -18,7 +18,7 @@ const activeCandidate = computed(() => {
 })
 const compactSource = (source: string) => source.startsWith('Derived')
   ? `Turunan · ${source.split('/').pop()}`
-  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
+  : source.startsWith('http') ? `Sectors API · ${source.split('/').filter(Boolean).slice(-2).join('/')}` : source
 </script>
 
 <template>
@@ -119,10 +119,10 @@ const compactSource = (source: string) => source.startsWith('Derived')
       <!-- 5-Factor Scoring Meters -->
       <div class="space-y-3">
         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-          Lima faktor penilaian (skala 0-100)
+          Faktor penilaian tersedia (skala 0-100)
         </h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
+          <div v-if="Number.isFinite(activeCandidate.scoreBreakdown.consistency)" class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
             <div class="flex justify-between text-xs">
               <span class="text-slate-600 font-medium">Profitabilitas & ROIC · bobot 25%</span>
               <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.profitability }}/100</span>
@@ -131,7 +131,7 @@ const compactSource = (source: string) => source.startsWith('Derived')
               <div class="h-full bg-[#407EC9] rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.profitability}%` }"></div>
             </div>
           </div>
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
+          <div v-if="Number.isFinite(activeCandidate.scoreBreakdown.growth)" class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
             <div class="flex justify-between text-xs"><span class="text-slate-600 font-medium">Konsistensi laba dan dividen · bobot 10%</span><span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.consistency }}/100</span></div>
             <div class="h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-slate-500" :style="{ width: `${activeCandidate.scoreBreakdown.consistency}%` }"></div></div>
           </div>
@@ -233,5 +233,5 @@ const compactSource = (source: string) => source.startsWith('Derived')
       </div>
     </div>
   </div>
-  <div v-else id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan pada dataset prototype yang memenuhi seluruh kriteria.</p></div>
+  <div v-else id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan dalam artifact sesi yang memenuhi seluruh kriteria.</p></div>
 </template>

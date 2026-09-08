@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
           </div>
           <div>
              <h2 id="methodology-dialog-title" class="text-xl font-bold text-slate-900">Cara skor dihitung</h2>
-             <p class="text-xs text-slate-500">Lima faktor penilaian dan batas penggunaannya</p>
+             <p class="text-xs text-slate-500">Faktor penilaian aktif dan batas penggunaannya</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
              Metodologi yang dapat ditelusuri
           </h4>
           <p class="text-xs text-slate-700 leading-relaxed">
-            Voyager One merangkum data ke dalam lima faktor penilaian, analisis DuPont tiga tahap, dan penyaringan bertingkat. Setiap hasil tetap perlu dibaca bersama bukti dan keterbatasannya.
+            Voyager One merangkum faktor yang memiliki data pendukung, analisis DuPont tiga tahap, dan penyaringan bertingkat. Setiap hasil tetap perlu dibaca bersama bukti dan keterbatasannya.
           </p>
         </div>
 
@@ -153,14 +153,13 @@ onBeforeUnmount(() => {
 
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-800 space-y-2">
             <div class="font-bold text-[#2F64A8]">
-              Skor Kualitas = (0.25 × Profitabilitas) + (0.25 × Pertumbuhan) + (0.20 × Solvabilitas) + (0.20 × Valuasi) + (0.10 × Konsistensi)
+              Skor Kualitas = ((0.25 × Profitabilitas) + (0.20 × Solvabilitas) + (0.20 × Valuasi)) ÷ 0.65
             </div>
             <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               <div>• <strong>Profitabilitas (25%)</strong>: ROE, ROA, dan margin</div>
-              <div>• <strong>Pertumbuhan (25%)</strong>: CAGR pendapatan dan laba bersih tiga tahun</div>
-              <div>• <strong>Solvabilitas (20%)</strong>: Debt/Equity, current ratio, dan posisi kas</div>
-              <div>• <strong>Valuasi (20%)</strong>: P/E dan P/BV fixture; konteks historis hanya jika tersedia pada bukti</div>
-              <div>• <strong>Konsistensi (10%)</strong>: stabilitas laba dan dividen</div>
+              <div>• <strong>Solvabilitas (20%)</strong>: Debt/Equity dari laporan provider</div>
+              <div>• <strong>Valuasi (20%)</strong>: P/E dan P/BV; konteks historis hanya jika tersedia pada bukti</div>
+              <div>• Pertumbuhan dan konsistensi tidak dinilai sampai data historis tersedia.</div>
             </div>
           </div>
         </div>
@@ -180,8 +179,8 @@ onBeforeUnmount(() => {
               </h5>
               <ul class="text-[11px] text-slate-600 space-y-1">
                 <li>• Penyaringan dataset bertahap</li>
-                <li>• Perhitungan DuPont dari data fixture</li>
-                <li>• Skor faktor yang tersimpan pada fixture</li>
+                <li>• Perhitungan DuPont dari data laporan provider</li>
+                <li>• Skor faktor yang memiliki data pendukung</li>
                 <li>• Pemeriksaan kelengkapan metrik minimum</li>
               </ul>
             </div>

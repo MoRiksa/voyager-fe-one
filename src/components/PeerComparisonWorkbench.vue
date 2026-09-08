@@ -20,7 +20,7 @@ type MetricColumn = {
   label: string
   suffix: string
   better: 'higher' | 'lower'
-  value: (candidate: CandidateCompany) => number
+  value: (candidate: CandidateCompany) => number | undefined
 }
 
 const metricGroups: Record<MetricGroup, { label: string; explanation: string; columns: MetricColumn[] }> = {
@@ -87,8 +87,8 @@ const groupColumns = computed(() => metricGroups[metricGroup.value].columns)
 const selectedCandidates = computed(() => comparisonCandidates.value.filter(candidate => selectedSymbols.value.includes(candidate.symbol)))
 const sameSector = computed(() => new Set(selectedCandidates.value.map(candidate => candidate.sector)).size <= 1)
 const activeSortColumn = computed(() => groupColumns.value.find(column => column.key === sortMetric.value) || groupColumns.value[0])
-const median = (values: number[]) => {
-  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b)
+const median = (values: (number | undefined)[]) => {
+  const sorted = values.filter((value): value is number => Number.isFinite(value)).sort((a, b) => a - b)
   if (!sorted.length) return null
   const middle = Math.floor(sorted.length / 2)
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
@@ -100,7 +100,7 @@ const sortedCandidates = computed(() => [...selectedCandidates.value].sort((a, b
   const bValue = column.value(b)
   if (!Number.isFinite(aValue)) return 1
   if (!Number.isFinite(bValue)) return -1
-  return (aValue - bValue) * (sortDirection.value === 'asc' ? 1 : -1) || a.rank - b.rank
+  return ((aValue ?? 0) - (bValue ?? 0)) * (sortDirection.value === 'asc' ? 1 : -1) || a.rank - b.rank
 }))
 const formatNumber = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
 const displayValue = (candidate: CandidateCompany, column: MetricColumn) => {
@@ -109,15 +109,15 @@ const displayValue = (candidate: CandidateCompany, column: MetricColumn) => {
   if (comparisonMode.value === 'relative' && sameSector.value) {
     const benchmark = metricMedian(column)
     if (benchmark === null) return 'Tidak tersedia'
-    const delta = value - benchmark
+    const delta = (value ?? 0) - benchmark
     return `${delta > 0 ? '+' : ''}${formatNumber(delta)}${column.suffix || ' poin'}`
   }
-  return `${formatNumber(value)}${column.suffix}`
+  return `${formatNumber(value!)}${column.suffix}`
 }
 const mobileValue = (symbol: string, column: MetricColumn) => {
   const candidate = comparisonCandidates.value.find(item => item.symbol === symbol)
   if (!candidate || !Number.isFinite(column.value(candidate))) return 'Tidak tersedia'
-  return `${formatNumber(column.value(candidate))}${column.suffix}`
+  return `${formatNumber(column.value(candidate)!)}${column.suffix}`
 }
 const benchmarkValue = (column: MetricColumn) => {
   const value = metricMedian(column)
@@ -127,7 +127,7 @@ const benchmarkValue = (column: MetricColumn) => {
 const indicator = (candidate: CandidateCompany, column: MetricColumn) => {
   const available = selectedCandidates.value.filter(item => Number.isFinite(column.value(item)))
   if (available.length < 2 || !Number.isFinite(column.value(candidate))) return ''
-  const values = available.map(column.value)
+  const values = available.map(item => column.value(item)!)
   const best = column.better === 'higher' ? Math.max(...values) : Math.min(...values)
   const worst = column.better === 'higher' ? Math.min(...values) : Math.max(...values)
   if (best === worst) return ''

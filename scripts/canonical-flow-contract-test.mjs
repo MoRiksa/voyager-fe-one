@@ -33,5 +33,7 @@ assert.doesNotMatch(runtime, /\/steps\/|\/execute\b|executeResearchSession|runRe
 assert.match(store, /excludedSymbols: Array\.isArray\(s\.excludedSymbols\)/)
 assert.match(screenerView, /activeStep\.value\?\.reasons/)
 assert.doesNotMatch(screenerView, /store\.companyUniverse|store\.activePresetId/)
+assert.doesNotMatch(store, /peerRankInMemory: c\.peerRankInMemory \|\|/)
+assert.match(store, /sourceRef: s\.sourceRef/)
 
 console.log('Canonical create/start/refetch contract verified')

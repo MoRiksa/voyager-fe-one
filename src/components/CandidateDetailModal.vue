@@ -69,7 +69,7 @@ const setBackgroundInert = () => {
 
 const compactSource = (source: string) => source.startsWith('Derived')
   ? `Turunan · ${source.split('/').pop()}`
-  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
+  : source.startsWith('http') ? `Sectors API · ${source.split('/').filter(Boolean).slice(-2).join('/')}` : source
 
 const handleClose = () => {
   store.closeCandidateModal()
@@ -188,15 +188,15 @@ onBeforeUnmount(() => {
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
                 Komponen skor
               </h4>
-              <h3 class="text-base font-bold text-slate-900 mt-0.5">Lima faktor penilaian</h3>
+              <h3 class="text-base font-bold text-slate-900 mt-0.5">Faktor penilaian tersedia</h3>
             </div>
             <span class="text-xs text-slate-500 font-mono">Skala 0-100</span>
           </div>
           <p class="mb-4 text-xs leading-5 text-slate-500">90-100 sangat kuat, 80-89 kuat, dan 70-79 campuran. Bobot menunjukkan kontribusi ke skor akhir, bukan peluang keuntungan.</p>
 
-          <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <!-- Factor 1: Profitability -->
-            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
+            <div v-if="Number.isFinite(candidate.scoreBreakdown.growth)" class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
               <span class="text-[11px] text-slate-500 font-medium">Profitabilitas (25%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.profitability }}
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
             </div>
 
             <!-- Factor 2: Growth -->
-            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
+            <div v-if="Number.isFinite(candidate.scoreBreakdown.consistency)" class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
               <span class="text-[11px] text-slate-500 font-medium">Pertumbuhan (25%)</span>
               <div class="text-lg font-mono font-bold text-slate-900 mt-1 tabular-nums">
                 {{ candidate.scoreBreakdown.growth }}
@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
       <!-- Modal Footer -->
       <div class="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <span class="text-xs text-slate-500">
-           Posisi terhadap perusahaan sejenis: <strong class="text-slate-800">{{ candidate.peerRankInMemory }}</strong>
+           Posisi terhadap perusahaan sejenis: <strong class="text-slate-800">{{ candidate.peerRankInMemory || 'Tidak tersedia' }}</strong>
         </span>
 
         <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">

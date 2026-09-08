@@ -28,26 +28,27 @@ const launchCompanyResearch = async () => {
 }
 const company = computed(() => store.candidates.find(candidate => candidate.symbol === String(route.params.symbol).toUpperCase()))
 const formatIdr = (value: number) => new Intl.NumberFormat('id-ID').format(value)
+const metric = (value: number | undefined, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
 const compactSource = (source: string) => source.startsWith('Derived')
   ? `Turunan · ${source.split('/').pop()}`
-  : `Fixture v1 · ${source.split('/').slice(-2).join('/')}`
+  : source.startsWith('http') ? `Sectors API · ${source.split('/').filter(Boolean).slice(-2).join('/')}` : source
 const metricGroups = computed(() => !company.value ? [] : [
   { title: 'Valuasi', icon: Scale, items: [
-    { label: 'Harga fixture', value: `Rp${formatIdr(company.value.priceIdr)}` },
+    { label: 'Harga terakhir', value: `Rp${formatIdr(company.value.priceIdr)}` },
     { label: 'Kapitalisasi pasar', value: `Rp${company.value.marketCapTrillionIdr} tn` },
     { label: 'P/E', value: `${company.value.peRatio}x` },
     { label: 'P/BV', value: `${company.value.pbvRatio}x` },
-    { label: 'EV/EBITDA', value: `${company.value.evToEbitda}x` }
+    { label: 'EV/EBITDA', value: metric(company.value.evToEbitda, 'x') }
   ] },
   { title: 'Profitabilitas', icon: LineChart, items: [
     { label: 'ROE', value: `${company.value.roePercent}%` },
     { label: 'ROA', value: `${company.value.roaPercent}%` },
     { label: 'Margin laba bersih', value: `${company.value.dupontAnalysis.netProfitMargin}%` },
-    { label: 'CAGR laba bersih 3 tahun', value: `${company.value.netIncome3yCagrPercent}%` }
+    { label: 'CAGR laba bersih 3 tahun', value: metric(company.value.netIncome3yCagrPercent, '%') }
   ] },
   { title: 'Neraca', icon: Landmark, items: [
     { label: 'Debt/Equity', value: `${company.value.debtToEquity}x` },
-    { label: 'Current ratio', value: `${company.value.currentRatio}x` },
+    { label: 'Current ratio', value: metric(company.value.currentRatio, 'x') },
     { label: 'Pengali ekuitas', value: `${company.value.dupontAnalysis.equityMultiplier}x` }
   ] },
   { title: 'Arus kas', icon: WalletCards, items: [
@@ -68,16 +69,16 @@ const optionalCoverage = computed(() => !company.value ? [] : [
 const availableOptionalCount = computed(() => optionalCoverage.value.filter(item => item.available).length)
 const factors = computed(() => company.value ? [
   { label: 'Profitabilitas', value: company.value.scoreBreakdown.profitability, weight: '25%' },
-  { label: 'Pertumbuhan', value: company.value.scoreBreakdown.growth, weight: '25%' },
+  ...(Number.isFinite(company.value.scoreBreakdown.growth) ? [{ label: 'Pertumbuhan', value: company.value.scoreBreakdown.growth!, weight: '25%' }] : []),
   { label: 'Solvabilitas', value: company.value.scoreBreakdown.solvency, weight: '20%' },
   { label: 'Valuasi', value: company.value.scoreBreakdown.valuation, weight: '20%' },
-  { label: 'Konsistensi', value: company.value.scoreBreakdown.consistency, weight: '10%' }
+  ...(Number.isFinite(company.value.scoreBreakdown.consistency) ? [{ label: 'Konsistensi', value: company.value.scoreBreakdown.consistency!, weight: '10%' }] : [])
 ] : [])
 const scoreInterpretation = computed(() => !company.value ? '' : company.value.qualityScore >= 90 ? 'Sangat kuat dalam ruang lingkup sesi' : company.value.qualityScore >= 80 ? 'Kuat, dengan tradeoff yang perlu diperiksa' : company.value.qualityScore >= 70 ? 'Campuran dan perlu analisis tambahan' : 'Tidak diprioritaskan oleh model')
 const primaryMetrics = computed(() => company.value ? [
   { label: 'Efisiensi modal', term: 'ROE', value: `${company.value.roePercent}%`, help: 'Laba yang dihasilkan dari setiap Rp100 modal. Nilai tinggi juga dapat dipengaruhi leverage.' },
   { label: 'Harga dibanding laba', term: 'P/E', value: `${company.value.peRatio}x`, help: 'Harga untuk setiap Rp1 laba tahunan. Bandingkan dengan sektor dan histori perusahaan.' },
-  { label: 'Pertumbuhan pendapatan', term: 'CAGR 3 tahun', value: `${company.value.revenue3yCagrPercent}%`, help: 'Rata-rata pertumbuhan per tahun selama tiga tahun, bukan pertumbuhan setiap tahun.' },
+  { label: 'Pertumbuhan pendapatan', term: 'CAGR 3 tahun', value: metric(company.value.revenue3yCagrPercent, '%'), help: 'Rata-rata pertumbuhan per tahun selama tiga tahun, bukan pertumbuhan setiap tahun.' },
   { label: 'Kas bebas dibanding nilai', term: 'FCF yield', value: `${company.value.freeCashFlowYieldPercent}%`, help: 'Kas bebas tahunan relatif terhadap nilai perusahaan.' }
 ] : [])
 const dupontParts = computed(() => company.value ? [
@@ -131,7 +132,7 @@ const dupontParts = computed(() => company.value ? [
     <div class="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
       <div class="space-y-6">
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-          <div class="flex items-center gap-2"><BarChart3 class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Lima faktor penilaian</h2></div>
+          <div class="flex items-center gap-2"><BarChart3 class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Faktor penilaian tersedia</h2></div>
           <p class="mt-2 text-xs leading-5 text-slate-500">Setiap faktor dinilai 0-100 dalam model demonstrasi. Bobot menunjukkan kontribusi pada skor akhir, bukan peluang keuntungan.</p>
           <div class="mt-5 space-y-4"><div v-for="factor in factors" :key="factor.label"><div class="mb-1.5 flex justify-between text-xs"><span class="font-semibold text-slate-700">{{ factor.label }} · {{ factor.weight }}</span><span class="font-mono font-bold">{{ factor.value }}/100</span></div><div class="h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-[#407EC9]" :style="{ width: `${factor.value}%` }"></div></div></div></div>
         </section>

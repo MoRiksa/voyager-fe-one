@@ -1535,3 +1535,66 @@ Next smallest slice:
 
 - Hapus atau labeli generated presentation metrics dan narrative estimates,
   kemudian tambahkan source-kind serta sourceRef canonical pada screening artifact.
+
+### 2026-09-08 - Evidence-backed candidate metrics dan artifact provenance
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Engine membuat EV/EBITDA dari PEG atau konstanta, current ratio, CAGR, dividend
+  yield, consistency score, peer rank, return harga, target konsensus, segment mix,
+  ownership, payout ratio, index membership, tanggal, dan periode tanpa evidence
+  provider yang sesuai.
+- Growth dan consistency sintetis memengaruhi quality score serta threshold shortlist.
+- Candidate dossier mengisi tanggal hari ini dan periode hard-coded bila source tidak
+  tersedia; export dapat menulis `undefinedx` atau harga nol.
+- UI menganggap field tersebut selalu tersedia dan beberapa layar memberi label
+  `Fixture v1` pada evidence URL Sectors maupun session authoritative.
+- Screening membership belum membawa `sourceKind` dan `sourceRef` canonical.
+
+Changes:
+
+- Generated market/presentation values dihapus dari candidate output. ESG, index
+  membership, price date, dan tahun laporan hanya diterbitkan bila provider memberi
+  nilai nyata.
+- Quality score aktif memakai profitability, solvency, dan valuation yang memiliki
+  evidence; bobot 25:20:20 dinormalisasi ke skala 0-100. Growth dan consistency
+  tetap unavailable, bukan diisi nol atau konstanta.
+- Methodology, filter copy, fallback thesis, dossier, dan Markdown export diselaraskan
+  dengan model tiga faktor terobservasi; fallback tanggal/periode/harga palsu dihapus.
+- Setiap screening stage menyimpan `sourceKind: voyager-derived` dan stable
+  `sourceRef: voyager://research/{sessionId}/screening/{stageId}`. Fixture-only
+  artifacts memakai `fixture://prototype-fixture-v1`.
+- Frontend types, hydrator, peer workbench, report, company dossier, modal, cards,
+  methodology, activity, trace, dan provenance menerima optional values dan
+  menampilkan unavailable tanpa mengubahnya menjadi zero.
+- Evidence URL Sectors sekarang dilabel sebagai Sectors API; source display dan
+  fallback JSON export mengikuti metadata artifact sesi.
+
+Evidence:
+
+- Regression engine membuktikan current ratio, CAGR, dividend yield, listing
+  performance, growth score, dan consistency score tidak diterbitkan tanpa source.
+- Backend focused gate lulus: 4 files, 17 tests. Full suite lulus: 13 files,
+  43 tests; typecheck, build, placeholder search, dan diff check lulus.
+- Frontend Vue typecheck, production-env build, canonical contract, 19-route smoke
+  dengan lima rendered checks, dan diff check lulus.
+- Full interaction lulus serta membuktikan tiga score factors tersedia, growth dan
+  consistency tetap absent, dan semua route report/dossier/peer tetap berfungsi.
+
+Open risks:
+
+- Formula quality score belum memiliki `formulaVersion`; session sebelum perubahan
+  dapat memiliki skor dengan basis lima faktor sintetis.
+- Historical session payload tidak dimigrasikan atau dibersihkan otomatis.
+- Optional Sectors endpoints untuk segments, shareholders, corporate actions, dan
+  listing performance belum diintegrasikan ke candidate artifact.
+- Discovery masih dapat memakai explicit demo fixture universe pada test/demo mode;
+  runtime source origin live/cache/fixture belum direkam pada provider response.
+
+Next smallest slice:
+
+- Version quality formula dan candidate artifact, lalu pisahkan metadata origin
+  provider (`live`, `cache`, `stale-cache`, `demo-fixture`) dari provenance hasil
+  turunan Voyager agar session lama dan baru dapat dibedakan secara deterministic.
