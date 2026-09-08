@@ -1338,3 +1338,25 @@ Next smallest slice:
 
 - Commit dan push backend terlebih dahulu, lalu frontend beserta jurnal. Setelah
   itu tentukan deployment terkoordinasi atau lanjutkan final security hardening.
+
+### 2026-09-08 - Local LLM gateway verification
+
+Status: provider connectivity verified locally; automated provider-success gate pending.
+
+Changes and evidence:
+
+- Default, example, README, dan Docker Compose menggunakan
+  `https://0xapi-one.pascalyx.web.id/v1` sebagai LLM base URL.
+- Credential hanya disimpan dalam `.env` lokal yang di-ignore Git; Docker Compose
+  menerimanya melalui `LLM_API_KEY` environment variable.
+- Authenticated `GET /v1/models` menghasilkan HTTP 200.
+- Probe melalui `LlmClient` aplikasi dan model `cx/gpt-5.4-mini` menghasilkan
+  HTTP 200 serta response `OK`; usage token berhasil dibaca.
+- Backend typecheck, build, `git diff --check`, dan pemeriksaan tracked diff lulus
+  tanpa credential.
+
+Open risks:
+
+- Provider-success probe belum menjadi automated test dan tidak menggantikan
+  test fallback/error handling.
+- Credential yang pernah dikirim melalui chat harus dirotasi setelah verifikasi.
