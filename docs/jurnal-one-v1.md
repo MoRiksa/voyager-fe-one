@@ -193,7 +193,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
 | SSE contract | Event hanya memicu authoritative refetch; polling menjadi fallback; durable replay/dedupe belum ada | Contract event registry, replay, dedupe, revision gap refetch | Partial |
-| Session list | Backend mengembalikan semua sesi; frontend tidak menggunakannya | Paginated, filtered, owner-scoped library | Blocked |
+| Session list | Frontend memuat full list backend; pagination/filter server dan ownership belum ada | Paginated, filtered, owner-scoped library | Partial |
 | Screening | Frontend dapat derive exclusion; backend mengembalikan symbol aggregate | Persisted paginated membership dan reasons authoritative | Blocked |
 | Filter truth | Backend dapat memasukkan kembali emiten gagal agar pool >= 5 | Threshold diterapkan apa adanya; zero candidate valid | Blocked |
 | Quality threshold | Label menyebut >=80 tetapi tidak memfilter | Formula/version/missing policy diterapkan dan diuji | Blocked |
@@ -204,7 +204,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Activity root | Backend/client memakai `activities` | Root canonical `activity` atau kontrak dibekukan konsisten | Decision |
 | Errors | Backend menambahkan UUID request ID pada header dan JSON; beberapa controller masih memakai legacy shape | Structured envelope, request ID, violations, warnings, recovery | Partial |
 | Clarification | Frontend membuat ID `clarification-1`; backend tidak membuat real clarification | Backend-issued clarification entity dan persisted return status | Blocked |
-| Cancel/retry/delete | Cancel/retry authoritative; delete dan aksi simulasi lain masih lokal | Semua command authoritative di backend | Partial |
+| Cancel/retry/delete | Cancel/retry/delete authoritative dan revision-guarded; aksi simulasi lain masih lokal | Semua command authoritative di backend | Partial |
 | Persistence | Session JSON files; writes non-atomic; queue/events/idempotency/schedule memory-only | Transactional durable store dan durable jobs/events | Blocked |
 | Scheduler | Registry + manual run-now; cron tidak berjalan | Persistent schedules dan real trigger owner | Blocked |
 | Scaling | PM2 single instance wajib untuk konsistensi saat ini | Scale setelah queue/event/idempotency shared | Deferred |
@@ -1178,3 +1178,52 @@ Next smallest slice:
 
 - Migrasikan library/list/delete dan hapus mutation simulasi production, lalu
   jalankan full interaction suite terhadap backend test instance sebelum deploy.
+
+### 2026-09-08 - Backend-authoritative library dan delete
+
+Status: verified untuk list/delete; deployment pending.
+
+Actual before:
+
+- Pustaka dan riwayat dashboard hanya membaca maksimum lima sesi localStorage.
+- Delete hanya menghapus cache browser dan menolak penghapusan sesi terakhir.
+- Backend delete tidak memiliki revision guard dan dapat dipanggil pada active
+  lifecycle.
+
+Changes:
+
+- Frontend memuat daftar sesi backend saat bootstrap dan saat Pustaka dibuka;
+  cache localStorage hanya dipertahankan jika network gagal.
+- Adapter list menormalkan objective object, nullable report, brief, dan array
+  artifact tanpa menciptakan kandidat atau angka finansial.
+- Delete frontend mengirim `If-Match` revision, baru menghapus cache setelah HTTP
+  sukses, dan merefresh list ketika command stale/gagal.
+- Backend delete mewajibkan revision terbaru dan menolak active attempt/lifecycle;
+  user harus cancel sebelum delete.
+- UI Pustaka dan dashboard tidak lagi menyebut browser sebagai source of truth,
+  dan tombol delete dinonaktifkan untuk sesi aktif.
+
+Evidence:
+
+- Backend commit `979825f`; build dan full suite 12 files/31 tests lulus.
+- Frontend commit `6eb8919`; build, 19-route smoke, dan canonical contract check
+  lulus.
+- Browser local membuktikan sesi backend-only revision 1 muncul di Pustaka, DELETE
+  mengirim `If-Match: 1`, mendapat HTTP 200, lalu sesi hilang dari UI dan GET list.
+- Regression test backend membuktikan stale revision ditolak, active session tidak
+  dapat dihapus, dan cancelled session dapat dihapus.
+
+Open risks:
+
+- List backend belum paginated, filtered, atau owner-scoped; seluruh sesi process
+  masih terlihat karena auth ditunda.
+- Adapter list masih berada di service frontend; canonical generated client/schema
+  belum tersedia.
+- Home tetap memakai cache saat initial render sebelum background GET selesai.
+- Mutation simulasi clarification/partial dan duplicate fallback masih tersedia.
+
+Next smallest slice:
+
+- Hapus mutation simulasi dari production path dan migrasikan duplicate serta
+  clarification ke response backend authoritative, lalu buat interaction harness
+  yang memulai backend test instance sendiri.
