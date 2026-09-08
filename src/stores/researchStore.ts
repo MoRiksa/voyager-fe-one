@@ -197,6 +197,7 @@ export const useResearchStore = defineStore('research', () => {
       artifactVersion: 'screening-stage-v2',
       formulaVersion: name === 'Shortlist kualitas' || name === 'Seleksi akhir' ? 'quality-3f-v1' : undefined,
       sourceOrigins: ['demo-fixture'],
+      providerSources: [{ origin: 'demo-fixture', sourceRef: 'fixture://prototype-fixture-v1', retrievedAt: new Date().toISOString() }],
       sourceKind: 'prototype-fixture',
       sourceRef: 'fixture://prototype-fixture-v1'
     })
@@ -593,6 +594,7 @@ export const useResearchStore = defineStore('research', () => {
         artifactVersion: s.artifactVersion,
         formulaVersion: s.formulaVersion,
         sourceOrigins: Array.isArray(s.sourceOrigins) ? s.sourceOrigins : undefined,
+        providerSources: Array.isArray(s.providerSources) ? s.providerSources : undefined,
         inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
@@ -610,6 +612,7 @@ export const useResearchStore = defineStore('research', () => {
         artifactVersion: s.artifactVersion,
         formulaVersion: s.formulaVersion,
         sourceOrigins: Array.isArray(s.sourceOrigins) ? s.sourceOrigins : undefined,
+        providerSources: Array.isArray(s.providerSources) ? s.providerSources : undefined,
         inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
@@ -625,6 +628,7 @@ export const useResearchStore = defineStore('research', () => {
         artifactVersion: c.artifactVersion,
         formulaVersion: c.formulaVersion,
         sourceOrigin: c.sourceOrigin,
+        providerSource: c.providerSource,
         symbol: c.symbol,
         name: c.companyName || c.name || c.symbol,
         sector: c.sector || 'Financials',

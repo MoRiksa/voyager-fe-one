@@ -7,6 +7,7 @@ const sessionView = readFileSync(new URL('../src/views/ResearchSessionView.vue',
 const store = readFileSync(new URL('../src/stores/researchStore.ts', import.meta.url), 'utf8')
 const app = readFileSync(new URL('../src/App.vue', import.meta.url), 'utf8')
 const screenerView = readFileSync(new URL('../src/views/ScreenerView.vue', import.meta.url), 'utf8')
+const provenance = readFileSync(new URL('../src/components/DataProvenance.vue', import.meta.url), 'utf8')
 const runtime = `${api}\n${createView}\n${sessionView}\n${store}\n${app}`
 
 assert.match(api, /headers: \{ 'If-Match': String\(revision\) \}/)
@@ -37,5 +38,8 @@ assert.doesNotMatch(store, /peerRankInMemory: c\.peerRankInMemory \|\|/)
 assert.match(store, /sourceRef: s\.sourceRef/)
 assert.match(store, /artifactVersion: c\.artifactVersion/)
 assert.match(store, /sourceOrigins: Array\.isArray\(s\.sourceOrigins\)/)
+assert.match(store, /providerSources: Array\.isArray\(s\.providerSources\)/)
+assert.match(provenance, /source\.origin === 'stale-cache'/)
+assert.match(provenance, /data-testid="stale-data-warning" role="alert"/)
 
 console.log('Canonical create/start/refetch contract verified')

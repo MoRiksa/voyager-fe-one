@@ -1661,3 +1661,63 @@ Next smallest slice:
 - Tambahkan freshness metadata (`retrievedAt`, `cachedAt`, `expiresAt`, `staleAt`)
   dan provider source reference per candidate/stage, lalu render warning stale cache
   tanpa mengubah status riset yang sudah completed.
+
+### 2026-09-09 - Provider freshness metadata dan stale warning
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Provider origin tersedia tetapi tidak menyatakan kapan data diambil, kapan masuk
+  cache, kapan expired, atau kapan stale fallback benar-benar digunakan.
+- Stage hanya menyimpan origin aggregate; candidate tidak memiliki provider source
+  reference yang terikat freshness clock.
+- UI tidak dapat membedakan cache valid dari stale-if-error secara temporal dan
+  tidak memberi warning saat riset completed memakai stale cache.
+
+Changes:
+
+- Provider response sekarang membawa structured `providerSource`: `origin`,
+  `sourceRef`, `retrievedAt`, serta optional `cachedAt`, `expiresAt`, dan `staleAt`.
+- Fresh cache hit mempertahankan `retrievedAt` fetch asli; waktu penyajian cache tidak
+  menyamarkan umur data. `staleAt` hanya ditulis saat stale payload benar-benar
+  disajikan melalui stale-if-error.
+- Discovery live memakai source URL `/companies/`; company report memakai endpoint
+  ticker; fixture memakai URI `fixture://` eksplisit.
+- Candidate final menyimpan satu provider source report. Screening stage menyimpan
+  deduplicated `providerSources` untuk seluruh input yang dievaluasi pada stage itu.
+- Schema dan endpoint stage companies tetap menerima session lama tanpa freshness
+  metadata; OpenAPI mendokumentasikan full provider source shape.
+- Frontend types dan hydrator mempertahankan metadata. Lineage audit menampilkan
+  waktu retrieval dan stale fallback timestamp.
+- `DataProvenance` menampilkan accessible `role=alert` warning hanya bila origin
+  `stale-cache`; lifecycle session tetap `COMPLETED` dan hasil tidak diubah menjadi
+  failure palsu.
+
+Evidence:
+
+- Focused backend gate lulus: 4 files, 14 tests. Regression membuktikan stale source
+  mempertahankan original `retrievedAt`, memiliki cache/expiry/stale clocks, dan
+  demo fixture cache tetap dilabel fixture.
+- Backend full suite lulus: 13 files, 44 tests; typecheck, build, dan diff check
+  lulus.
+- Frontend Vue typecheck, production-env build, canonical contract, 19-route smoke
+  dengan lima rendered checks, dan diff check lulus.
+- Canonical contract membuktikan stale warning memakai `role=alert`; full interaction
+  membuktikan freshness metadata normal melewati persistence/hydration dan seluruh
+  authoritative flow tetap lulus tanpa warning palsu.
+
+Open risks:
+
+- Cache masih in-memory; restart menghapus entry dan clock cache.
+- Freshness policy masih TTL global satu jam dan stale-if-error 24 jam, belum
+  berbeda per endpoint atau market schedule.
+- UI menampilkan ISO timestamp agar audit exact; localized relative age belum ada.
+- Stale source tidak otomatis memicu refresh/retry karena completed artifact harus
+  tetap immutable sampai attempt baru dibuat.
+
+Next smallest slice:
+
+- Persist provider cache metadata/payload secara durable atau pindahkan ke cache
+  backend terkelola, lalu version dan uji endpoint-specific TTL policy tanpa
+  mengubah immutable published session artifacts.

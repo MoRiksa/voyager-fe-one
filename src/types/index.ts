@@ -109,6 +109,7 @@ export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
   formulaVersion?: 'quality-3f-v1'
   sourceOrigin?: ProviderSourceOrigin
+  providerSource?: ProviderSourceMetadata
   symbol: string
   name: string
   sector: string
@@ -165,6 +166,7 @@ export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
   formulaVersion?: 'quality-3f-v1'
   sourceOrigins?: ProviderSourceOrigin[]
+  providerSources?: ProviderSourceMetadata[]
   stage: string
   stageId?: string
   count: number
@@ -180,6 +182,15 @@ export interface ScreeningFunnelStep {
 }
 
 export type ProviderSourceOrigin = 'live' | 'cache' | 'stale-cache' | 'demo-fixture'
+
+export interface ProviderSourceMetadata {
+  origin: ProviderSourceOrigin
+  sourceRef: string
+  retrievedAt: string
+  cachedAt?: string
+  expiresAt?: string
+  staleAt?: string
+}
 
 export interface ScreeningReason {
   symbol: string

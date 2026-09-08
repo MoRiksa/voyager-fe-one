@@ -13,8 +13,11 @@ const props = defineProps<{
 const store = useResearchStore()
 const unavailable = 'Tidak diketahui / tidak tersedia'
 const sourceOrigins = computed(() => [...new Set(store.screeningFunnel.flatMap(stage => stage.sourceOrigins || []))])
+const providerSources = computed(() => store.screeningFunnel.flatMap(stage => stage.providerSources || []))
 const artifactVersions = computed(() => [...new Set(store.screeningFunnel.map(stage => stage.artifactVersion).filter(Boolean))])
 const formulaVersions = computed(() => [...new Set(store.candidates.map(candidate => candidate.formulaVersion).filter(Boolean))])
+const staleSources = computed(() => providerSources.value.filter(source => source.origin === 'stale-cache'))
+const latestRetrievedAt = computed(() => providerSources.value.map(source => source.retrievedAt).filter(Boolean).sort().at(-1))
 
 onMounted(() => {
   if (store.report?.sessionId) {
@@ -49,6 +52,10 @@ watch(() => store.report?.sessionId, (newId) => {
       </div>
     </div>
 
+    <div v-if="staleSources.length" data-testid="stale-data-warning" role="alert" class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950">
+      <strong>Data cache kedaluwarsa digunakan.</strong> Riset tetap selesai, tetapi {{ staleSources.length }} sumber disajikan melalui stale-if-error. Tinjau waktu pengambilan sebelum menggunakan hasil.
+    </div>
+
     <dl class="mt-2 grid gap-x-5 gap-y-2" :class="compact ? 'text-[11px] sm:grid-cols-2' : 'text-xs sm:grid-cols-2'">
       <div>
         <dt class="font-semibold text-slate-500">Sumber Primary</dt>
@@ -73,6 +80,14 @@ watch(() => store.report?.sessionId, (newId) => {
       <div>
         <dt class="font-semibold text-slate-500">Versi artifact / formula</dt>
         <dd class="mt-0.5 font-mono text-slate-800">{{ [...artifactVersions, ...formulaVersions].join(' / ') || unavailable }}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-slate-500">Data diambil</dt>
+        <dd class="mt-0.5 font-mono text-slate-800">{{ latestRetrievedAt || unavailable }}</dd>
+      </div>
+      <div v-if="staleSources.length">
+        <dt class="font-semibold text-amber-700">Stale fallback digunakan</dt>
+        <dd class="mt-0.5 font-mono text-amber-900">{{ staleSources.map(source => source.staleAt || source.retrievedAt).join(', ') }}</dd>
       </div>
     </dl>
 
