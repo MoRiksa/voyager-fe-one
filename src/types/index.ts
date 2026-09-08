@@ -106,6 +106,9 @@ export interface CandidateTrend {
 }
 
 export interface CandidateCompany {
+  artifactVersion?: 'candidate-v2'
+  formulaVersion?: 'quality-3f-v1'
+  sourceOrigin?: ProviderSourceOrigin
   symbol: string
   name: string
   sector: string
@@ -159,6 +162,9 @@ export interface CandidateCompany {
 }
 
 export interface ScreeningFunnelStep {
+  artifactVersion?: 'screening-stage-v2'
+  formulaVersion?: 'quality-3f-v1'
+  sourceOrigins?: ProviderSourceOrigin[]
   stage: string
   stageId?: string
   count: number
@@ -172,6 +178,8 @@ export interface ScreeningFunnelStep {
   sourceKind?: 'voyager-derived' | 'prototype-fixture'
   sourceRef?: string
 }
+
+export type ProviderSourceOrigin = 'live' | 'cache' | 'stale-cache' | 'demo-fixture'
 
 export interface ScreeningReason {
   symbol: string

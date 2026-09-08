@@ -241,7 +241,7 @@ try {
     const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
     const stagesAreSubsets = session.screeningFunnel.every((stage, index, stages) => index === 0 || stage.retainedSymbols.every(symbol => stages[index - 1].retainedSymbols.includes(symbol)))
     const countsMatch = session.screeningFunnel.every(stage => stage.count === stage.retainedSymbols.length)
-    const artifactsMatch = session.screeningFunnel.every(stage => Array.isArray(stage.inputSymbols) && Array.isArray(stage.excludedSymbols) && Array.isArray(stage.reasons) && stage.excludedCount === stage.excludedSymbols.length && stage.inputSymbols.every(symbol => stage.retainedSymbols.includes(symbol) || stage.excludedSymbols.includes(symbol)))
+    const artifactsMatch = session.screeningFunnel.every(stage => stage.artifactVersion === 'screening-stage-v2' && stage.sourceOrigins.includes('demo-fixture') && Array.isArray(stage.inputSymbols) && Array.isArray(stage.excludedSymbols) && Array.isArray(stage.reasons) && stage.excludedCount === stage.excludedSymbols.length && stage.inputSymbols.every(symbol => stage.retainedSymbols.includes(symbol) || stage.excludedSymbols.includes(symbol)))
     const candidateSymbols = session.candidates.map(company => company.symbol)
     const finalSymbols = session.screeningFunnel.at(-1).retainedSymbols
     const reportSymbols = session.report.topCandidates.map(company => company.symbol)
@@ -249,7 +249,7 @@ try {
       version: payload.version,
       id: session.id,
       symbols: candidateSymbols,
-      valid: countsMatch && stagesAreSubsets && artifactsMatch && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
+      valid: countsMatch && stagesAreSubsets && artifactsMatch && session.candidates.every(candidate => candidate.artifactVersion === 'candidate-v2' && candidate.formulaVersion === 'quality-3f-v1' && candidate.sourceOrigin === 'demo-fixture') && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
     }
   })()`)
   if (sessionResult.version !== 2 || !sessionResult.valid || sessionResult.symbols.length !== 3) {
@@ -271,6 +271,7 @@ try {
     throw new Error(`Sidebar session navigation is not scoped to the active session: ${JSON.stringify(sidebarSession)}`)
   }
   await waitFor(() => evaluate('document.querySelector("[data-testid=screener-metric-guide]")?.textContent.includes("Skor 80/100 adalah ambang")'), 'Screener did not explain financial metrics')
+  await waitFor(() => evaluate(`(() => { const lineage = document.querySelector('aside[aria-label="Asal dan periode data"]')?.textContent || ''; return lineage.includes('screening-stage-v2') && lineage.includes('quality-3f-v1') && lineage.includes('demo-fixture') })()`), 'Artifact versions or provider origin did not render')
   await evaluate(`Array.from(document.querySelectorAll('button')).find(button => button.textContent.includes('Shortlist kualitas'))?.click()`)
   await evaluate(`document.querySelector('[data-testid="show-excluded"]')?.click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=exclusion-reasons]")?.textContent.includes("di bawah batas 80/100")'), 'Screener did not render authoritative exclusion reasons')

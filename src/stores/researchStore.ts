@@ -194,6 +194,9 @@ export const useResearchStore = defineStore('research', () => {
       description,
       filterCriteria: criteria,
       retainedSymbols: companies.map(company => company.symbol),
+      artifactVersion: 'screening-stage-v2',
+      formulaVersion: name === 'Shortlist kualitas' || name === 'Seleksi akhir' ? 'quality-3f-v1' : undefined,
+      sourceOrigins: ['demo-fixture'],
       sourceKind: 'prototype-fixture',
       sourceRef: 'fixture://prototype-fixture-v1'
     })
@@ -587,6 +590,9 @@ export const useResearchStore = defineStore('research', () => {
         count: s.count || 0,
         description: s.description || '',
         filterCriteria: s.filterCriteria || '',
+        artifactVersion: s.artifactVersion,
+        formulaVersion: s.formulaVersion,
+        sourceOrigins: Array.isArray(s.sourceOrigins) ? s.sourceOrigins : undefined,
         inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
@@ -601,6 +607,9 @@ export const useResearchStore = defineStore('research', () => {
         count: s.count || 0,
         description: s.description || '',
         filterCriteria: s.filterCriteria || '',
+        artifactVersion: s.artifactVersion,
+        formulaVersion: s.formulaVersion,
+        sourceOrigins: Array.isArray(s.sourceOrigins) ? s.sourceOrigins : undefined,
         inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
         retainedSymbols: s.retainedSymbols || [],
         excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
@@ -613,6 +622,9 @@ export const useResearchStore = defineStore('research', () => {
 
     if (Array.isArray(session.candidates)) {
       candidates.value = session.candidates.map((c: any, index: number) => ({
+        artifactVersion: c.artifactVersion,
+        formulaVersion: c.formulaVersion,
+        sourceOrigin: c.sourceOrigin,
         symbol: c.symbol,
         name: c.companyName || c.name || c.symbol,
         sector: c.sector || 'Financials',

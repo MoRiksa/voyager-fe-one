@@ -1598,3 +1598,66 @@ Next smallest slice:
 - Version quality formula dan candidate artifact, lalu pisahkan metadata origin
   provider (`live`, `cache`, `stale-cache`, `demo-fixture`) dari provenance hasil
   turunan Voyager agar session lama dan baru dapat dibedakan secara deterministic.
+
+### 2026-09-08 - Artifact versioning dan provider source origin
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Session baru dan lama tidak dapat dibedakan berdasarkan versi formula atau shape
+  candidate/screening artifact.
+- Provenance stage hanya menyatakan hasil turunan Voyager; origin report provider
+  yang dipakai engine tidak menyatakan live, cache, stale cache, atau demo fixture.
+- Fresh cache hit dan stale-if-error tidak terlihat pada candidate maupun stage,
+  sementara fixture yang masuk cache berisiko tampak seperti cache provider nyata.
+- UI lineage menampilkan source reference tetapi tidak menampilkan versi artifact,
+  versi formula, atau origin provider.
+
+Changes:
+
+- Candidate baru memakai `artifactVersion: candidate-v2` dan
+  `formulaVersion: quality-3f-v1`.
+- Screening stage baru memakai `artifactVersion: screening-stage-v2`; quality dan
+  final stage juga menyimpan `formulaVersion: quality-3f-v1`.
+- `SectorsClient` menandai response dengan `sourceOrigin`: `live`, `cache`,
+  `stale-cache`, atau `demo-fixture` pada boundary provider/cache.
+- Demo fixture yang disajikan ulang dari cache tetap berorigin `demo-fixture` dan
+  tidak disamarkan menjadi provider cache. Local fallback tanpa metadata juga
+  diperlakukan konservatif sebagai demo fixture.
+- Engine mengagregasi origin report ke setiap stage dan mempertahankan origin pada
+  candidate final. Endpoint stage companies dan OpenAPI meneruskan metadata versi
+  serta origin.
+- Schema field baru optional agar session lama tetap readable; artifact baru selalu
+  mengirim field versioning tersebut.
+- Frontend types dan hydrator mempertahankan metadata. `DataProvenance` menampilkan
+  provider origin serta versi artifact/formula secara terpusat.
+
+Evidence:
+
+- Focused backend gate lulus: 5 files, 22 tests. Regression membuktikan stale cache
+  menjadi `stale-cache`, fixture cache tetap `demo-fixture`, schema legacy tetap
+  diterima, dan session baru menyimpan version/origin lengkap.
+- Backend full suite lulus: 13 files, 44 tests; typecheck, build, dan diff check
+  lulus.
+- Frontend Vue typecheck, production-env build, canonical contract, 19-route smoke
+  dengan lima rendered checks, dan diff check lulus.
+- Full interaction lulus dan membuktikan `screening-stage-v2`, `candidate-v2`,
+  `quality-3f-v1`, serta `demo-fixture` melewati backend, persistence, hydration,
+  dan lineage UI.
+
+Open risks:
+
+- Session lama tetap tidak memiliki version/origin metadata; UI menampilkan
+  unavailable dan tidak menebak versinya.
+- Cache masih in-memory dan origin metadata belum memiliki timestamp, age, TTL,
+  atau persisted cache-entry identity.
+- Local JSON fallback tidak memiliki manifest origin; saat ini sengaja dilabel
+  `demo-fixture` agar tidak mengklaim data live.
+- Report top-level belum versioned karena semantics report belum distabilkan.
+
+Next smallest slice:
+
+- Tambahkan freshness metadata (`retrievedAt`, `cachedAt`, `expiresAt`, `staleAt`)
+  dan provider source reference per candidate/stage, lalu render warning stale cache
+  tanpa mengubah status riset yang sudah completed.

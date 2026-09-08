@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
 
 const props = defineProps<{
@@ -12,6 +12,9 @@ const props = defineProps<{
 
 const store = useResearchStore()
 const unavailable = 'Tidak diketahui / tidak tersedia'
+const sourceOrigins = computed(() => [...new Set(store.screeningFunnel.flatMap(stage => stage.sourceOrigins || []))])
+const artifactVersions = computed(() => [...new Set(store.screeningFunnel.map(stage => stage.artifactVersion).filter(Boolean))])
+const formulaVersions = computed(() => [...new Set(store.candidates.map(candidate => candidate.formulaVersion).filter(Boolean))])
 
 onMounted(() => {
   if (store.report?.sessionId) {
@@ -62,6 +65,14 @@ watch(() => store.report?.sessionId, (newId) => {
       <div>
         <dt class="font-semibold text-slate-500">Laporan Dibuat</dt>
         <dd class="mt-0.5 font-mono text-slate-800">{{ generatedAt || store.report?.timestamp || unavailable }}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-slate-500">Origin provider</dt>
+        <dd class="mt-0.5 font-mono text-slate-800">{{ sourceOrigins.join(', ') || unavailable }}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-slate-500">Versi artifact / formula</dt>
+        <dd class="mt-0.5 font-mono text-slate-800">{{ [...artifactVersions, ...formulaVersions].join(' / ') || unavailable }}</dd>
       </div>
     </dl>
 
