@@ -20,6 +20,9 @@ import {
   sendFollowUp as apiSendFollowUp,
   duplicateResearchSession as apiDuplicateResearchSession,
   createCompanyResearchSession as apiCreateCompanyResearchSession,
+  cancelResearchSession as apiCancelResearchSession,
+  retryResearchSession as apiRetryResearchSession,
+  getResearchSessionFull as apiGetResearchSessionFull,
   getProvenanceTrail as apiGetProvenanceTrail,
   subscribeSessionSse as apiSubscribeSessionSse,
   asyncExecuteResearchSession as apiAsyncExecuteResearchSession,
@@ -32,6 +35,7 @@ import {
 export const useResearchStore = defineStore('research', () => {
   const STORAGE_KEY = 'voyager-one-research-sessions-v1'
   const STORAGE_VERSION = 2
+  const activeStatuses = new Set<AgentStatus>(['UNDERSTANDING', 'PLANNING', 'DISCOVERING', 'SCREENING', 'RANKING', 'RESEARCHING', 'COMPARING', 'VALIDATING', 'REPORTING'])
   const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
   const defaultResearchBrief = (): ResearchBrief => ({
     market: 'IDX',
@@ -386,7 +390,10 @@ export const useResearchStore = defineStore('research', () => {
       screeningFunnel: screeningFunnel.value,
       candidates: candidates.value,
       report: report.value,
-      creditsSpent: totalCredits.value - creditsRemaining.value
+      creditsSpent: totalCredits.value - creditsRemaining.value,
+      revision: currentRevision.value,
+      activeAttemptId: activeAttemptId.value,
+      publishedAttemptId: publishedAttemptId.value
     })
   }
 
@@ -491,6 +498,9 @@ export const useResearchStore = defineStore('research', () => {
     report.value.objective = currentObjective.value
     report.value.timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB'
     preparePendingSession(results)
+    currentRevision.value = 0
+    activeAttemptId.value = null
+    publishedAttemptId.value = null
     selectedSymbol.value = ''
     saveCurrentSession('IDLE')
     return id
@@ -499,6 +509,7 @@ export const useResearchStore = defineStore('research', () => {
   const hydrateFromBackendSession = (session: any) => {
     if (!session) return
     const id = session.id
+    if (id === report.value.sessionId && typeof session.revision === 'number' && session.revision < currentRevision.value) return
     report.value.sessionId = id
     if (typeof session.objective === 'string') {
       currentObjective.value = session.objective
@@ -512,7 +523,7 @@ export const useResearchStore = defineStore('research', () => {
       activeBrief.value = normalizeResearchBrief(session.brief)
     }
     status.value = session.status || 'COMPLETED'
-    isExecuting.value = session.status !== 'COMPLETED' && session.status !== 'FAILED' && session.status !== 'CANCELLED'
+    isExecuting.value = activeStatuses.has(session.status)
 
     if (typeof session.revision === 'number') currentRevision.value = session.revision
     if ('activeAttemptId' in session) activeAttemptId.value = session.activeAttemptId
@@ -640,7 +651,7 @@ export const useResearchStore = defineStore('research', () => {
 
   const applyBackendStatus = (sessionStatus: AgentStatus) => {
     status.value = sessionStatus
-    isExecuting.value = sessionStatus !== 'COMPLETED' && sessionStatus !== 'FAILED' && sessionStatus !== 'CANCELLED'
+    isExecuting.value = activeStatuses.has(sessionStatus)
     saveCurrentSession(sessionStatus)
   }
 
@@ -693,14 +704,22 @@ export const useResearchStore = defineStore('research', () => {
     return fallbackAns
   }
 
-  const cancelResearch = () => {
+  const cancelResearch = async () => {
     if (!isExecuting.value) return false
-    executionToken += 1
-    isExecuting.value = false
-    status.value = 'CANCELLED'
-    normalizeActivePillars()
-    saveCurrentSession('CANCELLED')
-    return true
+    try {
+      const session = await apiCancelResearchSession(report.value.sessionId, currentRevision.value)
+      executionToken += 1
+      hydrateFromBackendSession(session)
+      disconnectSse()
+      return true
+    } catch {
+      try {
+        hydrateFromBackendSession(await apiGetResearchSessionFull(report.value.sessionId))
+      } catch {
+        // Preserve the last authoritative snapshot if recovery also fails.
+      }
+      return false
+    }
   }
 
   const markPartial = () => {
@@ -901,10 +920,21 @@ export const useResearchStore = defineStore('research', () => {
     }
   }
 
-  const retryResearch = () => {
+  const retryResearch = async () => {
     if (isExecuting.value || !['FAILED', 'PARTIAL', 'CANCELLED'].includes(status.value)) return false
-    void runAutonomousResearch(report.value.sessionId)
-    return true
+    try {
+      const session = await apiRetryResearchSession(report.value.sessionId, currentRevision.value)
+      hydrateFromBackendSession(session)
+      connectSse(report.value.sessionId)
+      return true
+    } catch {
+      try {
+        hydrateFromBackendSession(await apiGetResearchSessionFull(report.value.sessionId))
+      } catch {
+        // Preserve the last authoritative snapshot if recovery also fails.
+      }
+      return false
+    }
   }
 
   // --- 9 Batches Actions ---
@@ -927,21 +957,9 @@ export const useResearchStore = defineStore('research', () => {
     try {
       sseUnsubscribe = apiSubscribeSessionSse(
         id,
-        (evt) => {
+        () => {
           sseConnected.value = true
-          if (evt.type === 'step.completed' && evt.data) {
-            currentRevision.value = evt.data.revision || currentRevision.value
-            if (evt.data.attemptId) activeAttemptId.value = evt.data.attemptId
-            notify(`Step ${evt.data.step} (${evt.data.stepName}) selesai: ${evt.data.retainedCount} kandidat lolos`, 'info')
-          } else if (evt.type === 'report.published' && evt.data) {
-            publishedAttemptId.value = evt.data.publishedAttemptId
-            currentRevision.value = evt.data.revision || currentRevision.value
-            notify('Laporan riset terpublikasi atomik dari backend!', 'success')
-          } else if (evt.type === 'completed') {
-            status.value = 'COMPLETED'
-            isExecuting.value = false
-            notify('Sesi riset selesai diproses oleh background worker.', 'success')
-          }
+          void apiGetResearchSessionFull(id).then(hydrateFromBackendSession).catch(() => undefined)
         },
         () => {
           sseConnected.value = false

@@ -167,15 +167,21 @@ export const getTrace = async (id: string): Promise<ToolCallLog[]> => {
   return payload.toolCalls || []
 }
 
-export const cancelResearchSession = async (id: string): Promise<ResearchSession> => {
-  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/cancel`, { method: 'POST' })
+export const cancelResearchSession = async (id: string, revision: number): Promise<ResearchSession> => {
+  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/cancel`, {
+    method: 'POST',
+    headers: { 'If-Match': String(revision) }
+  })
   if (!response.ok) throw new Error('Gagal membatalkan sesi riset.')
   const payload: any = await response.json()
   return payload.session
 }
 
-export const retryResearchSession = async (id: string): Promise<ResearchSession> => {
-  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/retry`, { method: 'POST' })
+export const retryResearchSession = async (id: string, revision: number): Promise<ResearchSession> => {
+  const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/retry`, {
+    method: 'POST',
+    headers: { 'If-Match': String(revision) }
+  })
   if (!response.ok) throw new Error('Gagal mengulang sesi riset.')
   const payload: any = await response.json()
   return payload.session

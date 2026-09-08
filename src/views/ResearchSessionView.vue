@@ -25,7 +25,7 @@ const contractBanner = computed(() => contractBanners[String(store.status)])
 
 import { getResearchSessionFull } from '../services/researchApi'
 
-const terminalStatuses = new Set(['COMPLETED', 'FAILED', 'PARTIAL', 'CANCELLED', 'NEEDS_INPUT'])
+const terminalStatuses = new Set(['IDLE', 'COMPLETED', 'FAILED', 'PARTIAL', 'CANCELLED', 'NEEDS_INPUT'])
 const stepStatuses = computed<Record<number, 'pending' | 'running' | 'completed' | 'failed'>>(() =>
   Object.fromEntries(store.activePlan.steps.map((step, index) => {
     const status = store.pillars[index]?.status
@@ -41,14 +41,20 @@ const pollAuthoritativeSession = async (id: string, token: number) => {
       const session = await getResearchSessionFull(id)
       if (token !== pollToken) return
       store.hydrateFromBackendSession(session)
-      if (terminalStatuses.has(session.status)) return
+      if (terminalStatuses.has(session.status)) {
+        store.disconnectSse()
+        return
+      }
     } catch {
       // Keep the last authoritative snapshot and retry transient read failures.
     }
   }
 }
 
-onUnmounted(() => { pollToken += 1 })
+onUnmounted(() => {
+  pollToken += 1
+  store.disconnectSse()
+})
 
 watch(() => String(route.params.id), async id => {
   if (!id) return
@@ -58,7 +64,10 @@ watch(() => String(route.params.id), async id => {
     if (token !== pollToken) return
     store.hydrateFromBackendSession(backendSession)
     sessionFound.value = true
-    if (!terminalStatuses.has(backendSession.status)) void pollAuthoritativeSession(id, token)
+    if (!terminalStatuses.has(backendSession.status)) {
+      store.connectSse(id)
+      void pollAuthoritativeSession(id, token)
+    }
   } catch {
     sessionFound.value = store.loadSession(id) || id === store.report.sessionId
   }
@@ -84,6 +93,7 @@ const progressLabel = computed(() => activePillar.value?.name || (store.status =
 
 const isSubmittingFollowUp = ref(false)
 const isSubmittingClarification = ref(false)
+const isSubmittingLifecycle = ref(false)
 
 const askFollowUp = async () => {
   if (!followUp.value.trim() || isSubmittingFollowUp.value) return
@@ -114,12 +124,31 @@ const answerClarification = async () => {
   }
 }
 
-const cancel = () => {
-  if (store.cancelResearch()) store.notify('Riset dibatalkan. Hasil yang sudah tersimpan tetap dipertahankan.', 'info')
+const cancel = async () => {
+  if (isSubmittingLifecycle.value) return
+  isSubmittingLifecycle.value = true
+  const success = await store.cancelResearch()
+  isSubmittingLifecycle.value = false
+  if (success) {
+    pollToken += 1
+    store.notify('Riset dibatalkan. Hasil yang sudah tersimpan tetap dipertahankan.', 'info')
+  } else {
+    store.notify('Sesi berubah atau pembatalan gagal. Status terbaru sudah dimuat.', 'error')
+  }
 }
 
-const retry = () => {
-  if (store.retryResearch()) store.notify('Riset dijalankan ulang dari awal.', 'info')
+const retry = async () => {
+  if (isSubmittingLifecycle.value) return
+  isSubmittingLifecycle.value = true
+  const success = await store.retryResearch()
+  isSubmittingLifecycle.value = false
+  if (success) {
+    const token = ++pollToken
+    void pollAuthoritativeSession(store.report.sessionId, token)
+    store.notify('Riset dijalankan ulang dari awal.', 'info')
+  } else {
+    store.notify('Sesi berubah atau retry gagal. Status terbaru sudah dimuat.', 'error')
+  }
 }
 </script>
 
@@ -142,8 +171,8 @@ const retry = () => {
           <p class="mt-3 text-sm leading-6 text-slate-600">{{ sessionDescription }}</p>
         </div>
         <div class="flex shrink-0 flex-wrap gap-2">
-          <button v-if="store.isExecuting" type="button" data-testid="session-cancel" class="button-secondary text-rose-700" @click="cancel"><Square class="h-4 w-4" /> Batalkan</button>
-          <button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status)" type="button" data-testid="session-retry" class="button-secondary" @click="retry"><RotateCcw class="h-4 w-4" /> Jalankan ulang</button>
+          <button v-if="store.isExecuting" type="button" data-testid="session-cancel" class="button-secondary text-rose-700" :disabled="isSubmittingLifecycle" @click="cancel"><Square class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Membatalkan...' : 'Batalkan' }}</button>
+          <button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status)" type="button" data-testid="session-retry" class="button-secondary" :disabled="isSubmittingLifecycle" @click="retry"><RotateCcw class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Memulai...' : 'Jalankan ulang' }}</button>
           <button v-if="store.status === 'COMPLETED'" type="button" data-testid="session-mark-partial" class="button-secondary" @click="store.markPartial()">Simulasikan parsial</button>
           <button v-if="store.status === 'COMPLETED'" type="button" data-testid="session-request-clarification" class="button-secondary" @click="store.requestClarification('Apakah prioritas utama Anda pertumbuhan, valuasi, atau dividen?')">Minta klarifikasi</button>
           <template v-if="store.status === 'COMPLETED' || (store.status === 'PARTIAL' && store.candidates.length)">

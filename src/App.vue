@@ -15,7 +15,7 @@ const router = useRouter()
 const store = useResearchStore()
 
 watch(() => route.params.id, id => {
-  if (typeof id === 'string' && id !== store.report.sessionId && !store.loadSession(id)) router.replace('/not-found')
+  if (route.name !== 'research-session' && typeof id === 'string' && id !== store.report.sessionId && !store.loadSession(id)) router.replace('/not-found')
 }, { immediate: true })
 </script>
 
