@@ -585,7 +585,11 @@ export const useResearchStore = defineStore('research', () => {
         count: s.count || 0,
         description: s.description || '',
         filterCriteria: s.filterCriteria || '',
-        retainedSymbols: s.retainedSymbols || []
+        inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
+        retainedSymbols: s.retainedSymbols || [],
+        excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
+        excludedCount: typeof s.excludedCount === 'number' ? s.excludedCount : undefined,
+        reasons: Array.isArray(s.reasons) ? s.reasons : undefined
       }))
     } else if (session.screening && Array.isArray(session.screening)) {
       screeningFunnel.value = session.screening.map((s: any) => ({
@@ -593,7 +597,11 @@ export const useResearchStore = defineStore('research', () => {
         count: s.count || 0,
         description: s.description || '',
         filterCriteria: s.filterCriteria || '',
-        retainedSymbols: s.retainedSymbols || []
+        inputSymbols: Array.isArray(s.inputSymbols) ? s.inputSymbols : undefined,
+        retainedSymbols: s.retainedSymbols || [],
+        excludedSymbols: Array.isArray(s.excludedSymbols) ? s.excludedSymbols : undefined,
+        excludedCount: typeof s.excludedCount === 'number' ? s.excludedCount : undefined,
+        reasons: Array.isArray(s.reasons) ? s.reasons : undefined
       }))
     }
 

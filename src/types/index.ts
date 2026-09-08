@@ -160,10 +160,25 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   stage: string
+  stageId?: string
   count: number
   description: string
   filterCriteria: string
+  inputSymbols?: string[]
   retainedSymbols: string[]
+  excludedSymbols?: string[]
+  excludedCount?: number
+  reasons?: ScreeningReason[]
+}
+
+export interface ScreeningReason {
+  symbol: string
+  code: string
+  message: string
+  metricKey: string
+  actualValue: number | string
+  operator: string
+  thresholdValue: number | string
 }
 
 export interface ResearchReport {

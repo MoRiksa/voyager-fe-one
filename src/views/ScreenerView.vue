@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
+import type { CandidateCompany } from '../types'
 import DataProvenance from '../components/DataProvenance.vue'
 import { 
   ArrowRight,
@@ -14,43 +15,33 @@ const resultMode = ref<'retained' | 'excluded'>('retained')
 const sortBy = ref<'rank' | 'score' | 'symbol'>('rank')
 const sortLabel = computed(() => ({ rank: 'peringkat', score: 'skor tertinggi', symbol: 'ticker A-Z' })[sortBy.value])
 const activeStep = computed(() => store.screeningFunnel[selectedStage.value])
-const isFinalStage = computed(() => selectedStage.value === store.screeningFunnel.length - 1)
-const retainedCompanies = computed(() => (isFinalStage.value ? store.candidates : store.companyUniverse).filter(company => activeStep.value?.retainedSymbols.includes(company.symbol)))
-const excludedCompanies = computed(() => {
-  if (selectedStage.value === 0) return []
-  const previousSymbols = store.screeningFunnel[selectedStage.value - 1]?.retainedSymbols || []
-  return store.companyUniverse.filter(company => previousSymbols.includes(company.symbol) && !activeStep.value?.retainedSymbols.includes(company.symbol))
-})
+type StageCompany = Partial<CandidateCompany> & { symbol: string; name: string }
+const candidateBySymbol = computed(() => new Map(store.candidates.map(candidate => [candidate.symbol, candidate])))
+const stageCompany = (symbol: string): StageCompany => candidateBySymbol.value.get(symbol) || { symbol, name: symbol }
+const retainedCompanies = computed(() => (activeStep.value?.retainedSymbols || []).map(stageCompany))
+const excludedSymbols = computed(() => activeStep.value?.excludedSymbols
+  || (activeStep.value?.inputSymbols || store.screeningFunnel[selectedStage.value - 1]?.retainedSymbols || []).filter(symbol => !activeStep.value?.retainedSymbols.includes(symbol)))
+const excludedCompanies = computed(() => excludedSymbols.value.map(stageCompany))
 const visibleCompanies = computed(() => [...(resultMode.value === 'retained' ? retainedCompanies.value : excludedCompanies.value)].sort((a, b) => {
-  if (sortBy.value === 'score') return (Number.isFinite(b.qualityScore) ? b.qualityScore : -Infinity) - (Number.isFinite(a.qualityScore) ? a.qualityScore : -Infinity) || a.symbol.localeCompare(b.symbol)
+  if (sortBy.value === 'score') return (b.qualityScore ?? -Infinity) - (a.qualityScore ?? -Infinity) || a.symbol.localeCompare(b.symbol)
   if (sortBy.value === 'symbol') return a.symbol.localeCompare(b.symbol)
-  return (Number.isFinite(a.rank) ? a.rank : Infinity) - (Number.isFinite(b.rank) ? b.rank : Infinity) || a.symbol.localeCompare(b.symbol)
+  return (a.rank ?? Infinity) - (b.rank ?? Infinity) || a.symbol.localeCompare(b.symbol)
 }))
 const initialCount = computed(() => store.screeningFunnel[0]?.count || 0)
 const hasScreeningData = computed(() => store.screeningFunnel.length > 0)
-const previousCount = computed(() => selectedStage.value > 0 ? store.screeningFunnel[selectedStage.value - 1]?.count || 0 : initialCount.value)
-const excludedCount = computed(() => Math.max(0, previousCount.value - (activeStep.value?.count || 0)))
+const previousCount = computed(() => activeStep.value?.inputSymbols?.length ?? (selectedStage.value > 0 ? store.screeningFunnel[selectedStage.value - 1]?.count || 0 : initialCount.value))
+const excludedCount = computed(() => activeStep.value?.excludedCount ?? excludedSymbols.value.length)
 const exclusionImpact = computed(() => previousCount.value ? (excludedCount.value / previousCount.value) * 100 : 0)
 const requiredMetrics = [['Kapitalisasi', 'marketCapTrillionIdr'], ['ROE', 'roePercent'], ['Debt/Equity', 'debtToEquity'], ['FCF yield', 'freeCashFlowYieldPercent'], ['Skor kualitas', 'qualityScore']] as const
 const missingMetrics = (company: Record<string, unknown>) => requiredMetrics.filter(([, key]) => typeof company[key] !== 'number' || !Number.isFinite(company[key])).map(([label]) => label)
-const exclusionReasons = (company: Record<string, any>) => {
-  if (selectedStage.value === 1) return missingMetrics(company).map(metric => `${metric} tidak tersedia`)
-  if (selectedStage.value === 2) {
-    if (store.activePresetId === 'obj-banking-moat') return company.roePercent <= 15 ? ['ROE tidak di atas 15%'] : []
-    if (store.activePresetId === 'obj-consumer-growth') return [company.debtToEquity >= 0.8 ? 'Debt/Equity tidak di bawah 0,8x' : '', company.freeCashFlowYieldPercent <= 0 ? 'FCF yield tidak positif' : ''].filter(Boolean)
-    if (store.activePresetId === 'obj-dividend-fcf') return [company.dividendYieldPercent <= 6 ? 'Dividend yield tidak di atas 6%' : '', company.freeCashFlowYieldPercent <= 0 ? 'FCF yield tidak positif' : '', company.currentRatio <= 1 ? 'Current ratio tidak di atas 1x' : ''].filter(Boolean)
-    return [company.roePercent <= 12 ? 'ROE tidak di atas 12%' : '', company.debtToEquity >= 1.5 ? 'Debt/Equity tidak di bawah 1,5x' : ''].filter(Boolean)
-  }
-  if (selectedStage.value === 3) return company.qualityScore < 80 ? ['Skor kualitas di bawah 80/100'] : []
-  if (selectedStage.value === 4) return ['Di luar batas kandidat berperingkat tertinggi']
-  return []
-}
+const exclusionReasons = (company: StageCompany) => (activeStep.value?.reasons || []).filter(reason => reason.symbol === company.symbol).map(reason => reason.message)
 const reasonCounts = computed(() => {
   const counts = new Map<string, number>()
   excludedCompanies.value.flatMap(company => exclusionReasons(company)).forEach(reason => counts.set(reason, (counts.get(reason) || 0) + 1))
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 })
-const metric = (value: number, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
+const metric = (value: number | undefined, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
+const hasDossier = (symbol: string) => candidateBySymbol.value.has(symbol)
 
 watch(() => store.report.sessionId, () => {
   selectedStage.value = Math.max(0, store.screeningFunnel.length - 1)
@@ -134,16 +125,16 @@ watch(() => store.screeningFunnel.length, length => {
       </div>
       <div class="mt-5 flex gap-1 rounded-xl bg-slate-100 p-1 sm:w-fit">
         <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'retained' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'retained'" @click="resultMode = 'retained'">Lolos · {{ retainedCompanies.length }} contoh</button>
-        <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'excluded' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'excluded'" @click="resultMode = 'excluded'">Tidak lolos · {{ excludedCompanies.length }} contoh</button>
+        <button data-testid="show-excluded" type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'excluded' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'excluded'" @click="resultMode = 'excluded'">Tidak lolos · {{ excludedCompanies.length }} contoh</button>
       </div>
       <div v-if="selectedStage > 0" class="mt-4 grid gap-3 sm:grid-cols-[auto_1fr]">
         <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs"><span class="text-slate-500">Dampak tahap</span><strong class="mt-1 block font-mono text-slate-900">{{ excludedCount }} dari {{ previousCount }} dikeluarkan ({{ exclusionImpact.toFixed(1) }}%)</strong></div>
-        <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs"><span class="text-slate-500">Alasan pada sampel tersedia</span><div v-if="reasonCounts.length" class="mt-2 flex flex-wrap gap-2"><span v-for="([reason, count]) in reasonCounts" :key="reason" class="rounded-md border border-slate-200 bg-white px-2 py-1">{{ reason }} · <strong>{{ count }}</strong></span></div><p v-else class="mt-1 text-slate-700">Tidak ada rincian alasan yang dapat diturunkan.</p></div>
+        <div data-testid="exclusion-reasons" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs"><span class="text-slate-500">Alasan pada sampel tersedia</span><div v-if="reasonCounts.length" class="mt-2 flex flex-wrap gap-2"><span v-for="([reason, count]) in reasonCounts" :key="reason" class="rounded-md border border-slate-200 bg-white px-2 py-1">{{ reason }} · <strong>{{ count }}</strong></span></div><p v-else class="mt-1 text-slate-700">Tidak ada rincian alasan yang tersimpan.</p></div>
       </div>
-        <p class="mt-3 text-xs text-slate-500">Hasil ini berasal dari {{ initialCount }} perusahaan fixture pada dataset prototype. Produksi nanti menggunakan membership tahap yang dikirim screening engine.</p>
+        <p class="mt-3 text-xs text-slate-500">Membership dan alasan eksklusi berasal dari screening engine. Metrik rinci hanya tersedia untuk kandidat yang mencapai dossier akhir.</p>
     </section>
 
-    <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" />
+    <DataProvenance source="screening engine dan snapshot sesi backend" :generated-at="store.report.timestamp" />
 
     <!-- Shortlisted Companies Preview Table -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
@@ -164,7 +155,7 @@ watch(() => store.screeningFunnel.length, length => {
       <div v-else class="grid gap-3 md:hidden">
         <article v-for="candidate in visibleCompanies" :key="candidate.symbol" class="rounded-xl border border-slate-200 p-4">
           <div class="flex items-start justify-between gap-3">
-            <div><button :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 min-w-11 rounded-lg font-mono text-base font-bold text-[#2F64A8] hover:bg-[#F4F8FD]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
+            <div><button v-if="hasDossier(candidate.symbol)" :data-testid="`candidate-${candidate.symbol}`" class="min-h-11 min-w-11 rounded-lg font-mono text-base font-bold text-[#2F64A8] hover:bg-[#F4F8FD]" @click="store.openCandidateModal(candidate.symbol)">{{ candidate.symbol }}</button><span v-else class="inline-flex min-h-11 min-w-11 items-center font-mono text-base font-bold text-slate-900">{{ candidate.symbol }}</span><p class="text-xs text-slate-500">{{ candidate.name }}</p></div>
             <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ metric(candidate.qualityScore, '/100') }}</span>
           </div>
           <div v-if="missingMetrics(candidate).length" class="mt-3 flex flex-wrap gap-1"><span v-for="missing in missingMetrics(candidate)" :key="missing" class="rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-900">Data hilang: {{ missing }}</span></div>
@@ -199,13 +190,14 @@ watch(() => store.screeningFunnel.length, length => {
             >
                <td class="py-3.5 pr-4 font-bold text-slate-900">{{ Number.isFinite(candidate.rank) ? `#${candidate.rank}` : 'Tidak tersedia' }}</td>
                <th scope="row" class="py-3.5 pr-4 font-bold text-[#2F64A8]">
-                 <button
+                  <button v-if="hasDossier(candidate.symbol)"
                    :data-testid="`candidate-${candidate.symbol}`"
                    @click="store.openCandidateModal(candidate.symbol)"
                    class="inline-flex min-h-11 min-w-11 items-center rounded-lg hover:bg-[#F4F8FD] hover:underline cursor-pointer"
                 >
-                  {{ candidate.symbol }}
-                </button>
+                   {{ candidate.symbol }}
+                  </button>
+                  <span v-else>{{ candidate.symbol }}</span>
                </th>
               <td class="py-3.5 pr-4 font-sans text-slate-700">{{ candidate.sector }}</td>
                <td class="py-3.5 pr-4 text-right text-slate-800"><span v-if="Number.isFinite(candidate.marketCapTrillionIdr)">IDR {{ candidate.marketCapTrillionIdr }}T</span><span v-else class="rounded bg-amber-100 px-1.5 py-1 font-sans text-[10px] font-bold text-amber-900">Data hilang</span></td>

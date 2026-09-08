@@ -241,6 +241,7 @@ try {
     const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
     const stagesAreSubsets = session.screeningFunnel.every((stage, index, stages) => index === 0 || stage.retainedSymbols.every(symbol => stages[index - 1].retainedSymbols.includes(symbol)))
     const countsMatch = session.screeningFunnel.every(stage => stage.count === stage.retainedSymbols.length)
+    const artifactsMatch = session.screeningFunnel.every(stage => Array.isArray(stage.inputSymbols) && Array.isArray(stage.excludedSymbols) && Array.isArray(stage.reasons) && stage.excludedCount === stage.excludedSymbols.length && stage.inputSymbols.every(symbol => stage.retainedSymbols.includes(symbol) || stage.excludedSymbols.includes(symbol)))
     const candidateSymbols = session.candidates.map(company => company.symbol)
     const finalSymbols = session.screeningFunnel.at(-1).retainedSymbols
     const reportSymbols = session.report.topCandidates.map(company => company.symbol)
@@ -248,7 +249,7 @@ try {
       version: payload.version,
       id: session.id,
       symbols: candidateSymbols,
-      valid: countsMatch && stagesAreSubsets && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
+      valid: countsMatch && stagesAreSubsets && artifactsMatch && JSON.stringify(candidateSymbols) === JSON.stringify(finalSymbols) && JSON.stringify(candidateSymbols) === JSON.stringify(reportSymbols)
     }
   })()`)
   if (sessionResult.version !== 2 || !sessionResult.valid || sessionResult.symbols.length !== 3) {
@@ -270,6 +271,9 @@ try {
     throw new Error(`Sidebar session navigation is not scoped to the active session: ${JSON.stringify(sidebarSession)}`)
   }
   await waitFor(() => evaluate('document.querySelector("[data-testid=screener-metric-guide]")?.textContent.includes("Skor 80/100 adalah ambang")'), 'Screener did not explain financial metrics')
+  await evaluate(`Array.from(document.querySelectorAll('button')).find(button => button.textContent.includes('Shortlist kualitas'))?.click()`)
+  await evaluate(`document.querySelector('[data-testid="show-excluded"]')?.click()`)
+  await waitFor(() => evaluate('document.querySelector("[data-testid=exclusion-reasons]")?.textContent.includes("di bawah batas 80/100")'), 'Screener did not render authoritative exclusion reasons')
   const desktopNavigation = await evaluate(`({
     summaryHref: Array.from(document.querySelectorAll('a')).find(link => link.textContent.trim() === 'Ringkasan')?.getAttribute('href'),
     activeLabel: Array.from(document.querySelectorAll('nav[aria-label="Navigasi sesi aktif"] a')).find(link => link.classList.contains('bg-[#2F64A8]'))?.textContent.trim(),
@@ -283,7 +287,7 @@ try {
 
   await evaluate(`document.querySelectorAll('[aria-label="Tahap penyaringan"] > button')[2].click()`)
   await evaluate(`Array.from(document.querySelectorAll('button')).find(button => button.textContent.includes('Tidak lolos')).click()`)
-  await waitFor(() => evaluate('document.body.textContent.includes("ROE tidak di atas 15%") || document.body.textContent.includes("Tidak ada sampel pada kategori ini")'), 'Screener did not explain or explicitly empty financial-stage exclusions')
+  await waitFor(() => evaluate('document.body.textContent.includes("di bawah batas kelayakan 12%") || document.body.textContent.includes("melebihi toleransi risiko") || document.body.textContent.includes("Tidak ada sampel pada kategori ini")'), 'Screener did not explain or explicitly empty financial-stage exclusions')
   if (await evaluate('document.body.textContent.includes("Tidak ada sampel pada kategori ini")')) {
     await evaluate(`Array.from(document.querySelectorAll('button')).find(button => button.textContent.includes('Lolos ·')).click()`)
     await waitFor(() => evaluate('Boolean(document.querySelector("table tbody tr"))'), 'Screener retained table did not return after empty exclusions')
@@ -296,11 +300,11 @@ try {
   })()`)
   const screenerDetails = await evaluate(`(() => {
     const rows = Array.from(document.querySelectorAll('table tbody tr'))
-    const symbols = rows.map(row => row.querySelector('[data-testid^="candidate-"]')?.textContent.trim()).filter(Boolean)
+    const symbols = rows.map(row => row.querySelector('th[scope="row"]')?.textContent.trim()).filter(Boolean)
     const provenance = document.querySelector('aside[aria-label="Asal dan periode data"]')?.textContent || ''
     return { symbols, provenance, caption: document.querySelector('table caption')?.textContent || '' }
   })()`)
-  if (JSON.stringify(screenerDetails.symbols) !== JSON.stringify([...screenerDetails.symbols].sort()) || !screenerDetails.caption.includes('ticker A-Z') || !screenerDetails.provenance.includes('prototype-fixture-v1') || !/laporan dibuat/i.test(screenerDetails.provenance)) {
+  if (JSON.stringify(screenerDetails.symbols) !== JSON.stringify([...screenerDetails.symbols].sort()) || !screenerDetails.caption.includes('ticker A-Z') || !screenerDetails.provenance.includes('screening engine dan snapshot sesi backend') || !/laporan dibuat/i.test(screenerDetails.provenance)) {
     throw new Error(`Screener exclusion sorting or provenance failed: ${JSON.stringify(screenerDetails)}`)
   }
   await evaluate(`Array.from(document.querySelectorAll('button')).find(button => button.textContent.includes('Lolos ·')).click()`)

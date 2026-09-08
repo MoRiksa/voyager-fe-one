@@ -372,7 +372,7 @@ Tujuan: setiap nilai dapat dipertanggungjawabkan; tidak ada fabricated success.
 - [ ] Versioning formula, score factors, cohort, tie-break, dan missing policy.
 - [ ] Money canonical memakai decimal string + currency.
 - [ ] Normalisasi metrics dan unit.
-- [ ] Persist stage membership retained/excluded beserta reason.
+- [x] Persist stage membership retained/excluded beserta reason.
 - [ ] Membership endpoint paginated dan authoritative.
 - [ ] Candidate shape canonical tersedia.
 - [ ] Dossier mencakup evidence, DuPont, benchmark, optional artifact status,
@@ -387,7 +387,7 @@ Acceptance:
 
 - [ ] Golden tests membuktikan score/rank/tie deterministik.
 - [ ] Missing, null, dan zero lulus round-trip contract tests.
-- [ ] Funnel count sama dengan persisted membership.
+- [x] Funnel count sama dengan persisted membership.
 - [ ] Filter yang gagal tidak muncul sebagai retained.
 - [ ] Semua angka report dapat ditelusuri ke sourceRef atau derivation.
 
@@ -1480,3 +1480,58 @@ Next smallest slice:
 - Persist structured stage input/exclusion reasons dari engine dan ubah Screener
   agar memakai artifact backend, lalu hapus local recomputation berdasarkan
   fixture/preset frontend.
+
+### 2026-09-08 - Authoritative screening artifacts dan exclusion reasons
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Darwin engine menghasilkan `inputSymbols`, retained membership, exclusion count,
+  dan structured reason, tetapi `ResearchService.runStep()` hanya menyimpan retained
+  symbols dan membuang artifact lain.
+- Endpoint stage companies merekonstruksi membership dari stage sebelumnya dan
+  membuat generic financial reason yang bukan hasil engine.
+- Controller mengabaikan query `disposition` walau frontend API client sudah
+  mendukungnya.
+- Screener menghitung ulang excluded membership dan reason dari fixture serta
+  active preset frontend, sehingga threshold dapat berbeda dari engine.
+
+Changes:
+
+- Setiap persisted screening stage sekarang menyimpan canonical `stageId`,
+  `inputSymbols`, `retainedSymbols`, `excludedSymbols`, `excludedCount`, dan
+  structured `reasons`; report funnel memakai artifact session yang sama.
+- Schema field baru optional agar persisted session lama tetap dapat dibaca.
+- Endpoint stage companies memakai artifact tersimpan, memvalidasi
+  `disposition=RETAINED|EXCLUDED`, dan didokumentasikan dalam OpenAPI.
+- Legacy sessions memakai membership delta sebagai fallback, tetapi reason diberi
+  `LEGACY_REASON_UNAVAILABLE` dan tidak lagi mengarang threshold finansial.
+- Screener merender membership dan reason backend dari authoritative session
+  snapshot. Fixture universe serta preset-specific reason reconstruction dihapus.
+- Emiten yang gugur tanpa final dossier tetap tampil sebagai symbol dengan metrik
+  unavailable dan tidak membuka candidate modal palsu.
+
+Evidence:
+
+- Backend focused schema/service/OpenAPI suite lulus: 3 files, 9 tests.
+- Backend full suite lulus: 13 files, 43 tests; typecheck, build, dan diff check
+  lulus.
+- Frontend production-env build, Vue typecheck, canonical contract, 19-route smoke
+  dengan lima rendered checks, dan diff check lulus.
+- Full interaction lulus dan membuktikan setiap input stage berada pada retained
+  atau excluded membership, exclusion count konsisten, serta reason kualitas
+  `di bawah batas 80/100` dirender dari backend artifact.
+
+Open risks:
+
+- Endpoint membership belum paginated; scope saat ini hanya universe kecil.
+- Sesi legacy tidak memiliki historical structured reasons dan hanya dapat
+  menyatakan bahwa alasan rinci unavailable.
+- Discovery source-kind/provenance dan generated presentation metrics yang dicatat
+  pada slice sebelumnya belum diselesaikan.
+
+Next smallest slice:
+
+- Hapus atau labeli generated presentation metrics dan narrative estimates,
+  kemudian tambahkan source-kind serta sourceRef canonical pada screening artifact.

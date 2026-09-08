@@ -6,6 +6,7 @@ const createView = readFileSync(new URL('../src/views/NewResearchView.vue', impo
 const sessionView = readFileSync(new URL('../src/views/ResearchSessionView.vue', import.meta.url), 'utf8')
 const store = readFileSync(new URL('../src/stores/researchStore.ts', import.meta.url), 'utf8')
 const app = readFileSync(new URL('../src/App.vue', import.meta.url), 'utf8')
+const screenerView = readFileSync(new URL('../src/views/ScreenerView.vue', import.meta.url), 'utf8')
 const runtime = `${api}\n${createView}\n${sessionView}\n${store}\n${app}`
 
 assert.match(api, /headers: \{ 'If-Match': String\(revision\) \}/)
@@ -29,5 +30,8 @@ assert.match(api, /sendFollowUp[\s\S]*'If-Match': String\(revision\)/)
 assert.doesNotMatch(store, /API follow-up fallback|fallbackAns|session_follow_up/)
 assert.doesNotMatch(store, /c\.(?:marketCapTrillionIdr|priceIdr|peRatio|pbvRatio|roePercent|debtToEquity|freeCashFlowYieldPercent|qualityScore)\s*\|\|/)
 assert.doesNotMatch(runtime, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
+assert.match(store, /excludedSymbols: Array\.isArray\(s\.excludedSymbols\)/)
+assert.match(screenerView, /activeStep\.value\?\.reasons/)
+assert.doesNotMatch(screenerView, /store\.companyUniverse|store\.activePresetId/)
 
 console.log('Canonical create/start/refetch contract verified')
