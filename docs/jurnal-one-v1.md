@@ -203,7 +203,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Peer root | Backend/client memakai `benchmarks` | Root canonical `peerBenchmarks` atau kontrak dibekukan konsisten | Decision |
 | Activity root | Backend/client memakai `activities` | Root canonical `activity` atau kontrak dibekukan konsisten | Decision |
 | Errors | Backend menambahkan UUID request ID pada header dan JSON; beberapa controller masih memakai legacy shape | Structured envelope, request ID, violations, warnings, recovery | Partial |
-| Clarification | Frontend membuat ID `clarification-1`; backend tidak membuat real clarification | Backend-issued clarification entity dan persisted return status | Blocked |
+| Clarification | Frontend hanya menjawab request ID dari snapshot backend; endpoint pembuat clarification entity belum tersedia | Backend-issued clarification entity dan persisted return status | Partial |
 | Cancel/retry/delete | Cancel/retry/delete authoritative dan revision-guarded; aksi simulasi lain masih lokal | Semua command authoritative di backend | Partial |
 | Persistence | Session JSON files; writes non-atomic; queue/events/idempotency/schedule memory-only | Transactional durable store dan durable jobs/events | Blocked |
 | Scheduler | Registry + manual run-now; cron tidak berjalan | Persistent schedules dan real trigger owner | Blocked |
@@ -1227,3 +1227,55 @@ Next smallest slice:
 - Hapus mutation simulasi dari production path dan migrasikan duplicate serta
   clarification ke response backend authoritative, lalu buat interaction harness
   yang memulai backend test instance sendiri.
+
+### 2026-09-08 - Duplicate dan clarification authoritative
+
+Status: verified untuk duplicate dan clarification answer; harness pending.
+
+Actual before:
+
+- Duplicate frontend jatuh ke clone localStorage ketika backend gagal.
+- Clarification frontend membuat `clarification-1`, menulis note/status lokal, dan
+  mengabaikan kegagalan backend.
+- Tombol production dapat mensimulasikan `PARTIAL` dan `NEEDS_INPUT` tanpa event
+  backend.
+- Duplicate backend menyebarkan field objective legacy ke strict create schema.
+
+Changes:
+
+- Duplicate dan clarification answer mewajibkan `If-Match` dan memulihkan snapshot
+  backend ketika stale/gagal.
+- Duplicate backend membangun ulang payload hanya dari objective, preset, dan full
+  brief canonical.
+- Clarification answer hanya valid dari `NEEDS_INPUT`, hanya untuk request ID yang
+  tersimpan dalam tool call session, dan mengembalikan persisted return status.
+- Frontend membaca clarification ID dari snapshot backend dan menghidrasi response
+  tanpa fallback mutation lokal.
+- Tombol `Simulasikan parsial` dan client-created clarification dihapus dari UI;
+  local duplicate fallback juga dihapus.
+
+Evidence:
+
+- Backend commit `dea1385`; build dan full suite 12 files/32 tests lulus sebelum
+  validasi clarification request ID ditambahkan; focused 2 files/5 tests dan
+  typecheck lulus setelah validasi tersebut.
+- Frontend commit `48817d0`; build, typecheck, dan canonical contract check lulus.
+- Browser local membuktikan duplicate HTTP 201 dengan `If-Match: 1`, ID baru,
+  status `IDLE`, dan brief yang sama.
+- Source scan membuktikan tidak ada `markPartial`, `requestClarification`,
+  `Simulasikan parsial`, atau local clone fallback pada runtime frontend.
+
+Open risks:
+
+- Backend belum memiliki command/domain entity untuk meminta clarification; UI
+  hanya dapat menjawab request yang kelak diterbitkan backend.
+- Full frontend smoke harness hang dua kali pada batas 30 detik tanpa assertion
+  failure setelah browser/build checks; harness process lifecycle perlu diperbaiki.
+- Follow-up masih memiliki narasi fallback frontend dan belum revision-guarded.
+- Production deployment tetap pending.
+
+Next smallest slice:
+
+- Perbaiki interaction/smoke harness agar mengelola backend, preview, Chrome, dan
+  cleanup deterministik; lalu migrasikan follow-up agar tidak menghasilkan narasi
+  fallback frontend sebelum deployment compatibility gate.
