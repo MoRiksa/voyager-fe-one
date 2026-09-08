@@ -189,10 +189,10 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Execution ownership | Frontend memakai create -> start; backend worker menjalankan pipeline dan frontend refetch snapshot | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Verified untuk create/start/polling |
 | Lifecycle | Backend completion membersihkan active attempt; halaman sesi menghidrasi status dan artefak dari snapshot backend | Backend menjalankan lifecycle dan clear active attempt atomik | Partial; command lain belum authoritative |
 | Attempt fence | Worker memverifikasi attempt sebelum dan sesudah setiap provider await | Old/cancelled attempt tidak dapat menulis/publish | Backend verified for current worker |
-| Revision guard | Frontend mengirim `If-Match` saat start; cancel/retry frontend masih lokal | Seluruh mutasi rawan race memakai revision guard dan recovery | Partial |
+| Revision guard | Frontend mengirim `If-Match` saat start/cancel/retry dan refetch saat conflict | Seluruh mutasi rawan race memakai revision guard dan recovery | Verified untuk lifecycle command |
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
-| SSE contract | Event names dan envelope custom; no dedupe/gap guard | Contract event registry, replay, dedupe, revision gap refetch | Blocked |
+| SSE contract | Event hanya memicu authoritative refetch; polling menjadi fallback; durable replay/dedupe belum ada | Contract event registry, replay, dedupe, revision gap refetch | Partial |
 | Session list | Backend mengembalikan semua sesi; frontend tidak menggunakannya | Paginated, filtered, owner-scoped library | Blocked |
 | Screening | Frontend dapat derive exclusion; backend mengembalikan symbol aggregate | Persisted paginated membership dan reasons authoritative | Blocked |
 | Filter truth | Backend dapat memasukkan kembali emiten gagal agar pool >= 5 | Threshold diterapkan apa adanya; zero candidate valid | Blocked |
@@ -204,7 +204,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Activity root | Backend/client memakai `activities` | Root canonical `activity` atau kontrak dibekukan konsisten | Decision |
 | Errors | Backend menambahkan UUID request ID pada header dan JSON; beberapa controller masih memakai legacy shape | Structured envelope, request ID, violations, warnings, recovery | Partial |
 | Clarification | Frontend membuat ID `clarification-1`; backend tidak membuat real clarification | Backend-issued clarification entity dan persisted return status | Blocked |
-| Cancel/retry/delete | Sebagian aksi hanya mengubah local state | Semua command authoritative di backend | Blocked |
+| Cancel/retry/delete | Cancel/retry authoritative; delete dan aksi simulasi lain masih lokal | Semua command authoritative di backend | Partial |
 | Persistence | Session JSON files; writes non-atomic; queue/events/idempotency/schedule memory-only | Transactional durable store dan durable jobs/events | Blocked |
 | Scheduler | Registry + manual run-now; cron tidak berjalan | Persistent schedules dan real trigger owner | Blocked |
 | Scaling | PM2 single instance wajib untuk konsistensi saat ini | Scale setelah queue/event/idempotency shared | Deferred |
@@ -1129,3 +1129,52 @@ Next smallest slice:
 - Migrasikan cancel/retry ke `If-Match` dan authoritative refetch, lalu ubah SSE
   menjadi change signal yang selalu memicu snapshot refresh sebelum deployment
   frontend/backend terkoordinasi.
+
+### 2026-09-08 - Authoritative lifecycle commands dan SSE refetch
+
+Status: verified untuk cancel/retry/SSE client; deployment pending.
+
+Actual before:
+
+- Cancel dan retry hanya mengubah localStorage serta menjalankan simulasi frontend.
+- SSE callback menulis status, revision, dan attempt langsung dari event payload.
+- Session backend yang belum ada di localStorage dialihkan ke not-found sebelum
+  halaman sempat mengambil snapshot.
+- Hydrator menganggap `IDLE`, `PARTIAL`, dan `NEEDS_INPUT` sebagai active execution.
+
+Changes:
+
+- Cancel dan retry mengirim `If-Match` dari revision snapshot lalu menghidrasi
+  response backend; conflict memicu GET recovery tanpa optimistic overwrite.
+- SSE hanya menjadi change signal yang memicu GET snapshot; polling 750 ms tetap
+  menjadi fallback dan berhenti pada terminal state.
+- Snapshot dengan revision lebih rendah tidak dapat menimpa sesi aktif.
+- Active execution memakai allowlist lifecycle; `IDLE`, `PARTIAL`, dan
+  `NEEDS_INPUT` tidak lagi menampilkan tombol cancel.
+- Direct link `/research/:id` dapat mengambil sesi backend yang belum tersimpan
+  lokal; route hasil lain tetap memakai guard existing session.
+
+Evidence:
+
+- Frontend commit `f1b080e`.
+- `npm run test:canonical-flow`, production-env build, dan 19-route smoke lulus.
+- Backend focused OpenAPI/lifecycle suite lulus: 2 files, 3 tests.
+- Browser local membuktikan backend-only `IDLE` session revision 1 dapat dibuka
+  langsung, full brief tampil, dan tombol cancel/retry tidak muncul.
+- Browser race membuktikan cancel terhadap worker yang sudah selesai ditolak HTTP
+  409; client recovery tidak mengganti snapshot terminal secara lokal.
+
+Open risks:
+
+- Worker fixture lokal dapat selesai sebelum user sempat cancel; ini expected
+  lifecycle conflict, tetapi UX production perlu mempertahankan pesan recovery.
+- Native EventSource belum memiliki auth strategy, dedupe cursor, atau durable
+  replay; polling saat ini adalah reliability fallback, bukan pengganti durability.
+- Delete, clarification, partial simulation, library, dan result routes belum
+  seluruhnya backend-authoritative.
+- Production deployment tetap ditunda sampai compatibility gate berikutnya.
+
+Next smallest slice:
+
+- Migrasikan library/list/delete dan hapus mutation simulasi production, lalu
+  jalankan full interaction suite terhadap backend test instance sebelum deploy.
