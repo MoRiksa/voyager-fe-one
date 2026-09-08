@@ -675,50 +675,19 @@ export const useResearchStore = defineStore('research', () => {
   const addFollowUp = async (question: string): Promise<string> => {
     const normalized = question.trim()
     if (!normalized) return ''
-    const now = new Date()
     const sessionId = report.value.sessionId
-
-    if (sessionId && sessionId.startsWith('RES-')) {
+    try {
+      const res = await apiSendFollowUp(sessionId, normalized, currentRevision.value)
+      hydrateFromBackendSession(res.session)
+      return res.followUp.answer
+    } catch (error) {
       try {
-        const res = await apiSendFollowUp(sessionId, normalized)
-        if (res?.followUp?.answer) {
-          toolCalls.value.push({
-            id: `follow-up-${now.getTime()}`,
-            timestamp: now.toLocaleTimeString('id-ID', { hour12: false }),
-            pillar: 'report',
-            toolName: 'llm_followup_qa',
-            category: 'Research Engine',
-            input: { question: normalized },
-            outputSummary: `Tanya AI: ${normalized} → ${res.followUp.answer}`,
-            durationMs: 350,
-            status: 'SUCCESS',
-            creditCost: 1,
-            sourceKind: 'user-input'
-          })
-          saveCurrentSession(status.value)
-          return res.followUp.answer
-        }
-      } catch (err) {
-        console.warn('API follow-up fallback:', err)
+        hydrateFromBackendSession(await apiGetResearchSessionFull(sessionId))
+      } catch {
+        // Preserve the last authoritative snapshot if recovery also fails.
       }
+      throw error
     }
-
-    const fallbackAns = `Pertanyaan "${normalized}" telah dicatat. Berdasarkan profil kandidat di sesi ini, metrik fundamental dan DuPont menunjukkan konsistensi yang sehat.`
-    toolCalls.value.push({
-      id: `follow-up-${now.getTime()}`,
-      timestamp: now.toLocaleTimeString('id-ID', { hour12: false }),
-      pillar: 'report',
-      toolName: 'session_follow_up',
-      category: 'Research Engine',
-      input: { question: normalized },
-      outputSummary: `Follow-up dicatat: ${normalized}`,
-      durationMs: 0,
-      status: 'SUCCESS',
-      creditCost: 0,
-      sourceKind: 'user-input'
-    })
-    saveCurrentSession(status.value)
-    return fallbackAns
   }
 
   const cancelResearch = async () => {

@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Aktif, baseline dan review UI/UX/CX selesai, implementasi korektif belum dimulai |
+| Status | Aktif, backend-authoritative compatibility gate lokal lulus; deployment dan hardening pending |
 | Last updated | 2026-09-08 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
@@ -158,18 +158,20 @@ tidak boleh dimasukkan ke dokumen.
 
 - [x] Frontend build lulus dengan `VITE_BACKEND_URL` eksplisit.
 - [x] Frontend smoke test lulus untuk 19 routes.
-- [ ] Full frontend interaction test lulus terhadap backend test instance.
+- [x] Full frontend interaction test lulus terhadap backend test instance.
 - [x] Backend typecheck dan build lulus.
-- [x] Backend unit test lulus: 12 files, 30 tests.
+- [x] Backend unit test lulus: 12 files, 33 tests.
 - [x] Focused browser contract smoke lulus terhadap backend lokal untuk create,
   start, `If-Match`, dan authoritative snapshot.
 - [ ] Backend tests membuktikan provider success, bukan hanya fallback saat LLM
   atau Sectors gagal.
 - [ ] Cross-repository contract test tersedia di CI.
 
-Catatan: interaction test frontend saat baseline gagal pada pembuatan sesi karena
-harness preview tidak menyediakan `VITE_BACKEND_URL`. Test tersebut juga masih
-mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
+Catatan: interaction harness kini menjalankan backend dan Vite lokal dengan
+`VITE_BACKEND_URL` terisolasi, memakai Chrome CDP, dan memverifikasi flow
+authoritative tanpa memutasi production. Lifecycle cancel/retry/clarification
+tetap diuji pada service backend karena worker fixture lokal selesai terlalu cepat
+untuk interaksi manual yang deterministik.
 
 ## 5. Actual vs Expected
 
@@ -189,7 +191,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Execution ownership | Frontend memakai create -> start; backend worker menjalankan pipeline dan frontend refetch snapshot | Satu flow: create -> start -> worker -> SSE signal -> snapshot | Verified untuk create/start/polling |
 | Lifecycle | Backend completion membersihkan active attempt; halaman sesi menghidrasi status dan artefak dari snapshot backend | Backend menjalankan lifecycle dan clear active attempt atomik | Partial; command lain belum authoritative |
 | Attempt fence | Worker memverifikasi attempt sebelum dan sesudah setiap provider await | Old/cancelled attempt tidak dapat menulis/publish | Backend verified for current worker |
-| Revision guard | Frontend mengirim `If-Match` saat start/cancel/retry dan refetch saat conflict | Seluruh mutasi rawan race memakai revision guard dan recovery | Verified untuk lifecycle command |
+| Revision guard | Frontend mengirim `If-Match` saat start/cancel/retry/delete/duplicate/clarification/follow-up dan refetch saat conflict | Seluruh mutasi rawan race memakai revision guard dan recovery | Verified untuk command saat ini |
 | Idempotency | Timestamp key; backend key global tanpa principal/path/body digest | Stable action key, scoped identity+method+route+body | Blocked |
 | SSE auth | Native EventSource tanpa auth header; bekerja karena guest full-access | Auth-compatible SSE strategy diputuskan | Blocked |
 | SSE contract | Event hanya memicu authoritative refetch; polling menjadi fallback; durable replay/dedupe belum ada | Contract event registry, replay, dedupe, revision gap refetch | Partial |
@@ -204,7 +206,7 @@ mengasumsikan `localStorage` dan simulasi frontend sebagai system of record.
 | Activity root | Backend/client memakai `activities` | Root canonical `activity` atau kontrak dibekukan konsisten | Decision |
 | Errors | Backend menambahkan UUID request ID pada header dan JSON; beberapa controller masih memakai legacy shape | Structured envelope, request ID, violations, warnings, recovery | Partial |
 | Clarification | Frontend hanya menjawab request ID dari snapshot backend; endpoint pembuat clarification entity belum tersedia | Backend-issued clarification entity dan persisted return status | Partial |
-| Cancel/retry/delete | Cancel/retry/delete authoritative dan revision-guarded; aksi simulasi lain masih lokal | Semua command authoritative di backend | Partial |
+| Mutations | Cancel/retry/delete/duplicate/clarification answer/follow-up authoritative dan revision-guarded; tidak ada fallback mutation frontend | Semua command authoritative di backend | Partial; command pembuat clarification belum ada |
 | Persistence | Session JSON files; writes non-atomic; queue/events/idempotency/schedule memory-only | Transactional durable store dan durable jobs/events | Blocked |
 | Scheduler | Registry + manual run-now; cron tidak berjalan | Persistent schedules dan real trigger owner | Blocked |
 | Scaling | PM2 single instance wajib untuk konsistensi saat ini | Scale setelah queue/event/idempotency shared | Deferred |
@@ -1279,3 +1281,60 @@ Next smallest slice:
 - Perbaiki interaction/smoke harness agar mengelola backend, preview, Chrome, dan
   cleanup deterministik; lalu migrasikan follow-up agar tidak menghasilkan narasi
   fallback frontend sebelum deployment compatibility gate.
+
+### 2026-09-08 - Revision-guarded follow-up dan compatibility gate
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- Follow-up frontend dapat menghasilkan jawaban sintetis dan tool call lokal saat
+  backend gagal.
+- Endpoint follow-up tidak memiliki revision precondition, sehingga response dari
+  snapshot stale dapat ditulis ke sesi yang lebih baru.
+- Smoke memakai satu proses Chrome `--dump-dom` per route dan dapat hang saat app
+  membuka polling/SSE.
+- Interaction harness tidak menjalankan backend dan masih menguji lifecycle serta
+  duplicate berbasis simulasi localStorage.
+
+Changes:
+
+- Follow-up mewajibkan `If-Match`; stale revision ditolak HTTP 409 dan mutation
+  sukses menaikkan revision sesi.
+- Frontend menghidrasi response follow-up backend, merefresh snapshot saat gagal,
+  lalu meneruskan error tanpa membuat jawaban atau audit event sintetis.
+- Canonical contract test mencegah revision header dan larangan fallback tersebut
+  mengalami regresi.
+- Smoke memakai satu Chrome CDP session untuk 19 HTTP routes dan sembilan rendered
+  routes, dengan profile temporary serta process-group cleanup.
+- Interaction harness menjalankan backend dan Vite lokal terisolasi, lalu menguji
+  create/start, artifact invariants, report/export, authoritative duplicate,
+  library reload, dan delete tanpa menyentuh production.
+- Assertion cancel/retry/clarification simulasi dihapus dari browser harness;
+  revision dan lifecycle guard-nya tetap dicakup unit test backend.
+
+Evidence:
+
+- Backend full suite lulus: 12 files, 33 tests; `npm run build` dan
+  `git diff --check` lulus.
+- Frontend `npm run test:canonical-flow`, production-env build,
+  `npm run test:smoke`, `npm run test:interaction`, dan `git diff --check` lulus.
+- Interaction test membuktikan duplicate membuat ID baru berstatus `IDLE`, export
+  Markdown/JSON berasal dari backend, library pulih setelah reload, dan delete
+  authoritative berhasil.
+
+Open risks:
+
+- Follow-up backend masih memakai jawaban fallback server-side ketika LLM gagal;
+  tidak ada lagi fallback frontend, tetapi provenance/quality policy fallback
+  backend masih perlu keputusan produk.
+- Auth, ownership, static browser token, durable persistence/queue/events,
+  idempotency scope, dan authenticated SSE tetap release blocker berdasarkan
+  D-013.
+- Backend dan frontend belum dideploy bersama; production compatibility belum
+  diverifikasi.
+
+Next smallest slice:
+
+- Commit dan push backend terlebih dahulu, lalu frontend beserta jurnal. Setelah
+  itu tentukan deployment terkoordinasi atau lanjutkan final security hardening.

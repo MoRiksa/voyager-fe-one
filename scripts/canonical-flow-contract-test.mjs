@@ -25,6 +25,8 @@ assert.match(api, /duplicateResearchSession[\s\S]*'If-Match': String\(revision\)
 assert.match(api, /clarifications[\s\S]*'If-Match': String\(revision\)/)
 assert.doesNotMatch(store, /falling back to local clone|const markPartial|const requestClarification/)
 assert.doesNotMatch(sessionView, /Simulasikan parsial|session-request-clarification/)
+assert.match(api, /sendFollowUp[\s\S]*'If-Match': String\(revision\)/)
+assert.doesNotMatch(store, /API follow-up fallback|fallbackAns|session_follow_up/)
 assert.doesNotMatch(runtime, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
 
 console.log('Canonical create/start/refetch contract verified')

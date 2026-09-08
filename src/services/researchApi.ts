@@ -245,11 +245,12 @@ export const answerClarification = async (
 
 export const sendFollowUp = async (
   id: string,
-  question: string
+  question: string,
+  revision: number
 ): Promise<{ followUp: { question: string; answer: string; timestamp: string }; session: ResearchSession }> => {
   const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/follow-ups`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'If-Match': String(revision) },
     body: JSON.stringify({ question })
   })
   if (!response.ok) throw new Error('Gagal mengirim pertanyaan follow-up ke AI.')
