@@ -199,7 +199,7 @@ untuk interaksi manual yang deterministik.
 | Screening | Frontend dapat derive exclusion; backend mengembalikan symbol aggregate | Persisted paginated membership dan reasons authoritative | Blocked |
 | Filter truth | Backend dapat memasukkan kembali emiten gagal agar pool >= 5 | Threshold diterapkan apa adanya; zero candidate valid | Blocked |
 | Quality threshold | Label menyebut >=80 tetapi tidak memfilter | Formula/version/missing policy diterapkan dan diuji | Blocked |
-| Candidate data | Frontend dan backend mengisi missing dengan angka/narasi sintetis | Missing null; fixture/synthetic hanya explicit demo mode | Blocked |
+| Candidate data | Unavailable/incomplete report dikeluarkan sebelum scoring; zero/negative numerator dipertahankan; fixture hanya lewat flag demo eksplisit | Missing tidak menjadi angka; kandidat final hanya dari data lengkap tervalidasi | Partial; presentation estimates masih ada |
 | Money | Number/float legacy | Decimal string + currency pada contract canonical | Blocked |
 | Dossier root | Backend/client memakai `candidate` | Root canonical `dossier` atau kontrak dibekukan konsisten | Decision |
 | Peer root | Backend/client memakai `benchmarks` | Root canonical `peerBenchmarks` atau kontrak dibekukan konsisten | Decision |
@@ -1418,3 +1418,65 @@ Next smallest slice:
 - Hentikan synthetic provider fallback pada unavailable data, pertahankan missing
   sebagai null, lalu migrasikan frontend types/hydrator agar tidak menciptakan
   angka finansial pengganti.
+
+### 2026-09-08 - Explicit fixture mode dan complete-candidate boundary
+
+Status: verified lokal; deployment pending.
+
+Actual before:
+
+- `getCompanyReport()` membuat laporan finansial sintetis untuk ticker unavailable
+  atau provider failure, sehingga completeness selalu tampak lulus.
+- Completeness hanya memeriksa keberadaan object `overview` dan `financials`, bukan
+  field finite yang dipakai scoring dan evidence.
+- Zero earnings, debt, atau FCF dianggap missing melalui operator `||`, lalu diganti
+  angka sehat; negative FCF juga diganti yield positif.
+- Frontend hydrator mengisi candidate field yang hilang dengan angka default dan
+  dapat mengubah zero valid menjadi angka lain.
+
+Changes:
+
+- Default `SECTORS_DEMO_FIXTURES=false`; unavailable report sekarang menghasilkan
+  `null`. Fixture sintetis hanya tersedia bila flag demo/test diaktifkan eksplisit.
+- Completeness mewajibkan market cap/price positif, valuation finite, revenue,
+  assets, dan equity positif, serta earnings/debt/FCF finite sebelum report dapat
+  menjadi kandidat.
+- Step financial dan quality melakukan defensive revalidation dan mencatat
+  `DATA_INCOMPLETE` bila report hilang atau invalid di antara tahap.
+- Metric extraction tidak lagi membuat market cap, price, valuation, earnings,
+  assets, equity, debt, atau FCF pengganti. Zero debt tetap zero; zero/negative
+  earnings dan FCF mempertahankan tanda aslinya.
+- Kandidat final tetap non-null karena incomplete provider DTO berhenti pada
+  completeness boundary; tidak diperlukan nullable migration luas pada seluruh UI.
+- Frontend hydrator memakai candidate metric, score, rank, dan DuPont backend apa
+  adanya tanpa healthy defaults.
+- Interaction test mengaktifkan fixture mode secara eksplisit; production default,
+  README, `.env.example`, dan Docker Compose tetap false.
+- Browser harness menunggu server sebelum Chrome, route/lazy component readiness,
+  dan memulai smoke dari `about:blank` untuk menghapus startup flake.
+
+Evidence:
+
+- Focused suite lulus: 11 tests untuk engine dan provider cache/null behavior.
+- Full backend suite lulus: 13 files, 42 tests; build dan diff check lulus.
+- Regression membuktikan unavailable/empty report dikeluarkan, report yang hilang
+  sebelum quality mendapat reason, zero debt tetap `0`, dan negative FCF tetap
+  negatif.
+- Frontend canonical contract, production-env build, 19-route smoke dengan lima
+  rendered checks, full interaction, dan diff check lulus.
+
+Open risks:
+
+- Discovery masih dapat memakai priority universe/fallback list; source-kind dan
+  provenance fixture belum menjadi field canonical pada setiap artifact.
+- Current ratio, growth CAGR, consistency score, dividend default, forward
+  estimates, segment/ownership mix, dan beberapa narrative masih generated
+  presentation values dan perlu dihapus atau diberi label estimate.
+- Detailed engine exclusion reasons belum dipersist dalam stage artifact; endpoint
+  masih merekonstruksi alasan generic dari membership delta.
+
+Next smallest slice:
+
+- Persist structured stage input/exclusion reasons dari engine dan ubah Screener
+  agar memakai artifact backend, lalu hapus local recomputation berdasarkan
+  fixture/preset frontend.

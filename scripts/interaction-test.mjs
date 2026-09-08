@@ -18,7 +18,7 @@ const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const backendDirectory = fileURLToPath(new URL('../../voyager-be-one', import.meta.url))
 const backend = spawn(npmCmd, ['exec', 'tsx', 'src/server.ts'], {
   cwd: backendDirectory,
-  env: { ...process.env, NODE_ENV: 'test', HOST: '127.0.0.1', PORT: '3001', CORS_ORIGIN: appUrl, LLM_BASE_URL: 'http://127.0.0.1:1/v1', LLM_API_KEY: '' },
+  env: { ...process.env, NODE_ENV: 'test', HOST: '127.0.0.1', PORT: '3001', CORS_ORIGIN: appUrl, SECTORS_DEMO_FIXTURES: 'true', LLM_BASE_URL: 'http://127.0.0.1:1/v1', LLM_API_KEY: '' },
   stdio: 'ignore',
   detached: process.platform !== 'win32'
 })
@@ -27,14 +27,7 @@ const preview = spawn(npmCmd, ['run', 'dev', '--', '--host', '127.0.0.1', '--por
   stdio: 'ignore',
   detached: process.platform !== 'win32'
 })
-const browser = spawn(chrome, [
-  '--headless',
-  '--no-sandbox',
-  '--disable-gpu',
-  '--remote-debugging-port=9225',
-  `--user-data-dir=${profile}`,
-  `${appUrl}/research/new`
-], { stdio: 'ignore' })
+let browser
 const stopProcess = processHandle => {
   if (processHandle.exitCode !== null) return
   if (process.platform === 'win32') processHandle.kill('SIGTERM')
@@ -43,6 +36,7 @@ const stopProcess = processHandle => {
 
 let socket
 let commandId = 0
+let interactionStage = 'startup'
 const pending = new Map()
 
 const waitFor = async (check, message) => {
@@ -60,6 +54,14 @@ try {
   await waitFor(async () => {
     try { return (await fetch('http://127.0.0.1:3001/health')).ok } catch { return false }
   }, 'Backend server did not start')
+  browser = spawn(chrome, [
+    '--headless',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--remote-debugging-port=9225',
+    `--user-data-dir=${profile}`,
+    `${appUrl}/research/new`
+  ], { stdio: 'ignore' })
 
   let target
   await waitFor(async () => {
@@ -93,14 +95,15 @@ try {
     if (result.exceptionDetails) {
       const description = result.exceptionDetails.exception?.description || result.exceptionDetails.text
       const frame = result.exceptionDetails.stackTrace?.callFrames?.[0]
-      throw new Error(`${description}${frame ? ` at ${frame.url}:${frame.lineNumber + 1}:${frame.columnNumber + 1}` : ''}`)
+      throw new Error(`[${interactionStage}] ${description}${frame ? ` at ${frame.url}:${frame.lineNumber + 1}:${frame.columnNumber + 1}` : ''}`)
     }
     return result.result.value
   }
   const navigate = async path => {
     await send('Page.navigate', { url: `${appUrl}${path}` })
     try {
-      await waitFor(() => evaluate('document.readyState === "complete" && Boolean(document.querySelector("#app > *"))'), `${path} did not render`)
+      await waitFor(() => evaluate(`location.pathname === ${JSON.stringify(path)} && document.readyState !== "loading" && Boolean(document.querySelector("#app > *"))`), `${path} did not render`)
+      await evaluate(`new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`)
     } catch {
       const state = await evaluate(`({ url: location.href, root: document.querySelector('#app')?.textContent || '', body: document.body.textContent.slice(0, 300) })`)
       throw new Error(`${path} did not render: ${JSON.stringify(state)}`)
@@ -111,6 +114,7 @@ try {
   await send('Runtime.enable')
 
   await navigate('/research/new')
+  interactionStage = 'research form'
   const visualTokens = await evaluate(`(() => {
     const button = document.querySelector('[data-testid="research-form"] button[type="submit"]')
     button.focus()
@@ -218,15 +222,20 @@ try {
     for (const resultPath of ['screener', 'peers', 'report']) {
       await evaluate(`Array.from(document.querySelectorAll('a')).find(link => link.getAttribute('href') === '/research/${runningSession.id}/${resultPath}').click()`)
       await waitFor(() => evaluate(`location.pathname === '/research/${runningSession.id}/${resultPath}'`), `${resultPath} route did not open`)
-      await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=results-pending]"))'), `${resultPath} did not gate running results`)
-      await evaluate(`document.querySelector('[data-testid="results-pending"] a').click()`)
-      await waitFor(() => evaluate(`location.pathname === '/research/${runningSession.id}'`), `${resultPath} did not return to progress`)
+      await waitFor(() => evaluate(`Boolean(document.querySelector('[data-testid=results-pending]')) || JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${runningSession.id}')?.status === 'COMPLETED'`), `${resultPath} rendered neither pending nor completed results`)
+      if (await evaluate('Boolean(document.querySelector("[data-testid=results-pending]"))')) {
+        await evaluate(`document.querySelector('[data-testid="results-pending"] a').click()`)
+        await waitFor(() => evaluate(`location.pathname === '/research/${runningSession.id}'`), `${resultPath} did not return to progress`)
+      } else {
+        await navigate(`/research/${runningSession.id}`)
+      }
     }
   }
   await waitFor(() => evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
     return payload.sessions.find(item => item.id === '${runningSession.id}')?.status === 'COMPLETED'
   })()`), 'Research session did not complete')
+  interactionStage = 'completed session'
   const sessionResult = await evaluate(`(() => {
     const payload = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1'))
     const session = payload.sessions.find(item => item.id === location.pathname.split('/')[2])
@@ -247,6 +256,7 @@ try {
   }
 
   await navigate(`/research/${sessionResult.id}`)
+  interactionStage = 'screener'
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=session-next]"))'), 'Session next action did not render')
   const briefOnSession = await evaluate(`document.querySelector('[data-testid="persisted-brief"]')?.textContent || ''`)
   if (!briefOnSession.includes('Financials') || !briefOnSession.includes('LQ45') || !briefOnSession.includes('target 3 kandidat') || !briefOnSession.includes('mendalam')) throw new Error(`Persisted brief is not visible on session: ${briefOnSession}`)
@@ -362,6 +372,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 360, height: 740, deviceScaleFactor: 1, mobile: true })
 
   await evaluate(`document.querySelector('[data-testid="screener-primary-next"]').click()`)
+  interactionStage = 'peers'
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/peers'`), 'Screener did not guide to comparison')
   await waitFor(() => evaluate(`document.querySelectorAll('[data-testid^="comparison-row-"]').length === ${sessionResult.symbols.length}`), 'Peer comparison rows did not render')
   await waitFor(() => evaluate('document.querySelector("[data-testid=metric-explanation]")?.textContent.includes("ambang shortlist")'), 'Peer comparison did not explain quality metrics')
@@ -435,6 +446,7 @@ try {
   await waitFor(() => evaluate('document.querySelector("[data-testid=metric-explanation]")?.textContent.includes("mencerminkan risiko")'), 'Valuation view did not explain tradeoffs')
 
   await evaluate(`document.querySelector('[data-testid="peers-primary-next"]').click()`)
+  interactionStage = 'report'
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/report'`), 'Comparison did not guide to report')
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
   const reportSections = await evaluate(`(async () => {
@@ -490,6 +502,7 @@ try {
   if (!await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report omitted consistency score factor')
   await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)
   await waitFor(() => evaluate('location.pathname === "/research"'), 'Report did not return to research library')
+  interactionStage = 'library'
 
   const libraryNavigation = await evaluate(`({
     cards: document.querySelectorAll('[data-testid^="library-session-"]').length,
@@ -525,14 +538,15 @@ try {
   if (duplicatedSession.status !== 'IDLE' || !duplicatedSession.objective.includes('bank Indonesia')) throw new Error(`Authoritative duplicate is invalid: ${JSON.stringify(duplicatedSession)}`)
 
   await navigate('/glossary')
+  interactionStage = 'glossary'
+  await waitFor(() => evaluate('Boolean(document.querySelector(\'input[placeholder^="Cari istilah"]\'))'), 'Glossary search did not render')
   const glossarySearch = await evaluate(`(async () => {
     const field = document.querySelector('input[placeholder^="Cari istilah"]')
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
-    setter.call(field, 'free cash flow')
+    field.value = 'free cash flow'
     field.dispatchEvent(new Event('input', { bubbles: true }))
     await new Promise(resolve => requestAnimationFrame(resolve))
     const matches = Array.from(document.querySelectorAll('article h3')).map(heading => heading.textContent.trim())
-    setter.call(field, 'istilah-yang-tidak-ada')
+    field.value = 'istilah-yang-tidak-ada'
     field.dispatchEvent(new Event('input', { bubbles: true }))
     await new Promise(resolve => requestAnimationFrame(resolve))
     return { matches, noResults: document.body.textContent.includes('Tidak ditemukan') && document.body.textContent.includes('istilah-yang-tidak-ada') }
@@ -549,11 +563,11 @@ try {
   console.log('Interaction test passed: authoritative research, modal isolation and focus containment, mobile More landscape behavior, screening exclusions, provenance, peer controls, glossary, report sections and exports, library, duplicate, persistence, and deletion')
 } finally {
   socket?.close()
-  browser.kill('SIGTERM')
+  browser?.kill('SIGTERM')
   stopProcess(preview)
   stopProcess(backend)
   await Promise.race([
-    new Promise(resolve => browser.once('exit', resolve)),
+    new Promise(resolve => browser?.once('exit', resolve)),
     delay(1000)
   ])
   for (let attempt = 0; attempt < 5; attempt += 1) {

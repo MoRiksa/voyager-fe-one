@@ -27,6 +27,7 @@ assert.doesNotMatch(store, /falling back to local clone|const markPartial|const 
 assert.doesNotMatch(sessionView, /Simulasikan parsial|session-request-clarification/)
 assert.match(api, /sendFollowUp[\s\S]*'If-Match': String\(revision\)/)
 assert.doesNotMatch(store, /API follow-up fallback|fallbackAns|session_follow_up/)
+assert.doesNotMatch(store, /c\.(?:marketCapTrillionIdr|priceIdr|peRatio|pbvRatio|roePercent|debtToEquity|freeCashFlowYieldPercent|qualityScore)\s*\|\|/)
 assert.doesNotMatch(runtime, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
 
 console.log('Canonical create/start/refetch contract verified')

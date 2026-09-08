@@ -33,7 +33,7 @@ const renderedChecks = [
   { route: '/research', text: 'Temukan dan lanjutkan riset Anda' },
   { route: '/research/new', text: 'Aturan yang benar-benar diterapkan' },
   { route: '/glossary', text: 'Kamus Istilah Finansial' },
-  { route: '/research/UNKNOWN/report', text: 'Halaman tidak ditemukan' }
+  { route: '/research/UNKNOWN/report', expectedPath: '/not-found', text: 'Halaman tidak ditemukan' }
 ]
 
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
@@ -90,7 +90,7 @@ try {
       '--disable-background-networking',
       '--remote-debugging-port=9224',
       `--user-data-dir=${profile}`,
-      baseUrl
+      'about:blank'
     ], { stdio: 'ignore' })
     let target
     await waitFor(async () => {
@@ -117,13 +117,14 @@ try {
     })
     const evaluate = async expression => {
       const result = await send('Runtime.evaluate', { expression, returnByValue: true })
+      if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text)
       return result.result.value
     }
     await send('Page.enable')
     await send('Runtime.enable')
     for (const check of renderedChecks) {
       await send('Page.navigate', { url: `${baseUrl}${check.route}` })
-      await waitFor(() => evaluate(`document.readyState === 'complete' && document.body.textContent.includes(${JSON.stringify(check.text)})`), `${check.route} did not render expected text: ${check.text}`)
+      await waitFor(() => evaluate(`location.pathname === ${JSON.stringify(check.expectedPath || check.route)} && document.readyState !== 'loading' && Boolean(document.querySelector('#app > *')) && document.body.textContent.includes(${JSON.stringify(check.text)})`), `${check.route} did not render expected text: ${check.text}`)
     }
     console.log(`Browser render passed: ${renderedChecks.length} routes`)
   }
