@@ -76,7 +76,7 @@ const removeSession = async (id: string) => {
     </section>
 
     <section aria-labelledby="library-results-title">
-      <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Workspace backend</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p v-if="isLoading" role="status" class="text-xs text-slate-500">Memuat sesi...</p></div>
+      <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Riset tersimpan</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p v-if="isLoading" role="status" class="text-xs text-slate-500">Memuat sesi...</p></div>
       <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mb-4" />
 
       <div v-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">

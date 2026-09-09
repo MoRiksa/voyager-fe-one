@@ -1823,7 +1823,7 @@ Next smallest slice:
 
 ### 2026-09-10 - Non-technical UI/UX/CX simplification
 
-Status: verified lokal; production deployment pending.
+Status: deployed dan production browser verified.
 
 Assessment before:
 
@@ -1866,6 +1866,10 @@ Verification:
   console home/new research bersih.
 - Backend full suite tetap lulus 49 tests dan build.
 - Transitive `qs` dinaikkan dari 6.15.3 ke 6.16.0; production audit kini 0 finding.
+- Backend security patch aktif di server dengan local/public health 200.
+- Vercel production deployment `6355694396` sukses. Playwright production home
+  tidak memiliki console warning/error, hanya meminta session list HTTP 200, dan
+  tidak lagi meminta provenance untuk fixture.
 
 Remaining UX opportunities:
 

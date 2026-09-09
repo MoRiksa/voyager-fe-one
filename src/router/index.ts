@@ -8,7 +8,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: { title: 'Research Workspace' }
+      meta: { title: 'Riset saham' }
     },
     {
       path: '/research',
@@ -135,7 +135,7 @@ const router = createRouter({
 })
 
 router.afterEach((to) => {
-  document.title = `${to.meta.title ? to.meta.title + ' — ' : ''}Voyager One Financial Agent`
+  document.title = `${to.meta.title ? to.meta.title + ' — ' : ''}Voyager One`
 })
 
 export default router
