@@ -1724,7 +1724,7 @@ Next smallest slice:
 
 ### 2026-09-09 - Durable provider cache dan endpoint TTL
 
-Status: verified lokal; deployment dan persistent Railway volume pending.
+Status: verified lokal; deployment server pending.
 
 Changes:
 
@@ -1738,7 +1738,7 @@ Changes:
   tetap 24 jam dan sekarang juga berlaku pada discovery provider failure.
 - Cache directory dan ketiga policy clock divalidasi melalui environment schema.
 - Docker image membuat `/app/data/provider-cache`; Compose memasang bind mount pada
-  path tersebut. Railway tetap harus diberi persistent volume secara eksplisit.
+  path tersebut. Production aktual memakai server PM2, bukan Railway.
 - `clearCache()` menghapus memory dan durable file. Load, write, dan clear failure
   menurunkan cache durability tanpa menggagalkan valid provider response.
 
@@ -1755,11 +1755,68 @@ Open risks:
 
 - Filesystem cache hanya benar untuk deployment single-process saat ini; multi-replica
   memerlukan shared cache dan koordinasi writer.
-- Railway durability belum aktif sampai volume dipasang pada `/app/data/provider-cache`.
+- Server PM2 perlu memakai durable path `/home/ubuntu/voyager-be-one/data/provider-cache`
+  dengan permission untuk deployment user.
 - Atomic synchronous serialization sesuai cache kecil/low-write saat ini, tetapi perlu
   diganti queued async/shared store bila payload atau write rate meningkat signifikan.
 
 Next smallest slice:
 
-- Provision Railway persistent volume, deploy backend lalu frontend secara
-  terkoordinasi, dan verifikasi cache hit tetap tersedia setelah container recreate.
+- Deploy backend ke server PM2, lalu verifikasi cache hit tetap tersedia setelah
+  process restart. Frontend production tetap dikelola Vercel Git integration.
+
+### 2026-09-09 - Coordinated production deployment
+
+Status: deployed dan production compatibility verified.
+
+Topology:
+
+- Backend berjalan pada server `43.134.52.193` sebagai PM2 app `voyager-be-one`
+  dari `/home/ubuntu/voyager-be-one`, bind lokal `127.0.0.1:3003`, lalu Caddy dan
+  Cloudflare mengekspos `https://voyager.pascalyx.web.id`.
+- Frontend berjalan di Vercel melalui Git integration pada
+  `https://voyager-fe-one.vercel.app`; Railway tidak digunakan.
+
+Deployment:
+
+- Server adalah artifact tree tanpa `.git`; source backend disinkronkan dengan
+  `.env`, `data/`, `node_modules/`, dan build output dikecualikan dari overwrite.
+- Backup pre-deploy tanpa secret/runtime data tersedia di
+  `/home/ubuntu/voyager-be-one-backups/20260909T162429Z/app-before-deploy.tgz`.
+- Dependency lockfile dan PM2 config server cocok dengan repository lokal.
+- Build TypeScript dijalankan di server setelah `npm ci --include=dev`; setelah
+  restart sehat, dependencies dipangkas kembali dengan `npm prune --omit=dev`.
+- PM2 process list disimpan setelah deployment dan durability restart check.
+- Vercel production deployment `6342185458` untuk frontend commit `f60f454`
+  berstatus success.
+
+Production evidence:
+
+- Public dan local backend health mengembalikan HTTP 200; response backend baru
+  memiliki `requestId`.
+- Production OpenAPI memuat `providerSources`, `staleAt`, dan `If-Match`.
+- PM2 menjalankan compiled durable-cache artifact sebagai single fork process.
+- Controlled IDLE session `RES-c030567c-7130-452e-a65b-b6edc0f60678` berhasil
+  membuat live discovery cache `sectors-v1.json` version 1.
+- Cache file bertahan byte-identik setelah PM2 restart; session juga tetap terbaca.
+  Probe kemudian dihapus menggunakan current revision dan endpoint mengembalikan 404.
+- Vercel production menyajikan asset hash yang sama dengan verified local build;
+  19-route production HTTP smoke lulus.
+
+Limitations dan security follow-up:
+
+- Browser MCP production check tidak berjalan karena local CDP runtime menolak
+  koneksi; tidak ada klaim browser-interaction production dari deployment ini.
+- `npm audit` melaporkan satu moderate production dependency finding. Tidak ada
+  automatic breaking upgrade saat deployment; triage dependency dilakukan terpisah.
+- Password server yang dikirim melalui chat harus dirotasi walaupun deployment
+  memakai SSH key dan password tersebut tidak digunakan.
+- PM2 environment listing dapat mengekspos credentials service lain kepada user
+  server yang sama; credentials yang sempat tampil harus dirotasi dan secrets perlu
+  dipindahkan dari process-list-visible configuration bila platform mendukungnya.
+
+Next smallest slice:
+
+- Triage moderate dependency finding, tambah reproducible server deploy/rollback
+  script yang mempertahankan `.env` dan `data`, lalu jalankan browser production
+  interaction/a11y gate saat CDP runtime tersedia.
