@@ -1721,3 +1721,45 @@ Next smallest slice:
 - Persist provider cache metadata/payload secara durable atau pindahkan ke cache
   backend terkelola, lalu version dan uji endpoint-specific TTL policy tanpa
   mengubah immutable published session artifacts.
+
+### 2026-09-09 - Durable provider cache dan endpoint TTL
+
+Status: verified lokal; deployment dan persistent Railway volume pending.
+
+Changes:
+
+- `SectorsClient` mempertahankan in-memory map sebagai read path cepat dan menyimpan
+  live provider entries ke `sectors-v1.json` memakai temporary file + atomic rename.
+- Startup memuat cache yang version/base URL-nya cocok, mengabaikan malformed entry,
+  dan memangkas entry yang sudah melewati stale-if-error window.
+- Fixture tidak dipersist agar restart atau perubahan demo mode tidak membuat data
+  demo menutupi provider live.
+- Discovery memakai TTL 24 jam; company report memakai TTL 1 jam; stale-if-error
+  tetap 24 jam dan sekarang juga berlaku pada discovery provider failure.
+- Cache directory dan ketiga policy clock divalidasi melalui environment schema.
+- Docker image membuat `/app/data/provider-cache`; Compose memasang bind mount pada
+  path tersebut. Railway tetap harus diberi persistent volume secara eksplisit.
+- `clearCache()` menghapus memory dan durable file. Load, write, dan clear failure
+  menurunkan cache durability tanpa menggagalkan valid provider response.
+
+Evidence:
+
+- Focused typecheck dan 11 persistence/cache tests lulus: restart reload, durable
+  clear, corrupt file tolerance, base URL isolation, fixture isolation, stale-window
+  pruning, stale fallback, dan endpoint-specific TTL.
+- Backend full suite lulus: 13 files, 49 tests; build dan diff check lulus.
+- Docker manifest runtime check tidak dapat dijalankan karena Docker CLI tidak
+  tersedia di WSL ini; perubahan Compose terbatas pada bind mount baru.
+
+Open risks:
+
+- Filesystem cache hanya benar untuk deployment single-process saat ini; multi-replica
+  memerlukan shared cache dan koordinasi writer.
+- Railway durability belum aktif sampai volume dipasang pada `/app/data/provider-cache`.
+- Atomic synchronous serialization sesuai cache kecil/low-write saat ini, tetapi perlu
+  diganti queued async/shared store bila payload atau write rate meningkat signifikan.
+
+Next smallest slice:
+
+- Provision Railway persistent volume, deploy backend lalu frontend secara
+  terkoordinasi, dan verifikasi cache hit tetap tersedia setelah container recreate.
