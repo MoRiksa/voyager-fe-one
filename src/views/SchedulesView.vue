@@ -261,9 +261,8 @@ const handleCreateSubmit = async () => {
           </button>
         </div>
 
-        <!-- Template Selector Chips -->
         <div>
-          <label class="block text-xs font-bold text-slate-900 mb-2">Pilih Template Aturan Preset</label>
+          <p class="mb-2 text-xs font-bold text-slate-900">Pilih contoh aturan</p>
           <div class="grid grid-cols-2 gap-2">
             <button
               v-for="preset in store.presets"
@@ -284,18 +283,18 @@ const handleCreateSubmit = async () => {
 
         <form @submit.prevent="handleCreateSubmit" class="space-y-4 text-xs">
           <div>
-            <label class="block font-bold text-slate-900 mb-1">Nama Tugas Riset</label>
+            <label class="block font-bold text-slate-900 mb-1">Nama riset</label>
             <input
               v-model="newName"
               type="text"
               required
-              placeholder="Contoh: Monthly Banking Quality Audit"
+              placeholder="Contoh: Tinjauan bank berkualitas bulanan"
               class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900 focus:border-[#2F64A8] focus:outline-none"
             />
           </div>
 
           <div>
-            <label class="block font-bold text-slate-900 mb-1">Tujuan Riset (Objective Teks)</label>
+            <label class="block font-bold text-slate-900 mb-1">Tujuan riset</label>
             <textarea
               v-model="newObjective"
               rows="3"
@@ -320,11 +319,11 @@ const handleCreateSubmit = async () => {
             <div><label class="block font-bold text-slate-900 mb-1">Waktu</label><input v-model="newTime" type="time" required class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900" /></div>
             <div><label class="block font-bold text-slate-900 mb-1">Zona waktu</label><select v-model="newTimezone" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900"><option value="Asia/Jakarta">WIB</option><option value="Asia/Makassar">WITA</option><option value="Asia/Jayapura">WIT</option></select></div>
             <div>
-              <label class="block font-bold text-slate-900 mb-1">Target Kandidat</label>
+              <label class="block font-bold text-slate-900 mb-1">Jumlah kandidat</label>
               <select v-model.number="newCandidates" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900">
-                <option :value="3">3 Kandidat</option>
-                <option :value="5">5 Kandidat</option>
-                <option :value="10">10 Kandidat</option>
+                <option :value="3">3 kandidat</option>
+                <option :value="5">5 kandidat</option>
+                <option :value="10">10 kandidat</option>
               </select>
             </div>
           </div>

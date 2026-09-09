@@ -1882,7 +1882,7 @@ Remaining UX opportunities:
 
 ### 2026-09-10 - Report, jadwal, dan state pustaka sederhana
 
-Status: verified lokal; deployment production pending.
+Status: deployed dan production verified.
 
 Changes:
 
@@ -1907,6 +1907,12 @@ Verification:
   production dependency audit lulus dengan 0 vulnerability.
 - Scheduler metadata memiliki focused persistence assertion untuk frekuensi, waktu,
   dan zona waktu.
+- Backend commit `6226bdd` aktif di PM2 dan frontend commit `6fac8f4` berhasil
+  dideploy Vercel. Health backend lokal/public menghasilkan HTTP 200.
+- Backup pre-deploy backend tersedia di
+  `/home/ubuntu/voyager-be-one-backups/20260909T181225Z/app-before-deploy.tgz`.
+- Playwright production mobile memastikan dialog jadwal dapat di-scroll, tombol
+  tutup berukuran 44px, dan field frekuensi/waktu/zona waktu tampil tanpa overflow.
 
 Known limitation:
 
