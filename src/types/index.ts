@@ -235,6 +235,9 @@ export interface ScheduledTask {
   id: string
   name: string
   cronExpression: string
+  frequency?: 'daily' | 'weekdays' | 'weekly' | 'monthly'
+  scheduleTime?: string
+  timezone?: string
   objective: string
   market: 'IDX' | 'SGX'
   requestedCandidates: number

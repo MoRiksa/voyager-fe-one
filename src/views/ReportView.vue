@@ -37,12 +37,9 @@ const exportBusy = ref('')
 const exportError = ref('')
 const reportSections = [
   { id: 'summary', label: 'Ringkasan' },
-  { id: 'scope', label: 'Ruang lingkup' },
-  { id: 'ranking', label: 'Ranking' },
   { id: 'candidates', label: 'Kandidat' },
-  { id: 'peers', label: 'Pembanding' },
-  { id: 'evidence', label: 'Bukti & metode' },
-  { id: 'uncertainty', label: 'Ketidakpastian' }
+  { id: 'risks', label: 'Risiko' },
+  { id: 'evidence', label: 'Bukti & metode' }
 ]
 const reportTabs = ref<HTMLButtonElement[]>([])
 
@@ -308,52 +305,18 @@ const useAsTemplate = async () => {
         </div>
       </div>
 
-      <!-- Right: View Mode Toggle & Export Actions -->
+      <!-- Right: one primary export action; advanced options stay available on demand. -->
       <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Mode Switcher -->
-         <div class="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-          <button
-             @click="viewMode = 'interactive'"
-             :aria-pressed="viewMode === 'interactive'"
-            class="button-compact"
-            :class="viewMode === 'interactive' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
-          >
-             Interaktif
-          </button>
-          <button
-             @click="viewMode = 'document'"
-             :aria-pressed="viewMode === 'document'"
-            class="button-compact"
-            :class="viewMode === 'document' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-900'"
-          >
-             Dokumen A4
-          </button>
-        </div>
-
-        <span class="text-slate-200">|</span>
-
-        <!-- Copy Summary -->
-        <button
-          @click="handleCopySummary"
-          class="button-compact bg-slate-100 text-slate-700 hover:bg-slate-200"
-           title="Salin ringkasan riset"
-        >
-          <Check v-if="copySuccess" class="w-3.5 h-3.5 text-emerald-600" />
-          <Copy v-else class="w-3.5 h-3.5" />
-           <span>{{ copySuccess ? 'Tersalin' : 'Salin' }}</span>
-        </button>
-
-        <!-- Print PDF -->
         <button
           @click="handlePrint"
           :disabled="Boolean(exportBusy)"
           class="button-compact bg-[#2F64A8] text-white hover:bg-[#244F87] disabled:cursor-wait disabled:opacity-60"
         >
           <Printer class="w-3.5 h-3.5" />
-           <span>{{ exportBusy === 'PDF' ? 'Menyiapkan…' : 'Unduh laporan' }}</span>
+           <span>{{ exportBusy === 'PDF' ? 'Menyiapkan…' : 'Cetak / simpan PDF' }}</span>
         </button>
 
-        <details class="relative"><summary class="button-compact cursor-pointer list-none bg-slate-100 text-slate-700 hover:bg-slate-200"><Download class="h-3.5 w-3.5" /> Format lain</summary><div class="absolute right-0 z-20 mt-2 grid min-w-40 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportMarkdown">{{ exportBusy === 'Markdown' ? 'Menyiapkan…' : 'Markdown' }}</button><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportJson">{{ exportBusy === 'JSON' ? 'Menyiapkan…' : 'JSON' }}</button></div></details>
+        <details class="relative"><summary class="button-compact cursor-pointer list-none bg-slate-100 text-slate-700 hover:bg-slate-200"><SlidersHorizontal class="h-3.5 w-3.5" /> Pilihan lain</summary><div class="absolute right-0 z-20 mt-2 grid min-w-52 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"><button type="button" class="button-compact justify-start text-slate-700 hover:bg-slate-100" @click="handleCopySummary"><Check v-if="copySuccess" class="h-3.5 w-3.5 text-emerald-600" /><Copy v-else class="h-3.5 w-3.5" />{{ copySuccess ? 'Ringkasan tersalin' : 'Salin ringkasan' }}</button><button type="button" class="button-compact justify-start text-slate-700 hover:bg-slate-100" @click="viewMode = viewMode === 'interactive' ? 'document' : 'interactive'">{{ viewMode === 'interactive' ? 'Lihat dokumen A4' : 'Kembali ke tampilan ringkas' }}</button><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportMarkdown"><Download class="h-3.5 w-3.5" />{{ exportBusy === 'Markdown' ? 'Menyiapkan…' : 'Unduh Markdown' }}</button><button type="button" :disabled="Boolean(exportBusy)" class="button-compact justify-start text-slate-700 hover:bg-slate-100 disabled:opacity-50" @click="handleExportJson"><Download class="h-3.5 w-3.5" />{{ exportBusy === 'JSON' ? 'Menyiapkan…' : 'Unduh JSON' }}</button></div></details>
       </div>
       <p v-if="copyError || exportError" role="alert" class="mt-3 text-sm font-medium text-rose-700">{{ copyError || exportError }}</p>
     </div>
@@ -428,14 +391,14 @@ const useAsTemplate = async () => {
         </div>
       </div>
 
-      <section v-if="activeSection === 'scope'" id="report-panel-scope" role="tabpanel" aria-labelledby="report-tab-scope" class="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section v-if="activeSection === 'summary'" class="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div><p class="section-kicker">Mandat riset</p><h2 class="mt-1 text-xl font-bold text-slate-950">Ruang lingkup dan aturan seleksi</h2></div>
         <dl class="grid gap-4 text-sm sm:grid-cols-2"><div class="rounded-xl bg-slate-50 p-4"><dt class="text-xs font-bold text-slate-500">Tujuan</dt><dd class="mt-2 leading-6 text-slate-800">{{ store.report.objective }}</dd></div><div class="rounded-xl bg-slate-50 p-4"><dt class="text-xs font-bold text-slate-500">Semesta data</dt><dd class="mt-2 leading-6 text-slate-800">{{ store.report.universeSummary }}</dd></div></dl>
         <div><h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Kriteria yang diterapkan</h3><ol class="mt-3 space-y-2 text-sm text-slate-700"><li v-for="(criterion, index) in store.activePlan.criteria" :key="criterion" class="rounded-lg border border-slate-200 px-3 py-2"><span class="mr-2 font-mono font-bold text-[#2F64A8]">{{ index + 1 }}.</span>{{ criterion }}</li></ol></div>
       </section>
 
       <!-- 2. Master Comparison Matrix Table (Institutional Bloomberg Style) -->
-      <div v-if="activeSection === 'ranking'" id="report-panel-ranking" role="tabpanel" aria-labelledby="report-tab-ranking" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+      <div v-if="activeSection === 'candidates'" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
@@ -535,7 +498,7 @@ const useAsTemplate = async () => {
       />
 
       <!-- 4. Macro & Comparative Peer Notes -->
-      <div v-if="activeSection === 'peers'" id="report-panel-peers" role="tabpanel" aria-labelledby="report-tab-peers" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
+      <div v-if="activeSection === 'candidates'" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-3">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
           Konteks pembanding
         </h3>
@@ -551,9 +514,9 @@ const useAsTemplate = async () => {
       </section>
 
       <!-- 5. Limitations & Regulatory Disclaimer -->
-      <div v-if="activeSection === 'uncertainty'" id="report-panel-uncertainty" role="tabpanel" aria-labelledby="report-tab-uncertainty" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
+      <div v-if="activeSection === 'risks'" id="report-panel-risks" role="tabpanel" aria-labelledby="report-tab-risks" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 font-mono">
-          Ketidakpastian, keterbatasan, dan provenance
+          Risiko dan keterbatasan
         </h3>
         <p class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">{{ store.report.uncertaintyNotes }}</p>
         <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-5">

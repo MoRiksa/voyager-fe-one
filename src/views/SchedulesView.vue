@@ -21,7 +21,9 @@ const router = useRouter()
 const isCreateModalOpen = ref(false)
 const newName = ref('')
 const newObjective = ref('')
-const newCron = ref('0 8 * * 1-5')
+const newFrequency = ref<'daily' | 'weekdays' | 'weekly' | 'monthly'>('weekdays')
+const newTime = ref('08:00')
+const newTimezone = ref('Asia/Jakarta')
 const newMarket = ref<'IDX' | 'SGX'>('IDX')
 const newCandidates = ref(5)
 const isSubmitting = ref(false)
@@ -32,6 +34,15 @@ onMounted(() => {
 })
 
 const activeTaskCount = computed(() => store.schedules.filter(t => t.enabled).length)
+const frequencyLabels = { daily: 'Setiap hari', weekdays: 'Hari kerja', weekly: 'Setiap Senin', monthly: 'Tanggal 1 setiap bulan' }
+const cronFromSchedule = computed(() => {
+  const [hour, minute] = newTime.value.split(':')
+  const suffix = newFrequency.value === 'daily' ? '* * *' : newFrequency.value === 'weekdays' ? '* * 1-5' : newFrequency.value === 'weekly' ? '* * 1' : '1 * *'
+  return `${Number(minute)} ${Number(hour)} ${suffix}`
+})
+const scheduleLabel = (task: typeof store.schedules[number]) => task.frequency && task.scheduleTime
+  ? `${frequencyLabels[task.frequency]}, ${task.scheduleTime} ${task.timezone === 'Asia/Jakarta' ? 'WIB' : task.timezone === 'Asia/Makassar' ? 'WITA' : task.timezone === 'Asia/Jayapura' ? 'WIT' : task.timezone || ''}`
+  : `Jadwal tersimpan: ${task.cronExpression}`
 
 const choosePresetForSchedule = (preset: any) => {
   selectedPresetId.value = preset.id
@@ -58,7 +69,10 @@ const handleCreateSubmit = async () => {
     await store.createSchedule({
       name: newName.value.trim(),
       objective: newObjective.value.trim(),
-      cronExpression: newCron.value.trim(),
+      cronExpression: cronFromSchedule.value,
+      frequency: newFrequency.value,
+      scheduleTime: newTime.value,
+      timezone: newTimezone.value,
       market: newMarket.value,
       requestedCandidates: newCandidates.value,
       enabled: true
@@ -77,15 +91,12 @@ const handleCreateSubmit = async () => {
     <!-- Header matching NewResearchView.vue -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div class="max-w-3xl">
-        <p class="section-kicker">Otomasi & Cron Triggers</p>
+        <p class="section-kicker">Riset berkala</p>
         <h1 class="mt-2 text-3xl font-bold tracking-[-0.03em] text-slate-950 sm:text-4xl flex items-center gap-3">
-          <span>Riset Terjadwal</span>
-          <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-300">
-            Batch 9 Scheduler Active
-          </span>
+          <span>Riset terjadwal</span>
         </h1>
         <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-          Jalankan analisis fundamental kuantitatif secara berkala. Background worker akan mengeksekusi pipeline 5-step dan mempublikasikan laporan otomatis pada interval yang ditentukan.
+          Simpan jadwal riset agar tujuan yang sama mudah dijalankan kembali. Untuk saat ini, gunakan tombol “Jalankan sekarang” saat Anda siap.
         </p>
       </div>
 
@@ -107,11 +118,11 @@ const handleCreateSubmit = async () => {
         <section>
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-bold text-slate-950">Daftar Riset Terjadwal</h2>
-              <p class="mt-0.5 text-xs text-slate-500">Tugas yang aktif akan dipicu otomatis sesuai jadwal ekspresi Cron yang dikonfigurasi.</p>
+              <h2 class="text-lg font-bold text-slate-950">Jadwal tersimpan</h2>
+              <p class="mt-0.5 text-xs text-slate-500">Aktifkan jadwal yang ingin Anda pertahankan, lalu jalankan saat diperlukan.</p>
             </div>
             <span class="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#2F64A8]">
-              {{ activeTaskCount }} dari {{ store.schedules.length }} Tugas Aktif
+                {{ activeTaskCount }} dari {{ store.schedules.length }} jadwal disimpan
             </span>
           </div>
 
@@ -137,7 +148,7 @@ const handleCreateSubmit = async () => {
                       class="rounded px-2 py-0.5 text-[10px] font-bold uppercase font-mono"
                       :class="task.enabled ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600'"
                     >
-                      {{ task.enabled ? 'Aktif' : 'Non-aktif' }}
+                      {{ task.enabled ? 'Tersimpan' : 'Dinonaktifkan' }}
                     </span>
                   </div>
                   <p class="text-xs leading-5 text-slate-600">{{ task.objective }}</p>
@@ -160,7 +171,7 @@ const handleCreateSubmit = async () => {
                     class="button-primary min-h-9 px-3.5 text-xs font-semibold shadow-sm"
                   >
                     <Play class="h-3.5 w-3.5 fill-current" />
-                    <span>Jalankan Seketika</span>
+                    <span>Jalankan sekarang</span>
                   </button>
                 </div>
               </div>
@@ -168,10 +179,10 @@ const handleCreateSubmit = async () => {
               <!-- Task Metadata Bar -->
               <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3.5 text-xs sm:grid-cols-4 font-mono">
                 <div>
-                  <span class="text-[10px] font-bold text-slate-400 block uppercase">Jadwal Cron</span>
+                   <span class="text-[10px] font-bold text-slate-400 block uppercase">Waktu pilihan</span>
                   <span class="font-bold text-slate-800 flex items-center gap-1">
                     <Clock class="h-3 w-3 text-[#2F64A8]" />
-                    {{ task.cronExpression }}
+                    {{ scheduleLabel(task) }}
                   </span>
                 </div>
                 <div>
@@ -191,13 +202,13 @@ const handleCreateSubmit = async () => {
           </div>
         </section>
 
-        <!-- Information Card -->
+        <!-- Honest execution note -->
         <section class="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 sm:p-6">
           <div class="flex items-start gap-3">
             <ShieldCheck class="h-5 w-5 text-[#2F64A8] shrink-0 mt-0.5" />
             <div class="space-y-1 text-xs leading-5 text-slate-700">
-              <h4 class="font-bold text-slate-950 text-sm">Mekanisme Background Worker & Idempotency</h4>
-              <p>Setiap eksekusi jadwal menggunakan <strong>Message Queue (Batch 7)</strong> secara asinkron dengan garansi <strong>Idempotency Key (Batch 8)</strong> untuk mencegah duplikasi sesi. Hasil riset dipersisikan ke <strong>Session DB (Batch 6)</strong> dan dipancarkan melalui <strong>SSE Realtime (Batch 5)</strong>.</p>
+              <h4 class="font-bold text-slate-950 text-sm">Cara kerja saat ini</h4>
+              <p>Jadwal dan tujuan riset disimpan. Eksekusi otomatis belum aktif; tombol <strong>Jalankan sekarang</strong> membuat sesi riset baru saat Anda memilihnya.</p>
             </div>
           </div>
         </section>
@@ -207,7 +218,7 @@ const handleCreateSubmit = async () => {
       <aside class="h-fit rounded-2xl border border-slate-200 bg-[#102138] p-5 text-white shadow-xl lg:sticky lg:top-24 space-y-4">
         <div class="flex items-center gap-2">
           <SlidersHorizontal class="h-5 w-5 text-blue-200" />
-          <h2 class="text-lg font-bold">Ringkasan Otomasi</h2>
+          <h2 class="text-lg font-bold">Ringkasan jadwal</h2>
         </div>
 
         <dl class="space-y-4 text-xs">
@@ -216,19 +227,11 @@ const handleCreateSubmit = async () => {
             <dd class="mt-1 font-semibold text-base text-white">{{ store.schedules.length }} Tugas</dd>
           </div>
           <div>
-            <dt class="text-slate-400">Mode Eksekusi</dt>
+            <dt class="text-slate-400">Cara menjalankan</dt>
             <dd class="mt-1 font-semibold text-emerald-300 flex items-center gap-1.5">
               <Sparkles class="h-3.5 w-3.5" />
-              Background Worker Async (202 Accepted)
+              Jalankan sekarang
             </dd>
-          </div>
-          <div>
-            <dt class="text-slate-400">Persistensi DB</dt>
-            <dd class="mt-1 font-semibold text-white">FilePersistentResearchRepository (Batch 6)</dd>
-          </div>
-          <div>
-            <dt class="text-slate-400">Jalur Audit</dt>
-            <dd class="mt-1 font-semibold text-white">Immutable Provenance Trail (Batch 3)</dd>
           </div>
         </dl>
 
@@ -247,13 +250,13 @@ const handleCreateSubmit = async () => {
 
     <!-- Create Schedule Modal Styled like NewResearchView Cards -->
     <div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4">
-      <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+      <div role="dialog" aria-modal="true" aria-labelledby="schedule-dialog-title" class="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
           <div>
-            <p class="section-kicker">Konfigurasi Riset Terjadwal</p>
-            <h2 class="text-xl font-bold text-slate-950 mt-0.5">Tambah Otomasi Jadwal Baru</h2>
+            <p class="section-kicker">Jadwal baru</p>
+            <h2 id="schedule-dialog-title" class="text-xl font-bold text-slate-950 mt-0.5">Simpan jadwal riset</h2>
           </div>
-          <button @click="isCreateModalOpen = false" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <button @click="isCreateModalOpen = false" type="button" aria-label="Tutup dialog" class="icon-button text-slate-500">
             <X class="h-5 w-5" />
           </button>
         </div>
@@ -302,7 +305,7 @@ const handleCreateSubmit = async () => {
             ></textarea>
           </div>
 
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid gap-3 sm:grid-cols-2">
             <div>
               <label class="block font-bold text-slate-900 mb-1">Pasar</label>
               <select v-model="newMarket" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900 font-semibold">
@@ -311,14 +314,11 @@ const handleCreateSubmit = async () => {
               </select>
             </div>
             <div>
-              <label class="block font-bold text-slate-900 mb-1">Cron Expression</label>
-              <input
-                v-model="newCron"
-                type="text"
-                required
-                class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 font-mono text-slate-900"
-              />
+              <label class="block font-bold text-slate-900 mb-1">Frekuensi</label>
+              <select v-model="newFrequency" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900"><option value="daily">Setiap hari</option><option value="weekdays">Hari kerja</option><option value="weekly">Setiap Senin</option><option value="monthly">Tanggal 1 setiap bulan</option></select>
             </div>
+            <div><label class="block font-bold text-slate-900 mb-1">Waktu</label><input v-model="newTime" type="time" required class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900" /></div>
+            <div><label class="block font-bold text-slate-900 mb-1">Zona waktu</label><select v-model="newTimezone" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900"><option value="Asia/Jakarta">WIB</option><option value="Asia/Makassar">WITA</option><option value="Asia/Jayapura">WIT</option></select></div>
             <div>
               <label class="block font-bold text-slate-900 mb-1">Target Kandidat</label>
               <select v-model.number="newCandidates" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900">
@@ -343,7 +343,7 @@ const handleCreateSubmit = async () => {
               class="button-primary min-h-10 px-5 font-bold disabled:opacity-50"
             >
               <Plus class="h-4 w-4" />
-              <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan Schedule' }}</span>
+              <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan jadwal' }}</span>
             </button>
           </div>
         </form>

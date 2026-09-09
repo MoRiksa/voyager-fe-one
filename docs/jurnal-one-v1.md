@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Aktif, backend-authoritative compatibility gate lokal lulus; deployment dan hardening pending |
-| Last updated | 2026-09-08 |
+| Status | Aktif, backend-authoritative production berjalan; usability gate lokal lulus |
+| Last updated | 2026-09-10 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
 | Frontend repository | `https://github.com/MoRiksa/voyager-fe-one` |
@@ -1879,3 +1879,36 @@ Remaining UX opportunities:
   form frekuensi/waktu/zona waktu yang lebih manusiawi.
 - Loading/offline state pustaka dan polling session masih perlu membedakan cache lokal,
   gangguan koneksi, dan empty state secara eksplisit.
+
+### 2026-09-10 - Report, jadwal, dan state pustaka sederhana
+
+Status: verified lokal; deployment production pending.
+
+Changes:
+
+- Navigasi laporan diringkas dari tujuh menjadi empat bagian: Ringkasan, Kandidat,
+  Risiko, serta Bukti dan metode. Ruang lingkup, ranking, analisis kandidat, dan
+  pembanding tetap tersedia di dalam empat bagian tersebut.
+- Cetak/simpan PDF menjadi aksi export utama. Salin ringkasan, mode dokumen A4,
+  Markdown, dan JSON tetap tersedia melalui `Pilihan lain`.
+- Form jadwal mengganti input Cron dengan frekuensi, waktu, dan zona waktu yang dapat
+  dipahami. Backend menyimpan metadata pilihan tersebut dan tetap menerima
+  `cronExpression` untuk kompatibilitas task lama.
+- Copy scheduler secara eksplisit menyatakan eksekusi otomatis belum aktif;
+  `Jalankan sekarang` tetap satu-satunya jalur eksekusi yang dijanjikan.
+- Pustaka membedakan loading awal, gangguan koneksi tanpa cache, gangguan koneksi
+  dengan daftar lokal terakhir, hasil filter kosong, dan pustaka kosong.
+
+Verification:
+
+- Frontend Vue typecheck, production build, canonical contract, 19-route smoke, dan
+  full interaction suite lulus, termasuk empat report tab, export, dan mobile ranking.
+- Backend full suite lulus 13 files/49 tests; typecheck, build, diff check, dan
+  production dependency audit lulus dengan 0 vulnerability.
+- Scheduler metadata memiliki focused persistence assertion untuk frekuensi, waktu,
+  dan zona waktu.
+
+Known limitation:
+
+- Backend belum memiliki timer/parser Cron aktif. Metadata jadwal baru hanya
+  menyimpan pilihan user sampai runtime scheduler dibangun dan diuji terpisah.

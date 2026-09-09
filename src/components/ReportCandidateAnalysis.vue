@@ -22,7 +22,7 @@ const compactSource = (source: string) => source.startsWith('Derived')
 </script>
 
 <template>
-  <div v-if="activeCandidate" id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
+  <div v-if="activeCandidate" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
       <div>
         <div class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] font-mono">
@@ -233,5 +233,5 @@ const compactSource = (source: string) => source.startsWith('Derived')
       </div>
     </div>
   </div>
-  <div v-else id="report-panel-candidates" role="tabpanel" aria-labelledby="report-tab-candidates" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan dalam artifact sesi yang memenuhi seluruh kriteria.</p></div>
+  <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan dalam hasil sesi yang memenuhi seluruh kriteria.</p></div>
 </template>

@@ -457,7 +457,7 @@ try {
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/report'`), 'Comparison did not guide to report')
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=report-next]"))'), 'Report continuation actions did not render')
   const reportSections = await evaluate(`(async () => {
-    const ids = ['summary', 'scope', 'ranking', 'candidates', 'peers', 'evidence', 'uncertainty']
+    const ids = ['summary', 'candidates', 'risks', 'evidence']
     const visited = []
     for (const id of ids) {
       document.querySelector('#report-tab-' + id).click()
@@ -480,32 +480,32 @@ try {
       else originalClick.call(this)
     }
     const byText = (selector, text) => Array.from(document.querySelectorAll(selector)).find(element => element.textContent.trim().includes(text))
-    byText('button', 'Unduh laporan').click()
+    byText('button', 'Cetak / simpan PDF').click()
     await new Promise(resolve => requestAnimationFrame(resolve))
-    byText('button', 'Interaktif').click()
-    const formats = byText('summary', 'Format lain').parentElement
+    const formats = byText('summary', 'Pilihan lain').parentElement
     formats.open = true
-    byText('button', 'Markdown').click()
+    byText('button', 'Kembali ke tampilan ringkas').click()
+    formats.open = true
+    byText('button', 'Unduh Markdown').click()
     for (let attempt = 0; attempt < 40 && (window.__voyagerDownloads.length < 1 || byText('button', 'JSON').disabled); attempt += 1) {
       await new Promise(resolve => setTimeout(resolve, 50))
     }
     formats.open = true
-    byText('button', 'JSON').click()
+    byText('button', 'Unduh JSON').click()
     for (let attempt = 0; attempt < 40 && window.__voyagerDownloads.length < 2; attempt += 1) {
       await new Promise(resolve => setTimeout(resolve, 50))
     }
     HTMLAnchorElement.prototype.click = originalClick
-    return { printed: window.__voyagerPrintCalled, downloads: window.__voyagerDownloads, interactive: byText('button', 'Interaktif').getAttribute('aria-pressed') }
+    return { printed: window.__voyagerPrintCalled, downloads: window.__voyagerDownloads, interactive: Boolean(document.querySelector('#report-tab-summary')) }
   })()`)
-  if (!exportControls.printed || exportControls.interactive !== 'true' || !exportControls.downloads.includes(`voyager-report-${sessionResult.id}.md`) || !exportControls.downloads.includes(`voyager-report-${sessionResult.id}.json`)) {
+  if (!exportControls.printed || !exportControls.interactive || !exportControls.downloads.includes(`voyager-report-${sessionResult.id}.md`) || !exportControls.downloads.includes(`voyager-report-${sessionResult.id}.json`)) {
     throw new Error(`Report export controls failed: ${JSON.stringify(exportControls)}`)
   }
-  await evaluate(`document.querySelector('#report-tab-ranking').click()`)
+  await evaluate(`document.querySelector('#report-tab-candidates').click()`)
   await waitFor(() => evaluate('document.querySelector("[data-testid=report-metric-guide]")?.textContent.includes("ROE = laba terhadap modal")'), 'Report did not explain financial metrics')
-  const mobileRanking = await evaluate(`({ cards: document.querySelectorAll('#report-panel-ranking article').length, desktopTableVisible: getComputedStyle(document.querySelector('#report-panel-ranking table').parentElement).display !== 'none' })`)
+  const mobileRanking = await evaluate(`({ cards: document.querySelectorAll('#report-panel-candidates > div.grid article').length, desktopTableVisible: getComputedStyle(document.querySelector('#report-panel-candidates table').parentElement).display !== 'none' })`)
   if (mobileRanking.cards !== sessionResult.symbols.length || mobileRanking.desktopTableVisible) throw new Error(`Report mobile ranking is not responsive: ${JSON.stringify(mobileRanking)}`)
   if (await evaluate('Boolean(document.querySelector("#report-panel-summary"))')) throw new Error('Report rendered more than the selected section')
-  await evaluate(`document.querySelector('#report-tab-candidates').click()`)
   if (!await evaluate(`(() => { const session = JSON.parse(localStorage.getItem('voyager-one-research-sessions-v1')).sessions.find(item => item.id === '${sessionResult.id}'); return session.candidates.every(candidate => Number.isFinite(candidate.scoreBreakdown.profitability) && Number.isFinite(candidate.scoreBreakdown.solvency) && Number.isFinite(candidate.scoreBreakdown.valuation) && candidate.scoreBreakdown.growth === undefined && candidate.scoreBreakdown.consistency === undefined) })()`)) throw new Error('Candidate score factors did not preserve unavailable data')
   if (await evaluate('document.body.textContent.includes("Konsistensi laba dan dividen · bobot 10%")')) throw new Error('Report published unavailable consistency score')
   await evaluate(`document.querySelector('[data-testid="report-next"] a[href="/research"]').click()`)

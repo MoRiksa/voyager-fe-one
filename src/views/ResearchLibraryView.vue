@@ -13,10 +13,13 @@ const statusFilter = ref<'all' | 'completed' | 'active' | 'attention'>('all')
 const pendingDeleteId = ref<string | null>(null)
 const isLoading = ref(false)
 const deletingId = ref<string | null>(null)
+const loadFailed = ref(false)
+const hadCachedSessions = ref(false)
 
 onMounted(async () => {
   isLoading.value = true
-  await store.refreshSessions()
+  hadCachedSessions.value = store.recentSessions.length > 0
+  loadFailed.value = !await store.refreshSessions()
   isLoading.value = false
 })
 
@@ -79,7 +82,9 @@ const removeSession = async (id: string) => {
       <div class="mb-4 flex items-end justify-between gap-3"><div><p class="section-kicker">Riset tersimpan</p><h2 id="library-results-title" class="mt-1 text-xl font-bold text-slate-950">{{ filteredSessions.length }} dari {{ store.recentSessions.length }} sesi</h2></div><p v-if="isLoading" role="status" class="text-xs text-slate-500">Memuat sesi...</p></div>
       <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mb-4" />
 
-      <div v-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
+      <div v-if="loadFailed" role="status" class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><strong>Koneksi ke layanan riset terputus.</strong> {{ hadCachedSessions ? 'Daftar terakhir yang tersimpan di perangkat tetap ditampilkan.' : 'Belum ada daftar tersimpan di perangkat ini.' }} <button type="button" class="ml-1 font-bold underline" @click="loadFailed = false; isLoading = true; store.refreshSessions().then(ok => { loadFailed = !ok; isLoading = false })">Coba lagi</button></div>
+      <div v-if="isLoading && !store.recentSessions.length" role="status" class="rounded-2xl border border-slate-200 bg-white p-10 text-center"><p class="font-semibold text-slate-800">Memuat riset tersimpan...</p><p class="mt-2 text-sm text-slate-500">Tunggu sebentar.</p></div>
+      <div v-else-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
         <article v-for="session in filteredSessions" :key="session.id" :data-testid="`library-session-${session.id}`" class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span class="status-badge" :class="statusMeta(session).className">{{ statusMeta(session).label }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} kandidat</span></div>
           <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ session.candidates.length ? `Peringkat teratas sesi ${session.candidates[0].symbol}, skor kualitas ${session.candidates[0].qualityScore}/100 (${session.candidates[0].qualityScore >= 90 ? 'sangat kuat dalam model' : 'kuat dalam model'}).` : 'Belum ada kandidat akhir yang tersedia.' }}</div>
@@ -95,7 +100,7 @@ const removeSession = async (id: string) => {
         </article>
       </div>
 
-      <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+      <div v-else-if="!isLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
         <h3 class="text-lg font-bold text-slate-950">{{ store.recentSessions.length ? 'Tidak ada riset yang cocok' : 'Belum ada riset tersimpan' }}</h3>
         <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">{{ store.recentSessions.length ? 'Ubah kata pencarian atau filter status untuk melihat sesi lainnya.' : 'Mulai dari tujuan sederhana. Voyager One akan membantu memilih kandidat, membandingkan hasil, dan menyusun laporan.' }}</p>
         <button v-if="store.recentSessions.length" type="button" class="button-secondary mt-5" @click="query = ''; statusFilter = 'all'">Tampilkan semua</button>
