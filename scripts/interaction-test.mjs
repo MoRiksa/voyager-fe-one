@@ -261,7 +261,9 @@ try {
   await waitFor(() => evaluate('Boolean(document.querySelector("[data-testid=session-next]"))'), 'Session next action did not render')
   const briefOnSession = await evaluate(`document.querySelector('[data-testid="persisted-brief"]')?.textContent || ''`)
   if (!briefOnSession.includes('Financials') || !briefOnSession.includes('LQ45') || !briefOnSession.includes('target 3 kandidat') || !briefOnSession.includes('mendalam')) throw new Error(`Persisted brief is not visible on session: ${briefOnSession}`)
-  await evaluate(`document.querySelector('[data-testid="session-next"]').click()`)
+  const primarySessionAction = await evaluate(`document.querySelector('[data-testid="session-next"]')?.getAttribute('href')`)
+  if (primarySessionAction !== `/research/${sessionResult.id}/report`) throw new Error(`Completed session did not prioritize the report: ${primarySessionAction}`)
+  await evaluate(`Array.from(document.querySelectorAll('a')).find(link => link.textContent.includes('Lihat cara kandidat dipilih'))?.click()`)
   await waitFor(() => evaluate(`location.pathname === '/research/${sessionResult.id}/screener'`), 'Session did not guide to screener')
   const sidebarSession = await evaluate(`({
     href: document.querySelector('[data-testid="sidebar-active-session"]')?.getAttribute('href'),
@@ -438,7 +440,7 @@ try {
     }
   })()`)
   const peerDeltasMatch = peerControls.rows.every(row => row.text.includes(peerControls.expectedDeltas[row.symbol]))
-  if (peerControls.selected.length !== 2 || JSON.stringify(peerControls.rows.map(row => row.symbol)) !== JSON.stringify(peerControls.expected) || peerControls.relativeDisabled !== peerControls.warning || (!peerControls.relativeDisabled && (!peerControls.relativeChecked || !peerControls.medianText.includes('0%') || !peerDeltasMatch)) || !peerControls.provenance.includes('Asal dan periode data')) {
+  if (peerControls.selected.length !== 2 || JSON.stringify(peerControls.rows.map(row => row.symbol)) !== JSON.stringify(peerControls.expected) || peerControls.relativeDisabled !== peerControls.warning || (!peerControls.relativeDisabled && (!peerControls.relativeChecked || !peerControls.medianText.includes('0%') || !peerDeltasMatch)) || !peerControls.provenance.includes('Sumber data')) {
     throw new Error(`Peer selection, sorting, relative mode, median, warning, or provenance failed: ${JSON.stringify(peerControls)}`)
   }
   await evaluate(`(() => {
@@ -465,7 +467,7 @@ try {
     }
     return visited
   })()`)
-  if (reportSections.some(section => section.selected !== 'true' || section.panels.length !== 1 || section.panels[0] !== `report-panel-${section.id}`) || !reportSections.find(section => section.id === 'evidence').text.includes('Asal dan periode data')) {
+  if (reportSections.some(section => section.selected !== 'true' || section.panels.length !== 1 || section.panels[0] !== `report-panel-${section.id}`) || !reportSections.find(section => section.id === 'evidence').text.includes('Sumber data')) {
     throw new Error(`Report section navigation or provenance failed: ${JSON.stringify(reportSections)}`)
   }
   const exportControls = await evaluate(`(async () => {

@@ -15,7 +15,6 @@ import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
-import DataProvenance from '../components/DataProvenance.vue'
 import { ArrowRight, FileText, Search, Sparkles, Activity, ChevronRight, Trash2, Lightbulb, BookOpen, HelpCircle } from '@lucide/vue'
 
 const store = useResearchStore()

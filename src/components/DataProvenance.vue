@@ -18,15 +18,16 @@ const artifactVersions = computed(() => [...new Set(store.screeningFunnel.map(st
 const formulaVersions = computed(() => [...new Set(store.candidates.map(candidate => candidate.formulaVersion).filter(Boolean))])
 const staleSources = computed(() => providerSources.value.filter(source => source.origin === 'stale-cache'))
 const latestRetrievedAt = computed(() => providerSources.value.map(source => source.retrievedAt).filter(Boolean).sort().at(-1))
+const hasBackendProvenance = computed(() => store.screeningFunnel.some(stage => stage.sourceKind !== 'prototype-fixture'))
 
 onMounted(() => {
-  if (store.report?.sessionId) {
+  if (store.report?.sessionId && hasBackendProvenance.value) {
     void store.fetchProvenance(store.report.sessionId)
   }
 })
 
 watch(() => store.report?.sessionId, (newId) => {
-  if (newId) {
+  if (newId && hasBackendProvenance.value) {
     void store.fetchProvenance(newId)
   }
 })
@@ -40,30 +41,18 @@ watch(() => store.report?.sessionId, (newId) => {
   >
     <div class="flex items-center justify-between">
       <h2 class="font-bold uppercase tracking-wider text-slate-700" :class="compact ? 'text-[10px]' : 'text-xs'">
-        Asal dan periode data (Lineage Audit)
+        Sumber data
       </h2>
-      <div class="flex items-center gap-1.5 text-[10px] font-mono">
-        <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-700 font-semibold">
-          rev {{ store.currentRevision }}
-        </span>
-        <span v-if="store.activeAttemptId" class="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-800 font-semibold">
-          {{ store.activeAttemptId }}
-        </span>
-      </div>
     </div>
 
     <div v-if="staleSources.length" data-testid="stale-data-warning" role="alert" class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950">
-      <strong>Data cache kedaluwarsa digunakan.</strong> Riset tetap selesai, tetapi {{ staleSources.length }} sumber disajikan melalui stale-if-error. Tinjau waktu pengambilan sebelum menggunakan hasil.
+      <strong>Data lama digunakan sementara.</strong> Layanan sumber sedang bermasalah. Periksa waktu pembaruan sebelum menggunakan hasil.
     </div>
 
     <dl class="mt-2 grid gap-x-5 gap-y-2" :class="compact ? 'text-[11px] sm:grid-cols-2' : 'text-xs sm:grid-cols-2'">
       <div>
-        <dt class="font-semibold text-slate-500">Sumber Primary</dt>
-        <dd class="mt-0.5 font-medium text-slate-800">{{ source || 'Sectors API v2 & Local Gateway' }}</dd>
-      </div>
-      <div>
-        <dt class="font-semibold text-slate-500">Tenant / Owner</dt>
-        <dd class="mt-0.5 font-mono text-slate-800">{{ store.tenantId }} / {{ store.ownerId }}</dd>
+        <dt class="font-semibold text-slate-500">Asal data</dt>
+        <dd class="mt-0.5 font-medium text-slate-800">{{ source || 'Sectors API' }}</dd>
       </div>
       <div>
         <dt class="font-semibold text-slate-500">Periode keuangan</dt>
@@ -74,29 +63,25 @@ watch(() => store.report?.sessionId, (newId) => {
         <dd class="mt-0.5 font-mono text-slate-800">{{ generatedAt || store.report?.timestamp || unavailable }}</dd>
       </div>
       <div>
-        <dt class="font-semibold text-slate-500">Origin provider</dt>
-        <dd class="mt-0.5 font-mono text-slate-800">{{ sourceOrigins.join(', ') || unavailable }}</dd>
-      </div>
-      <div>
-        <dt class="font-semibold text-slate-500">Versi artifact / formula</dt>
-        <dd class="mt-0.5 font-mono text-slate-800">{{ [...artifactVersions, ...formulaVersions].join(' / ') || unavailable }}</dd>
-      </div>
-      <div>
-        <dt class="font-semibold text-slate-500">Data diambil</dt>
+        <dt class="font-semibold text-slate-500">Terakhir diperbarui</dt>
         <dd class="mt-0.5 font-mono text-slate-800">{{ latestRetrievedAt || unavailable }}</dd>
       </div>
       <div v-if="staleSources.length">
-        <dt class="font-semibold text-amber-700">Stale fallback digunakan</dt>
+        <dt class="font-semibold text-amber-700">Data lama digunakan pada</dt>
         <dd class="mt-0.5 font-mono text-amber-900">{{ staleSources.map(source => source.staleAt || source.retrievedAt).join(', ') }}</dd>
       </div>
     </dl>
 
-    <!-- Backend Provenance Audit Logs -->
-    <div v-if="store.provenanceTrail && store.provenanceTrail.length > 0" class="mt-3 border-t border-slate-200 pt-3">
-      <div class="text-[11px] font-bold text-slate-700 mb-2 flex items-center justify-between">
-        <span>Immutable Provenance Trail ({{ store.provenanceTrail.length }} Record)</span>
-        <span class="text-[10px] text-slate-400 font-mono">idempotent audit</span>
-      </div>
+    <details v-if="sourceOrigins.length || artifactVersions.length || formulaVersions.length" class="mt-3 border-t border-slate-200 pt-3 text-xs">
+      <summary class="min-h-10 cursor-pointer py-2 font-semibold text-slate-600">Detail sumber data</summary>
+      <dl class="mt-2 grid gap-2 sm:grid-cols-2">
+        <div><dt class="text-slate-500">Jenis sumber</dt><dd class="mt-0.5 font-mono text-slate-800">{{ sourceOrigins.join(', ') || unavailable }}</dd></div>
+        <div><dt class="text-slate-500">Versi perhitungan</dt><dd class="mt-0.5 font-mono text-slate-800">{{ [...artifactVersions, ...formulaVersions].join(' / ') || unavailable }}</dd></div>
+      </dl>
+    </details>
+
+    <details v-if="store.provenanceTrail && store.provenanceTrail.length > 0" class="mt-3 border-t border-slate-200 pt-3">
+      <summary class="min-h-10 cursor-pointer py-2 text-xs font-semibold text-slate-600">Riwayat pemeriksaan data ({{ store.provenanceTrail.length }})</summary>
       <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
         <div
           v-for="rec in store.provenanceTrail.slice().reverse()"
@@ -116,6 +101,6 @@ watch(() => store.report?.sessionId, (newId) => {
           </div>
         </div>
       </div>
-    </div>
+    </details>
   </aside>
 </template>

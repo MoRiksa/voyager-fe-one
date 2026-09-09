@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
 import type { ResearchSession } from '../types'
 import { sessionStatusMeta } from '../utils/status'
-import DataProvenance from '../components/DataProvenance.vue'
 import { ArrowRight, Copy, FileText, Search, Trash2 } from '@lucide/vue'
 
 const store = useResearchStore()

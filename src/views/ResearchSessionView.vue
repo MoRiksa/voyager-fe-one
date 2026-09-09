@@ -83,7 +83,7 @@ const sessionDescription = computed(() => activePillar.value?.subtitle || (store
     : store.status === 'NEEDS_INPUT'
       ? 'Riset memerlukan klarifikasi sebelum proses dapat dilanjutkan.'
       : store.status === 'CANCELLED'
-        ? 'Riset dibatalkan. Artefak yang sudah tersimpan tetap tersedia untuk ditinjau.'
+        ? 'Riset dibatalkan. Hasil yang sudah tersimpan tetap tersedia untuk ditinjau.'
   : store.status === 'FAILED'
     ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.'
     : store.status === 'COMPLETED'
@@ -98,13 +98,13 @@ const isSubmittingLifecycle = ref(false)
 const askFollowUp = async () => {
   if (!followUp.value.trim() || isSubmittingFollowUp.value) return
   isSubmittingFollowUp.value = true
-  followUpResponse.value = 'Menganalisis pertanyaan dengan engine Voyager One...'
+  followUpResponse.value = 'Menyiapkan jawaban dari hasil riset...'
   try {
     const answer = await store.addFollowUp(followUp.value.trim())
     followUpResponse.value = answer || 'Catatan telah disimpan pada sesi riset ini.'
     followUp.value = ''
   } catch {
-    followUpResponse.value = 'Gagal mengirim pertanyaan lanjutan ke engine riset.'
+    followUpResponse.value = 'Pertanyaan belum dapat diproses. Coba lagi beberapa saat.'
   } finally {
     isSubmittingFollowUp.value = false
   }
@@ -176,10 +176,10 @@ const retry = async () => {
           <button v-if="store.isExecuting" type="button" data-testid="session-cancel" class="button-secondary text-rose-700" :disabled="isSubmittingLifecycle" @click="cancel"><Square class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Membatalkan...' : 'Batalkan' }}</button>
           <button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status)" type="button" data-testid="session-retry" class="button-secondary" :disabled="isSubmittingLifecycle" @click="retry"><RotateCcw class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Memulai...' : 'Jalankan ulang' }}</button>
           <template v-if="store.status === 'COMPLETED' || (store.status === 'PARTIAL' && store.candidates.length)">
-          <router-link v-if="store.candidates.length >= 2" data-testid="session-next" :to="`/research/${store.report.sessionId}/screener`" class="button-primary">Lihat cara kandidat dipilih <ArrowRight class="h-4 w-4" /></router-link>
-          <router-link v-else-if="store.candidates.length === 1" data-testid="session-next" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-primary">Buka analisis kandidat <ArrowRight class="h-4 w-4" /></router-link>
-          <router-link v-else data-testid="session-next" to="/research/new" class="button-primary">Ubah kriteria riset <ArrowRight class="h-4 w-4" /></router-link>
-          <router-link :to="`/research/${store.report.sessionId}/report`" class="button-secondary">Buka laporan</router-link>
+           <router-link v-if="store.candidates.length" data-testid="session-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan <ArrowRight class="h-4 w-4" /></router-link>
+           <router-link v-if="store.candidates.length >= 2" :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Lihat cara kandidat dipilih</router-link>
+           <router-link v-else-if="store.candidates.length === 1" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-secondary">Buka analisis kandidat</router-link>
+           <router-link v-else data-testid="session-next" to="/research/new" class="button-primary">Ubah kriteria riset <ArrowRight class="h-4 w-4" /></router-link>
           </template>
         </div>
       </div>
@@ -206,16 +206,17 @@ const retry = async () => {
 
     <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_21rem]">
       <div class="space-y-6">
-        <section v-show="activePanel === 'overview' || activePanel === 'results'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div class="flex items-start justify-between gap-3"><div><p class="section-kicker">Rencana riset aktif</p><h2 class="mt-1 text-xl font-bold text-slate-950">Kriteria dan langkah yang dijalankan</h2></div><span class="shrink-0 font-mono text-xs text-slate-500">{{ completedCount }}/{{ store.pillars.length }} tahap</span></div>
+        <details v-show="activePanel === 'overview' || (activePanel === 'results' && !store.candidates.length)" :open="!store.candidates.length" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <summary class="min-h-11 cursor-pointer py-2 text-base font-bold text-slate-950">Cara hasil ini dibuat <span class="ml-2 text-xs font-medium text-slate-500">{{ completedCount }}/{{ store.pillars.length }} tahap</span></summary>
+          <div class="mt-4 flex items-start justify-between gap-3"><div><p class="section-kicker">Rencana riset</p><h2 class="mt-1 text-xl font-bold text-slate-950">Kriteria dan langkah yang dijalankan</h2></div></div>
           <dl class="mt-5 grid gap-4 sm:grid-cols-2">
-            <div data-testid="persisted-brief" class="rounded-xl border border-slate-200 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Brief tersimpan</dt><dd class="mt-2 text-sm leading-6 text-slate-800">{{ store.activeBrief.market }} · {{ store.activeBrief.sectorScope }} · {{ store.activeBrief.indexScope }} · target {{ store.activeBrief.candidateCount }} kandidat · {{ store.activeBrief.researchDepth.toLowerCase() }}</dd><dd class="mt-1 text-xs text-slate-500">{{ store.activeBrief.useSectorMetrics ? 'Metrik spesifik sektor bila tersedia' : 'Metrik umum' }}<template v-if="store.activeBrief.optionalDimensions.length"> · {{ store.activeBrief.optionalDimensions.join(', ') }}</template></dd></div>
-            <div class="rounded-xl bg-slate-50 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Universe aktif</dt><dd class="mt-1 text-sm leading-6 text-slate-800">{{ store.activePlan.universe }}</dd></div>
+             <div data-testid="persisted-brief" class="rounded-xl border border-slate-200 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Pilihan riset</dt><dd class="mt-2 text-sm leading-6 text-slate-800">{{ store.activeBrief.market }} · {{ store.activeBrief.sectorScope }} · {{ store.activeBrief.indexScope }} · target {{ store.activeBrief.candidateCount }} kandidat · {{ store.activeBrief.researchDepth.toLowerCase() }}</dd><dd class="mt-1 text-xs text-slate-500">{{ store.activeBrief.useSectorMetrics ? 'Metrik spesifik sektor bila tersedia' : 'Metrik umum' }}<template v-if="store.activeBrief.optionalDimensions.length"> · {{ store.activeBrief.optionalDimensions.join(', ') }}</template></dd></div>
+             <div class="rounded-xl bg-slate-50 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Perusahaan yang diperiksa</dt><dd class="mt-1 text-sm leading-6 text-slate-800">{{ store.activePlan.universe }}</dd></div>
             <div class="rounded-xl bg-blue-50 p-4 sm:col-span-2"><dt class="text-xs font-bold text-[#2F64A8]">Hipotesis</dt><dd class="mt-1 text-sm leading-6 text-slate-800">{{ store.activePlan.hypothesis }}</dd></div>
             <div><dt class="text-sm font-bold text-slate-900">Kriteria diterapkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="criterion in store.activePlan.criteria" :key="criterion">{{ criterion }}</li><li v-if="!store.activePlan.criteria.length">Belum ada kriteria aktif.</li></ul></dd></div>
             <div><dt class="text-sm font-bold text-slate-900">Data yang dibutuhkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="dataPoint in store.activePlan.requiredDataPoints" :key="dataPoint">{{ dataPoint }}</li><li v-if="!store.activePlan.requiredDataPoints.length">Belum ada data wajib.</li></ul></dd></div>
           </dl>
-          <h3 class="mt-6 text-sm font-bold text-slate-900">Urutan eksekusi backend</h3>
+          <h3 class="mt-6 text-sm font-bold text-slate-900">Langkah riset</h3>
           <ol class="mt-3 space-y-2">
             <li v-for="step in store.activePlan.steps" :key="`${step.order}-${step.action}`" 
                 class="grid grid-cols-[2.5rem_1fr] gap-3 rounded-xl border p-4 transition-all duration-200"
@@ -242,7 +243,7 @@ const retry = async () => {
             </li>
             <li v-if="!store.activePlan.steps.length" class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">Langkah eksekusi belum disusun.</li>
           </ol>
-        </section>
+        </details>
 
         <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
            <div class="mb-4 flex items-end justify-between">

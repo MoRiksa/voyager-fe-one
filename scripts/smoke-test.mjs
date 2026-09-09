@@ -31,7 +31,7 @@ const routes = [
 const renderedChecks = [
   { route: '/', text: 'Apa yang ingin Anda teliti hari ini?' },
   { route: '/research', text: 'Temukan dan lanjutkan riset Anda' },
-  { route: '/research/new', text: 'Aturan yang benar-benar diterapkan' },
+  { route: '/research/new', text: 'Aturan yang akan digunakan' },
   { route: '/glossary', text: 'Kamus Istilah Finansial' },
   { route: '/research/UNKNOWN/report', expectedPath: '/not-found', text: 'Halaman tidak ditemukan' }
 ]

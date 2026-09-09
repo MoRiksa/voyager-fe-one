@@ -1820,3 +1820,58 @@ Next smallest slice:
 - Triage moderate dependency finding, tambah reproducible server deploy/rollback
   script yang mempertahankan `.env` dan `data`, lalu jalankan browser production
   interaction/a11y gate saat CDP runtime tersedia.
+
+### 2026-09-10 - Non-technical UI/UX/CX simplification
+
+Status: verified lokal; production deployment pending.
+
+Assessment before:
+
+- UI visual cukup konsisten, tetapi UX masih menyerupai engineering console.
+- Header menampilkan revision, SSE, idempotency, dan auth pada semua halaman.
+- Navigasi global mencampur tugas utama, metodologi, scheduler, proses, dan audit.
+- Form menampilkan banyak preferensi yang belum memengaruhi hasil seolah setara
+  dengan aturan seleksi yang benar-benar digunakan.
+- Sumber data menampilkan tenant, owner, artifact version, digest, dan riwayat audit
+  langsung dalam alur baca utama.
+- Session selesai memprioritaskan cara kerja sebelum laporan dan kandidat.
+
+Changes:
+
+- Sidebar desktop memiliki tiga tugas utama: Beranda, Pustaka riset, dan Riset baru.
+  Bantuan tetap tersedia; proses dan audit hanya muncul dari konteks sesi.
+- Mobile memiliki empat tujuan stabil: Beranda, Riset baru, Pustaka, dan Lainnya.
+  Navigasi global tidak lagi bergantung pada session terakhir di store.
+- Header hanya menampilkan plain-language status pada route session; badge
+  infrastructure dihapus dari UI umum.
+- Form memprioritaskan tujuan dan aturan seleksi. Preferensi yang belum memengaruhi
+  kandidat dipindah ke disclosure `Preferensi lanjutan` yang tertutup default.
+- Submission memiliki busy state dan network error memakai bahasa layanan yang dapat
+  dipahami, bukan pesan backend/response internal.
+- `DataProvenance` menjadi `Sumber data`; hanya asal, periode, dan waktu pembaruan
+  yang terlihat. Version dan audit history tetap tersedia melalui disclosure.
+- Fixture provenance tidak lagi meminta endpoint backend, menghapus tiga 404/error
+  console pada home production.
+- Session selesai memprioritaskan `Baca laporan`; proses dilipat sebagai
+  `Cara hasil ini dibuat`. Istilah brief, universe, artifact, dan backend diganti
+  dengan pilihan riset, perusahaan yang diperiksa, hasil, dan langkah riset.
+- Home dan pustaka menghapus provenance berulang serta istilah workspace backend.
+
+Verification:
+
+- Frontend Vue typecheck, production build, canonical contract, 19-route smoke, dan
+  full interaction suite lulus.
+- Playwright WSL local visual check lulus pada desktop dan mobile tanpa horizontal
+  overflow; advanced preferences tertutup; infrastructure terms tidak terlihat;
+  console home/new research bersih.
+- Backend full suite tetap lulus 49 tests dan build.
+- Transitive `qs` dinaikkan dari 6.15.3 ke 6.16.0; production audit kini 0 finding.
+
+Remaining UX opportunities:
+
+- Report masih memiliki tujuh section dan beberapa export/view controls; sederhanakan
+  menjadi Ringkasan, Kandidat, Risiko, serta Bukti dan metode.
+- Scheduler masih cron-first dan cocok ditempatkan sebagai fitur lanjutan sampai ada
+  form frekuensi/waktu/zona waktu yang lebih manusiawi.
+- Loading/offline state pustaka dan polling session masih perlu membedakan cache lokal,
+  gangguan koneksi, dan empty state secara eksplisit.

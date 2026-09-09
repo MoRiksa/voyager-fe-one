@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { Home, Layers, FileText, Menu, X, Filter, GitCompare, BookOpen, Terminal, Search, History, Library } from '@lucide/vue'
+import { Home, Menu, X, Filter, GitCompare, BookOpen, Terminal, Search, History, Library, Compass } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
@@ -15,22 +15,21 @@ const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]
 
 const primaryItems = computed(() => [
   { label: 'Beranda', to: '/', icon: Home, names: ['home'] },
-  { label: 'Sesi', to: `/research/${store.report.sessionId}`, icon: Layers, names: ['research-session'] },
-  { label: 'Laporan', to: `/research/${store.report.sessionId}/report`, icon: FileText, names: ['report', 'research-report'] }
+  { label: 'Riset baru', to: '/research/new', icon: Search, names: ['research-new'] },
+  { label: 'Pustaka', to: '/research', icon: History, names: ['research-library'] }
 ])
 
 const moreItems = computed(() => [
   { label: 'Cara kandidat dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
   { label: 'Bandingkan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
-  { label: 'Riset baru', to: '/research/new', icon: Search },
-  { label: 'Pustaka riset', to: '/research', icon: History },
   { label: 'Cara penilaian', to: '/methodology', icon: BookOpen },
   { label: 'Kamus istilah', to: '/glossary', icon: Library },
+  { label: 'Riset terjadwal', to: '/schedules', icon: Compass },
   { label: 'Proses riset', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
   { label: 'Detail teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
 ])
 
-const moreIsActive = computed(() => ['research-library', 'research-new', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'glossary', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
+const moreIsActive = computed(() => ['research-session', 'report', 'research-report', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'glossary', 'schedules', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))
 
 const setBackgroundInert = (inert: boolean) => {
   if (!inert) {
@@ -104,7 +103,7 @@ onBeforeUnmount(() => setBackgroundInert(false))
       @keydown="handleMenuKeydown"
     >
       <div class="flex items-center justify-between px-2 pb-2">
-        <div><h2 class="text-sm font-bold text-slate-900">Menu lainnya</h2><p class="mt-0.5 text-xs text-slate-500">Sesi {{ store.report.sessionId }}</p></div>
+        <div><h2 class="text-sm font-bold text-slate-900">Menu lainnya</h2><p class="mt-0.5 text-xs text-slate-500">Bantuan dan fitur lanjutan</p></div>
         <button class="icon-button" type="button" aria-label="Tutup menu" @click="closeMenu">
           <X class="h-5 w-5" />
         </button>

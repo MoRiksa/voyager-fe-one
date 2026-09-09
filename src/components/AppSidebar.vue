@@ -9,11 +9,9 @@ import {
   Layers, 
   Filter, 
   GitCompare, 
-  Terminal, 
   BookOpen, 
   FileSpreadsheet,
   Search,
-  ShieldCheck,
   History,
   CircleDot,
   Library
@@ -28,21 +26,18 @@ const sessionStatus = computed(() => sessionStatusMeta(store.status, store.isExe
 
 const navItems = computed(() => [
   {
-    group: 'UTAMA',
+    group: 'Riset',
     items: [
       { names: ['home'], label: 'Beranda', path: '/', icon: Home },
       { names: ['research-library'], label: 'Pustaka riset', path: '/research', icon: History },
       { names: ['research-new'], label: 'Riset baru', path: '/research/new', icon: Search },
-      { names: ['schedules'], label: 'Riset terjadwal', path: '/schedules', icon: Compass },
     ]
   },
   {
-    group: 'INFORMASI',
+    group: 'Bantuan',
     items: [
       { names: ['methodology'], label: 'Cara penilaian', path: '/methodology', icon: BookOpen },
       { names: ['glossary'], label: 'Kamus istilah', path: '/glossary', icon: Library },
-      { names: ['research-activity'], label: 'Proses riset', path: `/research/${store.report.sessionId}/activity`, icon: Terminal },
-      { names: ['research-trace'], label: 'Detail teknis', path: `/research/${store.report.sessionId}/trace`, icon: ShieldCheck },
     ]
   }
 ])
@@ -103,7 +98,6 @@ const sessionNavItems = computed(() => [
       <router-link data-testid="sidebar-active-session" :to="`/research/${store.report.sessionId}`" class="block rounded-xl border border-[#407EC9]/20 bg-white p-3 transition-colors hover:border-[#407EC9]/50 hover:bg-blue-50" :aria-current="currentRouteName === 'research-session' ? 'page' : undefined">
         <p class="line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
         <p class="mt-1 text-xs text-slate-500">{{ store.candidates.length }} kandidat · {{ sessionStatus }}</p>
-        <p class="mt-2 font-mono text-xs font-semibold text-[#2F64A8]">{{ store.report.sessionId }}</p>
       </router-link>
       <nav class="mt-2 grid grid-cols-2 gap-1" aria-label="Navigasi sesi aktif">
         <router-link v-for="item in sessionNavItems" :key="item.path" :to="item.path" class="flex min-h-10 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors" :class="item.names.includes(currentRouteName) ? 'bg-[#2F64A8] text-white' : 'text-slate-600 hover:bg-white hover:text-slate-950'">
@@ -112,7 +106,7 @@ const sessionNavItems = computed(() => [
         </router-link>
       </nav>
       <div class="mt-2 px-1 text-xs leading-4 text-slate-500">
-        Mode demonstrasi · data contoh
+        <strong>Data contoh.</strong> Gunakan untuk mencoba alur riset.
       </div>
     </div>
   </aside>

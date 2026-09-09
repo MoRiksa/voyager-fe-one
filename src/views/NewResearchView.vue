@@ -11,6 +11,7 @@ const router = useRouter()
 const objective = ref(store.currentObjective)
 const selectedPreset = ref(store.activePresetId)
 const error = ref('')
+const isSubmitting = ref(false)
 const market = ref<'IDX'>('IDX')
 const sectorScope = ref(store.activeBrief.sectorScope)
 const indexScope = ref(store.activeBrief.indexScope)
@@ -21,7 +22,7 @@ const optionalDimensions = ref<string[]>([...store.activeBrief.optionalDimension
 
 const selectedTemplate = computed(() => store.presets.find(preset => preset.id === selectedPreset.value))
 const screeningPreview = computed(() => store.getScreeningPreview(selectedPreset.value))
-const sectorOptions = computed(() => ['Semua sektor fixture', ...new Set([
+const sectorOptions = computed(() => ['Semua sektor dalam data contoh', ...new Set([
   ...store.candidates.map(candidate => candidate.sector),
   'Financials',
   'Consumer Non-Cyclicals',
@@ -31,14 +32,12 @@ const sectorOptions = computed(() => ['Semua sektor fixture', ...new Set([
 ])])
 const dimensions = [
   { id: 'momentum', label: 'Momentum harga', availability: 'akan digunakan bila tersedia' },
-  { id: 'dividend', label: 'Dividen', availability: 'tersedia pada fixture' },
+  { id: 'dividend', label: 'Dividen', availability: 'tersedia pada data contoh' },
   { id: 'esg', label: 'ESG', availability: 'akan digunakan bila tersedia' },
   { id: 'ownership', label: 'Kepemilikan', availability: 'akan digunakan bila tersedia' },
   { id: 'segments', label: 'Segmen usaha', availability: 'akan digunakan bila tersedia' },
   { id: 'forward', label: 'Estimasi forward', availability: 'akan digunakan bila tersedia' }
 ]
-const durationMap: Record<string, string> = { Ringkas: '4-7 menit', Standar: '8-12 menit', Mendalam: '15-25 menit' }
-const estimatedDuration = computed(() => durationMap[researchDepth.value] || '8-12 menit')
 const selectedDimensionLabels = computed(() => dimensions.filter(item => optionalDimensions.value.includes(item.id)).map(item => item.label))
 
 watch(objective, value => {
@@ -50,6 +49,7 @@ const chooseTemplate = (preset: ResearchObjectivePreset) => {
   objective.value = preset.objective
   store.selectPreset(preset)
   error.value = ''
+  isSubmitting.value = true
 }
 
 const submit = async () => {
@@ -94,7 +94,8 @@ const submit = async () => {
     store.createSession(sessionId)
     store.hydrateFromBackendSession(started.session)
   } catch (requestError) {
-    error.value = requestError instanceof Error ? requestError.message : 'Backend tidak dapat dihubungi.'
+    error.value = 'Layanan riset belum dapat dihubungi. Periksa koneksi Anda, lalu coba lagi.'
+    isSubmitting.value = false
     return
   }
   await router.push(`/research/${sessionId}`)
@@ -126,8 +127,8 @@ const submit = async () => {
           ></textarea>
           <p v-if="error" id="objective-error" data-testid="objective-error" role="alert" class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
           <div data-testid="screening-rule-contract" class="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <h2 class="text-sm font-bold text-slate-950">Aturan yang benar-benar diterapkan</h2>
-            <p class="mt-1 text-xs leading-5 text-slate-600">Hanya aturan berikut yang mengubah hasil pada mode demonstrasi. Teks tujuan memberi konteks, tetapi tidak otomatis menjadi filter angka baru.</p>
+            <h2 class="text-sm font-bold text-slate-950">Aturan yang akan digunakan</h2>
+            <p class="mt-1 text-xs leading-5 text-slate-600">Sistem akan memakai aturan berikut untuk memilih kandidat. Kalimat tujuan Anda digunakan sebagai konteks riset.</p>
             <p v-if="selectedPreset === 'custom'" data-testid="custom-rule-notice" class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-950">Tujuan sudah Anda sesuaikan. Sistem menggunakan aturan fundamental umum sampai Anda memilih kembali salah satu template aturan.</p>
             <ul class="mt-3 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-700"><li v-for="criterion in screeningPreview.criteria" :key="criterion">{{ criterion }}</li></ul>
           </div>
@@ -161,15 +162,17 @@ const submit = async () => {
           </div>
         </section>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <details class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <summary class="cursor-pointer text-lg font-bold text-slate-950">Preferensi lanjutan <span class="ml-2 text-xs font-medium text-slate-500">Opsional</span></summary>
+          <div class="mt-5">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p class="section-kicker">Preferensi perencanaan</p>
-              <h2 class="mt-1 text-lg font-bold text-slate-950">Lengkapi brief riset</h2>
+              <p class="section-kicker">Pilihan tambahan</p>
+              <h2 class="mt-1 text-lg font-bold text-slate-950">Sesuaikan cakupan riset</h2>
             </div>
-            <span class="w-fit rounded-md bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-900">Belum diterapkan sebagai filter</span>
+             <span class="w-fit rounded-md bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-900">Disimpan sebagai preferensi</span>
           </div>
-          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Kontrol berikut menyusun brief frontend saja. Pada mode demonstrasi, hasil tetap ditentukan oleh template dan aturan pada panel “Aturan yang benar-benar diterapkan”.</p>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Pilihan berikut disimpan bersama riset, tetapi belum memengaruhi pemilihan kandidat saat ini.</p>
 
           <div class="mt-6 grid gap-5 sm:grid-cols-2">
             <fieldset>
@@ -186,7 +189,7 @@ const submit = async () => {
             </label>
             <label class="block text-sm font-bold text-slate-900">Indeks / likuiditas
                <select v-model="indexScope" data-testid="brief-index" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-normal text-slate-800 focus:border-[#2F64A8]">
-                <option>Seluruh fixture IDX</option><option>IDX30</option><option>LQ45</option><option>Kompas100</option><option>Saham likuid non-indeks</option>
+                 <option>Semua perusahaan dalam data contoh</option><option>IDX30</option><option>LQ45</option><option>Kompas100</option><option>Saham likuid non-indeks</option>
               </select>
             </label>
             <label class="block text-sm font-bold text-slate-900">Jumlah kandidat yang diinginkan
@@ -215,7 +218,8 @@ const submit = async () => {
               </label>
             </div>
           </fieldset>
-        </section>
+          </div>
+        </details>
       </div>
 
       <aside class="h-fit rounded-2xl border border-slate-200 bg-[#102138] p-5 text-white shadow-xl lg:sticky lg:top-24">
@@ -223,36 +227,31 @@ const submit = async () => {
         <h2 class="mt-4 text-lg font-bold">Ringkasan riset</h2>
         <dl class="mt-5 space-y-4 text-sm">
           <div>
-            <dt class="text-xs text-slate-400">Klarifikasi brief</dt>
+            <dt class="text-xs text-slate-400">Pilihan riset</dt>
              <dd data-testid="brief-summary" class="mt-1 text-xs font-semibold leading-5 text-white">{{ market }} · {{ sectorScope }} · {{ indexScope }} · target {{ candidateCount }} kandidat · {{ researchDepth.toLowerCase() }}</dd>
           </div>
           <div>
             <dt class="text-xs text-slate-400">Analisis tambahan</dt>
             <dd class="mt-1 text-xs font-semibold leading-5 text-white">{{ useSectorMetrics ? 'Metrik sektor bila tersedia' : 'Metrik umum' }}<template v-if="selectedDimensionLabels.length"> · {{ selectedDimensionLabels.join(', ') }}</template><template v-else> · tanpa dimensi opsional</template></dd>
           </div>
-          <div>
-            <dt class="text-xs text-slate-400">Estimasi preferensi</dt>
-            <dd class="mt-1 font-semibold">{{ estimatedDuration }}</dd>
-            <p class="mt-1 text-[11px] leading-4 text-slate-400">Estimasi target untuk integrasi data mendatang. Demo fixture saat ini berjalan sekitar {{ store.activePlan.estimatedDurationSeconds }} detik.</p>
-          </div>
           <div class="border-t border-slate-700 pt-4">
-            <dt class="text-xs text-blue-200">Aturan demo yang diterapkan</dt>
+            <dt class="text-xs text-blue-200">Aturan seleksi</dt>
           </div>
           <div>
             <dt class="text-xs text-slate-400">Dataset yang diperiksa</dt>
-            <dd data-testid="actual-universe" class="mt-1 font-semibold">{{ screeningPreview.universe.count }} perusahaan contoh</dd>
+            <dd data-testid="actual-universe" class="mt-1 font-semibold">{{ screeningPreview.universe.count }} perusahaan</dd>
           </div>
           <div>
             <dt class="text-xs text-slate-400">Batas hasil</dt>
             <dd class="mt-1 font-semibold">Maksimal {{ screeningPreview.maximumCandidates }} kandidat</dd>
           </div>
         </dl>
-        <button type="submit" :disabled="store.isExecuting" class="button-primary mt-6 min-h-12 w-full px-5 disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" :disabled="store.isExecuting || isSubmitting" :aria-busy="isSubmitting" class="button-primary mt-6 min-h-12 w-full px-5 disabled:cursor-not-allowed disabled:opacity-50">
           <Search class="h-4 w-4" />
-          Mulai riset
+          {{ isSubmitting ? 'Memulai riset...' : 'Mulai riset' }}
           <ArrowRight class="h-4 w-4" />
         </button>
-        <p class="mt-3 text-xs leading-5 text-slate-400">Preferensi brief disimpan bersama sesi, tetapi belum mengubah aturan fixture. Anda dapat meninjau brief dan aturan aktif dari halaman sesi.</p>
+        <p class="mt-3 text-xs leading-5 text-slate-400">Anda dapat meninjau kembali tujuan dan aturan setelah riset dimulai.</p>
       </aside>
     </form>
   </div>

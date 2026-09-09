@@ -41,5 +41,7 @@ assert.match(store, /sourceOrigins: Array\.isArray\(s\.sourceOrigins\)/)
 assert.match(store, /providerSources: Array\.isArray\(s\.providerSources\)/)
 assert.match(provenance, /source\.origin === 'stale-cache'/)
 assert.match(provenance, /data-testid="stale-data-warning" role="alert"/)
+assert.match(provenance, /stage\.sourceKind !== 'prototype-fixture'/)
+assert.match(provenance, /store\.report\?\.sessionId && hasBackendProvenance\.value/)
 
 console.log('Canonical create/start/refetch contract verified')
