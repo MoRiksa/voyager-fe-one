@@ -2034,3 +2034,40 @@ Known limitation:
 
 - Backend belum memiliki timer/parser Cron aktif. Metadata jadwal baru hanya
   menyimpan pilihan user sampai runtime scheduler dibangun dan diuji terpisah.
+
+### 2026-09-11 - Frontend bank-evidence-v1
+
+Status: implemented dan local verified; tidak commit, push, atau deploy.
+
+Reason:
+
+- Backend sibling mengoreksi objective bank dari filter nilai menjadi tinjauan bukti.
+  ROE provider berasal dari earnings/equity dengan basis yang dapat tidak cocok dan
+  P/BV historis belum terverifikasi basis tanggal/saham, sehingga keduanya tidak layak
+  menjadi ambang, skor, ranking kualitas, atau rekomendasi.
+
+Changes:
+
+- Frontend memakai objective exact backend, `bank-evidence-contract-v1`,
+  `objectiveType: bank-evidence`, dan `formulaVersion: bank-evidence-v1`.
+- Form bank menyembunyikan kontrol jumlah kandidat dan mengirim 8; laporan menyatakan
+  hingga delapan data tersedia. Generic tiga faktor tetap compatibility-only dan tidak
+  tersedia sebagai pilihan riset baru.
+- Semua tampilan bank menjelaskan membership dinamis berdasarkan ketersediaan data dan
+  urutan market cap provider. ROE diberi label `provider-derived-unverified`; P/BV
+  historis diberi label basis belum terverifikasi. Bahasa filter, lolos, skor, kualitas,
+  ranking, ambang, dan rekomendasi dihapus dari cabang bank.
+- Runtime sintetis memakai membership dinamis, mempertahankan BBNI-like ROE 10% dan
+  P/BV -0,5, serta membuat satu top-eight tidak lengkap untuk menguji `cannot_assess`.
+  Assertion sumber memastikan tidak ada logika simbol bank hardcoded di frontend.
+
+Verification:
+
+- `npm run test:canonical-flow`: lulus.
+- `npm run test:interaction`: lulus di Chromium.
+- `npm run test:smoke`: lulus 21 route tanpa runtime exception.
+- `npx vue-tsc -b`: lulus.
+- `VITE_BACKEND_URL=http://127.0.0.1:3000 npm run build`: lulus.
+- `npm run test:architecture`: gagal terpisah pada atlas lama dengan
+  `Error: activity (desktop):`. File arsitektur tidak berubah dan kegagalan ini tidak
+  disembunyikan dalam klaim verifikasi frontend.

@@ -29,7 +29,7 @@ const visibleCompanies = computed(() => [...(resultMode.value === 'retained' ? r
 }))
 const initialCount = computed(() => store.screeningFunnel[0]?.count || 0)
 const hasScreeningData = computed(() => store.screeningFunnel.length > 0)
-const isBank = computed(() => store.report.contract?.objectiveType === 'bank-filter' || store.activePlan.contract?.objectiveType === 'bank-filter' || store.candidates.some(candidate => candidate.formulaVersion === 'bank-filter-v1') || store.screeningFunnel.some(stage => stage.formulaVersion === 'bank-filter-v1'))
+const isBank = computed(() => store.report.contract?.objectiveType === 'bank-evidence' || store.activePlan.contract?.objectiveType === 'bank-evidence' || store.candidates.some(candidate => candidate.formulaVersion === 'bank-evidence-v1') || store.screeningFunnel.some(stage => stage.formulaVersion === 'bank-evidence-v1'))
 const previousCount = computed(() => activeStep.value?.inputSymbols?.length ?? (selectedStage.value > 0 ? store.screeningFunnel[selectedStage.value - 1]?.count || 0 : initialCount.value))
 const excludedCount = computed(() => activeStep.value?.excludedCount ?? excludedSymbols.value.length)
 const exclusionImpact = computed(() => previousCount.value ? (excludedCount.value / previousCount.value) * 100 : 0)
@@ -43,6 +43,10 @@ const reasonCounts = computed(() => {
 })
 const metric = (value: number | undefined, suffix = '') => Number.isFinite(value) ? `${value}${suffix}` : 'Tidak tersedia'
 const hasDossier = (symbol: string) => candidateBySymbol.value.has(symbol)
+const stageCriteria = (stage = activeStep.value) => {
+  if (!isBank.value) return stage?.filterCriteria
+  return ({ universe: 'Hingga 8 bank teratas dari query market cap provider', completeness: 'Subsektor Banks, market cap/harga positif, serta data earnings, equity nonzero, dan P/BV tersedia pada common FY', financial: 'ROE dan P/BV tersedia untuk ditampilkan; nilai tidak menentukan keanggotaan', filter: 'Pertahankan data tersedia sesuai urutan market cap provider', final: 'Tampilkan hingga 8 kandidat dengan data tersedia' } as Record<string, string>)[stage?.stageId || ''] || stage?.filterCriteria
+}
 
 watch(() => store.report.sessionId, () => {
   selectedStage.value = Math.max(0, store.screeningFunnel.length - 1)
@@ -114,7 +118,7 @@ watch(isBank, bank => { if (bank && sortBy.value === 'score') sortBy.value = 'ra
         <div class="mt-4 pt-3 border-t border-slate-100">
            <span class="text-xs text-slate-500 font-semibold block mb-1">Kriteria tahap ini</span>
           <span class="text-[11px] font-mono font-medium text-slate-700 bg-slate-50 p-1.5 rounded block border border-slate-200/60 truncate">
-            {{ step.filterCriteria }}
+            {{ stageCriteria(step) }}
           </span>
         </div>
       </button>
@@ -123,7 +127,7 @@ watch(isBank, bank => { if (bank && sortBy.value === 'score') sortBy.value = 'ra
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="stage-detail-title">
       <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
         <div><p class="section-kicker">Tahap {{ selectedStage + 1 }}</p><h2 id="stage-detail-title" class="mt-1 text-xl font-bold text-slate-950">{{ activeStep.stage }}</h2><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{{ activeStep.description }}</p></div>
-        <div class="rounded-xl bg-slate-50 px-4 py-3"><span class="text-xs text-slate-500">Kriteria yang diterapkan</span><strong class="mt-1 block font-mono text-xs text-slate-800">{{ activeStep.filterCriteria }}</strong></div>
+        <div class="rounded-xl bg-slate-50 px-4 py-3"><span class="text-xs text-slate-500">Kriteria yang diterapkan</span><strong class="mt-1 block font-mono text-xs text-slate-800">{{ stageCriteria() }}</strong></div>
       </div>
       <div class="mt-5 flex gap-1 rounded-xl bg-slate-100 p-1 sm:w-fit">
          <button type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold sm:flex-none" :class="resultMode === 'retained' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="resultMode === 'retained'" @click="resultMode = 'retained'">Diteruskan · {{ retainedCompanies.length }} perusahaan</button>
@@ -162,13 +166,13 @@ watch(isBank, bank => { if (bank && sortBy.value === 'score') sortBy.value = 'ra
           </div>
           <div v-if="missingMetrics(candidate).length" class="mt-3 flex flex-wrap gap-1"><span v-for="missing in missingMetrics(candidate)" :key="missing" class="rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-900">Data hilang: {{ missing }}</span></div>
           <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">{{ isBank ? 'ROE provider-derived' : 'ROE' }}</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.roePercent, '%') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'P/BV historis' : 'P/E' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? metric(candidate.pbvRatio, 'x') : metric(candidate.peRatio, 'x') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'Common FY' : 'FCF yield' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? candidate.financialPeriod || 'Tidak tersedia' : metric(candidate.freeCashFlowYieldPercent, '%') }}</dd></div></dl>
-          <p class="mt-3 text-[11px] leading-5 text-slate-500">{{ isBank ? 'Lolos filter ROE/PBV; urutan mengikuti market cap provider. ROE belum terverifikasi dan basis earnings, equity, serta tanggal dapat tidak cocok. Lakukan uji tuntas independen.' : 'Skor 80+ adalah ambang heuristik tiga faktor. Bukan confidence. Benchmark sektor belum tersedia.' }}</p>
+          <p class="mt-3 text-[11px] leading-5 text-slate-500">{{ isBank ? 'Data tersedia untuk ditinjau; urutan mengikuti market cap provider. ROE provider-derived-unverified dan basis P/BV belum terverifikasi. Nilai tidak menentukan keanggotaan.' : 'Skor 80+ adalah ambang heuristik tiga faktor. Bukan confidence. Benchmark sektor belum tersedia.' }}</p>
           <div class="mt-4 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" :class="resultMode === 'retained' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'"><CheckCircle2 v-if="resultMode === 'retained'" class="mt-0.5 h-3.5 w-3.5 shrink-0" /><XCircle v-else class="mt-0.5 h-3.5 w-3.5 shrink-0" />{{ resultMode === 'retained' ? 'Diteruskan pada tahap ini.' : exclusionReasons(candidate).join('; ') || 'Alasan tidak diteruskan belum tersedia.' }}</div>
         </article>
       </div>
 
       <div v-if="visibleCompanies.length > 0" class="hidden overflow-x-auto md:block">
-        <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. <template v-if="isBank">bank-filter-v1 mempertahankan urutan market cap provider setelah kandidat lolos filter ROE/PBV. ROE provider-derived-unverified dan P/BV historis provider memakai common FY. Basis earnings, equity, dan tanggal dapat tidak cocok; lakukan uji tuntas independen.</template><template v-else>ROE, P/E, Debt/Equity, dan FCF memakai aturan quality-3f-v2. Skor 80/100 adalah ambang kualitas. Bukan rekomendasi membeli.</template></p>
+        <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. <template v-if="isBank">bank-evidence-v1 mempertahankan keanggotaan dinamis dan urutan market cap provider bila data top bank tersedia. ROE provider-derived-unverified dan P/BV historis provider memakai common FY. Nilai tidak menentukan keanggotaan; basis earnings, equity, tanggal, dan saham belum terverifikasi.</template><template v-else>ROE, P/E, Debt/Equity, dan FCF memakai aturan quality-3f-v2. Skor 80/100 adalah ambang kualitas. Bukan rekomendasi membeli.</template></p>
         <table class="w-full text-left text-xs">
           <caption class="sr-only">{{ resultMode === 'retained' ? `Perusahaan yang lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` : `Perusahaan yang tidak lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` }}</caption>
           <thead>

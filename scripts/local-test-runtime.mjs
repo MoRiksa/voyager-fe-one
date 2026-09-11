@@ -25,7 +25,7 @@ export async function localRuntime({ browser = false } = {}) {
     const url = new URL(req.url, 'http://local.test')
     const bankQuery = url.pathname === '/v2/companies/' && url.searchParams.get('where') === "sub_sector = 'Banks' and market_cap IS NOT NULL"
     if (bankQuery) {
-      const banks = Array.from({ length: 10 }, (_, index) => ({ symbol: `BANK${index + 1}`, company_name: `BANK${index + 1} synthetic test input`, sub_sector: 'Banks', market_cap: 1_000_000 - index }))
+      const banks = ['BBNI', ...Array.from({ length: 9 }, (_, index) => `DYNAMIC${index + 1}`)].map((symbol, index) => ({ symbol, company_name: `${symbol} synthetic test input`, sub_sector: 'Banks', market_cap: 1_000_000 - index }))
       res.end(JSON.stringify({ results: banks, pagination: { count: 48, next: null } })); return
     }
     if (url.pathname === '/v2/companies/') {
@@ -34,11 +34,12 @@ export async function localRuntime({ browser = false } = {}) {
     }
     const symbol = url.pathname.match(/\/company\/report\/([A-Z0-9]+)\//)?.[1]
     if (!symbol) { res.writeHead(404); res.end('{}'); return }
-    if (symbol.startsWith('BANK')) {
+    if (symbol === 'BBNI' || symbol.startsWith('DYNAMIC')) {
+      const unavailable = mode === 'bank-incomplete' && symbol === 'DYNAMIC2'
       res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,
         overview: { sector: 'Financials', sub_sector: 'Banks', market_cap: 10_000_000_000_000, last_close_price: 1000, latest_close_date: '2026-09-09' },
-        valuation: { historical_valuation: [2022, 2023, 2024, 2025, 2026].map(year => ({ year, pb: 2, pb_peer_avg: 3 })) },
-        financials: { historical_financials: Array.from({ length: 8 }, (_, index) => ({ year: 2018 + index, earnings: 20, total_assets: 1200, total_equity: 100 })) }
+        valuation: { historical_valuation: [2022, 2023, 2024, 2025, 2026].map(year => ({ year, pb: symbol === 'BBNI' ? -0.5 : 2, pb_peer_avg: 3 })) },
+        financials: { historical_financials: Array.from({ length: 8 }, (_, index) => ({ year: 2018 + index, ...(unavailable && index === 7 ? {} : { earnings: symbol === 'BBNI' ? 10 : 20 }), total_assets: 1200, total_equity: 100 })) }
       })); return
     }
     res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,

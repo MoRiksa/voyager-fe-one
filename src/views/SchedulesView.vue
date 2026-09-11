@@ -288,7 +288,7 @@ const handleCreateSubmit = async () => {
               v-model="newName"
               type="text"
               required
-              placeholder="Contoh: Tinjauan bank berkualitas bulanan"
+              placeholder="Contoh: Tinjauan data bank bulanan"
               class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900 focus:border-[#2F64A8] focus:outline-none"
             />
           </div>

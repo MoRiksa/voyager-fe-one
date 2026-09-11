@@ -4,7 +4,7 @@ const r = await localRuntime({ browser: true })
 try {
   const created = await r.create(); await r.start(created); await r.finish(created.id)
   const checks = [
-    ['/', 'Temukan kandidat untuk diteliti lebih lanjut'],
+    ['/', 'Tinjau data bank berkapitalisasi pasar terbesar'],
     ['/research', 'Temukan dan lanjutkan riset Anda'],
     ['/research/new', 'Pilih tujuan secara eksplisit'],
     [`/research/${created.id}`, 'Cakupan dan aturan yang diperiksa'],
@@ -13,7 +13,7 @@ try {
     [`/research/${created.id}/report`, 'Tujuan terjawab pada cakupan terbatas'],
     [`/research/${created.id}/company/TEST`, 'TEST — TEST synthetic test input'],
     ['/company/TEST', 'Profil global bukan hasil screening'],
-    ['/methodology', 'Cara screening bekerja'],
+    ['/methodology', 'Cara tinjauan data bekerja'],
     ['/glossary', 'Kamus Istilah Finansial'],
     [`/research/${created.id}/activity`, 'Cakupan dan aturan yang diperiksa'],
     [`/research/${created.id}/trace`, 'Cakupan dan aturan yang diperiksa'],

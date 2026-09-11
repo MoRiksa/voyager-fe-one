@@ -113,7 +113,7 @@ export interface CandidateTrend {
 
 export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-filter-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-evidence-v1'
   sourceOrigin?: ProviderSourceOrigin
   providerSource?: ProviderSourceMetadata
   symbol: string
@@ -172,7 +172,7 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-filter-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-evidence-v1'
   sourceOrigins?: ProviderSourceOrigin[]
   providerSources?: ProviderSourceMetadata[]
   stage: string
@@ -229,7 +229,7 @@ export interface ResearchReport {
 export interface ResearchContract {
   version: string
   status: 'supported' | 'unsupported'
-  objectiveType?: 'generic-quality' | 'bank-filter' | 'unsupported'
+  objectiveType?: 'generic-quality' | 'bank-evidence' | 'unsupported'
   supportedObjective: string
   criteria: string[]
   unsupportedReasons: string[]

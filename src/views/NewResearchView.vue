@@ -21,8 +21,8 @@ const createdId = ref('')
 let createdRequest = ''
 let idempotencyKey = ''
 let submittedRequest = ''
-const isBank = computed(() => store.presets.find(preset => preset.id === selectedPreset.value)?.contract?.objectiveType === 'bank-filter')
-const request = computed(() => ({ objective: objective.value.trim(), presetId: selectedPreset.value, brief: { market: 'IDX' as const, sectorScope: isBank.value ? 'Perbankan' : 'Semua Sektor', indexScope: 'Semua Indeks', candidateCount: candidateCount.value, researchDepth: researchDepth.value, useSectorMetrics: false, optionalDimensions: [], clarificationNotes: [] } }))
+const isBank = computed(() => store.presets.find(preset => preset.id === selectedPreset.value)?.contract?.objectiveType === 'bank-evidence')
+const request = computed(() => ({ objective: objective.value.trim(), presetId: selectedPreset.value, brief: { market: 'IDX' as const, sectorScope: isBank.value ? 'Perbankan' : 'Semua Sektor', indexScope: 'Semua Indeks', candidateCount: isBank.value ? 8 : candidateCount.value, researchDepth: researchDepth.value, useSectorMetrics: false, optionalDimensions: [], clarificationNotes: [] } }))
 let previewRevision = 0
 const loadPreview = async () => {
   const revision = ++previewRevision
@@ -78,7 +78,7 @@ const submit = async () => {
 
 <template>
   <div class="page-shell max-w-5xl">
-    <header class="max-w-3xl"><p class="section-kicker">Riset baru</p><h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Screening IDX dengan aturan yang jelas</h1><p class="mt-3 text-sm leading-6 text-slate-600">Pilih tujuan yang dapat diperiksa. Hasil merupakan shortlist terbatas untuk riset lanjutan, bukan rekomendasi membeli.</p></header>
+    <header class="max-w-3xl"><p class="section-kicker">Riset baru</p><h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Tinjauan data bank IDX</h1><p class="mt-3 text-sm leading-6 text-slate-600">Tinjau data ROE dan P/BV bank berkapitalisasi pasar terbesar yang tersedia dari provider.</p></header>
     <p v-if="loading" role="status" class="mt-6">Memuat kemampuan layanan…</p>
     <form v-else data-testid="research-form" class="mt-8 grid gap-6 lg:grid-cols-[1fr_19rem]" @submit.prevent="submit">
       <div class="space-y-6">
@@ -87,12 +87,12 @@ const submit = async () => {
           <div class="mt-4 grid gap-3"><div v-for="preset in store.presets" :key="preset.id"><button :data-testid="`preset-${preset.id}`" type="button" :aria-pressed="selectedPreset === preset.id && objective === preset.objective" :disabled="isSubmitting || !preset.supported || preset.availableForNewResearch === false" class="min-h-12 w-full rounded-xl border p-4 text-left font-semibold disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500" :class="preset.supported && preset.availableForNewResearch !== false ? 'border-blue-200 bg-blue-50 text-[#2F64A8]' : ''" @click="chooseTemplate(preset)">{{ preset.title }}<span class="block text-xs font-normal">{{ !preset.supported ? 'Belum didukung' : preset.availableForNewResearch === false ? 'Tidak ditawarkan untuk riset baru' : 'Dapat dijalankan' }}</span></button><p v-if="!preset.supported || preset.availableForNewResearch === false" class="mt-1 px-2 text-xs leading-5 text-slate-600">{{ preset.availabilityReason || preset.unsupportedReasons?.join(' ') }}</p></div></div>
           <label for="research-objective" class="mt-5 block text-sm font-bold">Tujuan yang diperiksa</label>
           <textarea id="research-objective" data-testid="research-objective" v-model="objective" :disabled="isSubmitting" rows="4" aria-describedby="objective-help" class="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6" @input="selectedPreset = 'custom'"></textarea>
-          <p id="objective-help" class="mt-2 text-xs leading-5 text-slate-600">Tujuan bebas belum dapat diterjemahkan menjadi aturan. Screen bank hanya memakai objective kanonik, ROE, dan P/BV untuk menyusun shortlist riset lanjutan.</p>
+          <p id="objective-help" class="mt-2 text-xs leading-5 text-slate-600">Tujuan bebas belum dapat diterjemahkan menjadi aturan. Tinjauan bank memakai objective kanonik dan menampilkan ROE serta P/BV yang tersedia tanpa ambang penilaian.</p>
         </section>
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="font-bold">Cakupan yang didukung</h2><p class="mt-2 text-sm text-slate-600">IDX · {{ isBank ? 'Subsektor Banks' : 'Semua Sektor' }} · Semua Indeks. Tanpa dimensi tambahan.</p>
-          <div class="mt-4 grid gap-4 sm:grid-cols-2"><label class="text-sm font-semibold">Batas kandidat<input v-model.number="candidateCount" data-testid="brief-candidate-count" type="number" required :min="capabilities?.candidateCount.minimum" :max="capabilities?.candidateCount.maximum" :disabled="isSubmitting" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3" /></label><label class="text-sm font-semibold">Penyajian<select v-model="researchDepth" data-testid="brief-depth" :disabled="isSubmitting" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option v-for="depth in capabilities?.researchDepths" :key="depth">{{ depth }}</option></select></label></div>
-          <p class="mt-3 text-xs leading-5 text-slate-600">Batas kandidat bukan janji jumlah hasil. Ringkas/Standar tidak mengaktifkan pendalaman.</p>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2"><p v-if="isBank" data-testid="bank-candidate-coverage" class="rounded-xl bg-slate-50 p-3 text-sm leading-6"><strong>Laporan menampilkan hingga 8 bank.</strong><br />Jumlah aktual mengikuti data top-eight yang tersedia.</p><label v-else class="text-sm font-semibold">Batas kandidat<input v-model.number="candidateCount" data-testid="brief-candidate-count" type="number" required :min="capabilities?.candidateCount.minimum" :max="capabilities?.candidateCount.maximum" :disabled="isSubmitting" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3" /></label><label class="text-sm font-semibold">Penyajian<select v-model="researchDepth" data-testid="brief-depth" :disabled="isSubmitting" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option v-for="depth in capabilities?.researchDepths" :key="depth">{{ depth }}</option></select></label></div>
+          <p class="mt-3 text-xs leading-5 text-slate-600">Data top-eight yang tidak lengkap membuat tujuan berstatus belum dapat dinilai sepenuhnya. Ringkas/Standar tidak mengaktifkan pendalaman.</p>
         </section>
       </div>
       <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-6 lg:sticky lg:top-24">
@@ -102,7 +102,7 @@ const submit = async () => {
           <p class="font-semibold">{{ preview.contract.status === 'supported' ? 'Tujuan didukung' : 'Tujuan belum didukung' }}</p>
           <ul class="list-disc space-y-2 pl-4"><li v-for="criterion in preview.contract.criteria" :key="criterion">{{ criterion }}</li><li v-for="reason in preview.contract.unsupportedReasons" :key="reason">{{ reason }}</li></ul>
           <p>{{ preview.contract.coveragePolicy }}</p>
-          <p v-for="limitation in preview.contract.limitations" :key="limitation">{{ limitation }}</p>
+          <template v-if="isBank"><p>ROE berasal dari earnings / total equity provider dengan basis yang dapat tidak cocok.</p><p>P/BV historis provider belum terverifikasi basis tanggal dan sahamnya.</p></template><p v-else v-for="limitation in preview.contract.limitations" :key="limitation">{{ limitation }}</p>
           <p data-testid="actual-universe">Jumlah universe: {{ preview.estimatedUniverseCount ?? 'Belum tersedia' }}. Durasi: {{ preview.estimatedDurationSeconds ?? 'Belum tersedia' }}. Credits: {{ preview.estimatedCredits ?? 'Belum tersedia' }}.</p>
         </div>
         <p v-else-if="!previewLoading" class="mt-3 text-sm text-slate-600">Pilih tujuan untuk memuat kontrak screening.</p>

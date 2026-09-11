@@ -38,8 +38,8 @@ const canDelete = (session: ResearchSession) => !['UNDERSTANDING', 'PLANNING', '
 const resultSummary = (session: ResearchSession) => {
   if (!session.candidates.length) return 'Belum ada kandidat akhir yang tersedia.'
   const candidate = session.candidates[0]
-  return candidate.formulaVersion === 'bank-filter-v1'
-    ? `Kandidat pertama ${candidate.symbol} mengikuti urutan market cap provider dan lolos filter ROE/PBV. Lakukan uji tuntas independen.`
+  return candidate.formulaVersion === 'bank-evidence-v1'
+    ? `Data pertama ${candidate.symbol} mengikuti urutan market cap provider. ROE dan P/BV tersedia untuk ditinjau.`
     : `Kandidat pertama ${candidate.symbol}, skor heuristik ${candidate.qualityScore ?? 'Tidak tersedia'}/100. Bukan confidence atau rekomendasi membeli.`
 }
 const duplicateSession = async (session: ResearchSession) => {
