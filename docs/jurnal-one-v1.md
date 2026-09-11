@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | P0 frontend/backend lulus LOCAL pada objective kanonik terbatas; production lama; validitas pasar nyata dan uji pengguna belum lulus |
+| Status | Objective kanonik generic dan bank-health lulus LOCAL sintetis; production lama; validitas pasar nyata dan uji pengguna belum lulus |
 | Last updated | 2026-09-11 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
@@ -38,6 +38,20 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Catatan delivery 2026-09-11 — minimum audit frontend
 
+Update bank-health: preset bank backend kini terintegrasi end-to-end di frontend dengan
+objective kanonik, exact preview criteria, top-8 provider coverage, `bank-health-3f-v1`,
+dan `bankMetrics`. UI hanya menampilkan ROE, capital-to-RWA proxy, P/BV, dan skor
+heuristik untuk formula bank; generic tetap `quality-3f-v2`. Capital-to-RWA bukan CAR
+regulator resmi. NPL, NIM, moat, kualitas kredit, D/E, FCF, P/E, dan DuPont tidak
+diklaim sebagai hasil formula bank. Preset lain tetap disabled/dijelaskan.
+
+Evidence LOCAL: contract dan browser tests memakai backend sibling aktual dengan provider
+HTTP sintetis, financial FY 2018..2025, valuation FY 2022..2026, dan common FY 2025.
+Reconnaissance sebelumnya atas provider mencatat docs `where`/`order_by`/`limit`/`offset`,
+48 bank dari query live, dan rentang array yang sama. Ini bukan rekonsiliasi independen
+atau validasi regulator. Status berikutnya: rekonsiliasi sampel bank terhadap sumber resmi,
+lalu uji pengguna/a11y; production tetap tidak disentuh.
+
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
 - V-01/V-02/V-07/V-09 dan UI V-05: bootstrap/simulasi/fallback sintetis dihapus;
@@ -58,9 +72,8 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 1. Rekonsiliasi data provider nyata untuk sampel lintas sektor: satuan, currency, FY,
    tanggal harga, rasio, dan provenance. Ini adalah syarat sebelum menilai model.
-2. Pilih satu vertical slice objective utama (direkomendasikan bank sehat), tetapkan
-   kriteria yang benar-benar tersedia, lalu gunakan kontrak yang sama dari preview
-   sampai laporan. Objective lain tetap ditandai unsupported.
+2. Rekonsiliasi vertical slice bank-health yang sudah lulus LOCAL sintetis terhadap
+   sumber resmi/regulator untuk sampel bank. Objective lain tetap ditandai unsupported.
 3. Setelah akurasi data lulus, evaluasi dan kalibrasi formula scoring secara sektoral;
    quality score tetap bukan peluang untung atau confidence.
 4. Jalankan uji pengguna pemula, screen reader, zoom/kontras, dan verifikasi export

@@ -8,10 +8,15 @@ import {
 
 const store = useResearchStore()
 const comparisonCandidates = computed(() => store.candidates)
+const isBank = computed(() => comparisonCandidates.value.some(candidate => candidate.formulaVersion === 'bank-health-3f-v1'))
 const comparisonHighlights = computed(() => {
   if (!comparisonCandidates.value.length) return []
-  const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...comparisonCandidates.value].sort((a, b) => b[key] - a[key])[0]
-  return [
+  const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...comparisonCandidates.value].sort((a, b) => (b[key] ?? -Infinity) - (a[key] ?? -Infinity))[0]
+  return isBank.value ? [
+    { label: 'ROE tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
+    { label: 'Proxy modal tertinggi', company: [...comparisonCandidates.value].sort((a, b) => (b.bankMetrics?.capitalToRwaPercent ?? -Infinity) - (a.bankMetrics?.capitalToRwaPercent ?? -Infinity))[0], metric: `${[...comparisonCandidates.value].sort((a, b) => (b.bankMetrics?.capitalToRwaPercent ?? -Infinity) - (a.bankMetrics?.capitalToRwaPercent ?? -Infinity))[0].bankMetrics?.capitalToRwaPercent}%` },
+    { label: 'Skor heuristik tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
+  ] : [
     { label: 'Pengembalian modal tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
     { label: 'Arus kas bebas tertinggi', company: highest('freeCashFlowYieldPercent'), metric: `${highest('freeCashFlowYieldPercent').freeCashFlowYieldPercent}% FCF yield` },
     { label: 'Skor kualitas tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
@@ -42,7 +47,7 @@ const comparisonHighlights = computed(() => {
          Bandingkan kekuatan dan tradeoff kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Tinjau nilai absolut kandidat akhir. Pertumbuhan dan benchmark sektor belum tersedia.
+         Tinjau nilai absolut kandidat akhir. {{ isBank ? 'Capital-to-RWA adalah proxy, bukan CAR regulator resmi.' : 'Pertumbuhan belum tersedia.' }} Benchmark sektor belum tersedia.
       </p>
     </div>
 

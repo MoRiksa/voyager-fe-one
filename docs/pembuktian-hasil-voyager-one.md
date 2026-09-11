@@ -59,7 +59,7 @@ Status berikut merujuk pada lingkup pembuktian pasca-audit, bukan keberadaan fit
 | --- | --- | --- | --- |
 | V-01 | P0 | Fallback tanpa dummy; audit §6, redesign §6 dan §7.7 | Lulus LOCAL pada skenario terisolasi; production belum diuji |
 | V-02 | P0 | Form dan tautan langsung; audit §7, redesign §7.3 dan §7.7 | Lulus LOCAL |
-| V-03 | P0 | Kesesuaian tujuan sampai laporan; audit §3–4, redesign §7.5 | Lulus LOCAL hanya untuk objective kanonik; tujuan utama lain masih unsupported |
+| V-03 | P0 | Kesesuaian tujuan sampai laporan; audit §3–4, redesign §7.5 | Lulus LOCAL untuk objective kanonik generic dan bank; objective lain tetap unsupported |
 | V-04 | P1 | Akurasi sumber, satuan, periode, dan perhitungan; audit §5 dan §8 | Dalam pengerjaan; input sintetis lulus, emiten nyata belum direkonsiliasi |
 | V-05 | P1 | Validitas scoring dan pembanding; audit §5, redesign §7.6 | Dalam pengerjaan; formula konsisten, validitas finansial belum dibuktikan |
 | V-06 | P1 | Kualitas narasi dan kekuatan bukti; audit §4–6 dan §8 | Diimplementasikan, belum diverifikasi dengan provider nyata |
@@ -271,6 +271,49 @@ Auth sebelumnya ditunda dalam keputusan proyek. ID ini tidak otomatis mengubah k
 
 ## 5. Catatan verifikasi per putaran
 
+### Putaran LOCAL 2026-09-11 — integrasi bank-health vertical slice
+
+Frontend membaca kontrak/types/OpenAPI backend sibling tanpa mengubah arsitektur terpisah.
+Preset `obj-banking-moat` kini supported sebagai renderer kontrak kanonik berikut:
+
+`Screening bank IDX sehat dengan subsektor Banks, ROE >= 15%, capital-to-RWA proxy >= 12%, dan P/BV > 0.`
+
+- Preview menampilkan enam kriteria backend secara utuh dan coverage maksimal delapan bank
+  berkapitalisasi pasar terbesar dari structured screener provider (`limit=50`).
+- Candidate/report/screener/comparison/methodology/glossary mengenali
+  `bank-health-3f-v1` dan `bankMetrics`: ROE, capital-to-RWA proxy, P/BV, serta
+  score sebagai heuristik ranking. Capital-to-RWA selalu dinyatakan bukan CAR regulator resmi.
+- D/E, FCF, P/E, dan DuPont tidak dirender untuk formula bank. Jalur
+  `quality-3f-v2` generic tetap diuji dan dipertahankan.
+- Preset lain tetap disabled dengan alasan dari backend. UI tidak menjanjikan NPL, NIM,
+  moat, kualitas kredit, pertumbuhan, atau keberlanjutan dividen.
+
+Runtime test memakai backend sibling aktual dan provider HTTP lokal sintetis. Query bank
+mengembalikan 10 simbol berurutan dengan pagination `count=48`; discovery mempertahankan
+delapan teratas dan mencatat `COVERAGE_LIMIT`. Report sintetis memakai array financial
+FY 2018..2025 dan valuation FY 2022..2026; latest common FY yang dihasilkan adalah 2025.
+Label `live` hanya berarti transport lokal melalui boundary provider backend, bukan data pasar nyata.
+
+Reconnaissance provider nyata yang sudah diamati sebelum putaran ini dicatat apa adanya:
+dokumentasi resmi mendukung `where`, `order_by`, `limit`, dan `offset`; query live yang
+sudah dilakukan mengembalikan 48 bank; array financial berurutan naik 2018..2025 dan
+valuation 2022..2026, sehingga latest common FY adalah 2025. Observasi ini bukan
+rekonsiliasi independen, validasi regulator, atau pembuktian akurasi setiap emiten.
+
+| Perintah | Hasil aktual |
+| --- | --- |
+| `npm run test:canonical-flow` | LULUS: exact objective/criteria, preview-plan-report parity, top-8 coverage, common FY 2025, `bankMetrics`, larangan field generic bank, dan regresi generic. |
+| `npm run test:interaction` | LULUS: supported/disabled presets, copy preview, flow backend aktual, render formula bank, dan tidak ada metrik generic pada laporan bank. |
+| `npx vue-tsc -b` | LULUS. |
+| `npm run test:smoke` | LULUS: 21 route dirender di Chromium terhadap backend lokal tanpa runtime exception. |
+| `VITE_BACKEND_URL=http://127.0.0.1:3000 npm run build` | LULUS, termasuk architecture polish tanpa perubahan, typecheck, 1859 modul, dan build 1,18s. |
+| `git diff --check` | LULUS. |
+| `npm run test:architecture` | GAGAL pada temuan atlas lama: `activity (desktop): node/edge motion policy invalid: {"missing":["node","edge"]}`. Atlas tidak diubah; full repository suite tetap tidak diklaim hijau. |
+
+Status: vertical slice bank **lulus LOCAL sintetis**. Next step: rekonsiliasi field, unit,
+periode, dan angka terhadap sumber resmi/regulator untuk sampel bank sebelum klaim validitas
+finansial; setelah itu uji pengguna dan screen reader. Tidak ada commit, push, atau deploy.
+
 ### Putaran LOCAL 2026-09-11 — frontend dengan backend baru
 
 Frontend working tree, tanpa commit/push/deploy. Backend sibling `../voyager-be-one`
@@ -434,7 +477,7 @@ legacy, **bukan bukti automation tersedia**; gate HTTP 501 diuji lewat backend n
 
 | Dimensi | Status |
 | --- | --- |
-| Kesesuaian tujuan dan hasil | LOCAL kanonik lulus; objective lainnya unsupported |
+| Kesesuaian tujuan dan hasil | LOCAL kanonik generic dan bank lulus; objective lainnya unsupported |
 | Akurasi finansial dan validitas scoring | Formula/input sintetis dan UI tiga faktor diuji; validitas pasar nyata belum dibuktikan |
 | Fallback tanpa dummy dan pemulihan | Minimum frontend LOCAL lulus; durability/restart production belum dibuktikan |
 | Provenance serta ekspor | LOCAL metadata dan error ekspor lulus; PDF/race revision belum lengkap |
@@ -450,3 +493,4 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-10 | Membuat register, kriteria, dan format pembuktian berdasarkan audit serta rekomendasi redesign | Tidak ada; dokumen persiapan, bukan verifikasi implementasi |
 | 2026-09-11 | Implementasi minimum frontend + integrasi backend baru, tanpa commit/deploy | Contract/browser/smoke/build lulus LOCAL; architecture gagal dan batas penerimaan dicatat §5 |
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
+| 2026-09-11 | Mengintegrasikan vertical slice bank-health backend ke frontend tanpa deploy | Contract/browser/typecheck/build LOCAL sintetis lulus; reconnaissance provider dicatat tanpa klaim rekonsiliasi atau validasi regulator |

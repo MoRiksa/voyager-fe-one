@@ -22,12 +22,25 @@ export async function localRuntime({ browser = false } = {}) {
   const provider = createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json')
     if (mode === 'outage') { res.writeHead(503); res.end(JSON.stringify({ message: 'LOCAL controlled provider outage' })); return }
-    if (req.url === '/v2/companies/') {
+    const url = new URL(req.url, 'http://local.test')
+    const bankQuery = url.pathname === '/v2/companies/' && url.searchParams.get('where') === "sub_sector = 'Banks' and market_cap IS NOT NULL"
+    if (bankQuery) {
+      const banks = Array.from({ length: 10 }, (_, index) => ({ symbol: `BANK${index + 1}`, company_name: `BANK${index + 1} synthetic test input`, sub_sector: 'Banks', market_cap: 1_000_000 - index }))
+      res.end(JSON.stringify({ results: banks, pagination: { count: 48, next: null } })); return
+    }
+    if (url.pathname === '/v2/companies/') {
       const symbols = mode === 'incomplete' ? ['MISS'] : mode === 'none' ? ['FAIL'] : ['TEST', 'NEXT']
       res.end(JSON.stringify(symbols.map(symbol => ({ symbol, company_name: `${symbol} synthetic test input` })))); return
     }
-    const symbol = req.url?.match(/\/company\/report\/([A-Z]+)\//)?.[1]
+    const symbol = url.pathname.match(/\/company\/report\/([A-Z0-9]+)\//)?.[1]
     if (!symbol) { res.writeHead(404); res.end('{}'); return }
+    if (symbol.startsWith('BANK')) {
+      res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,
+        overview: { sector: 'Financials', sub_sector: 'Banks', market_cap: 10_000_000_000_000, last_close_price: 1000, latest_close_date: '2026-09-09' },
+        valuation: { historical_valuation: [2022, 2023, 2024, 2025, 2026].map(year => ({ year, pb: 2, pb_peer_avg: 3 })) },
+        financials: { historical_financials: Array.from({ length: 8 }, (_, index) => ({ year: 2018 + index, earnings: 20, total_assets: 1200, total_equity: 100, total_capital: 160, total_risk_weighted_asset: 1000 })) }
+      })); return
+    }
     res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,
       overview: { market_cap: 100000, last_close_price: 1000, latest_close_date: '2026-09-09' },
       valuation: { historical_valuation: [{ year: 2025, pe: 5, pb: 2 }] },

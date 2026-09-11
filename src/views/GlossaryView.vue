@@ -154,6 +154,28 @@ const glossaryTerms = [
     example: 'FCF negatif tetap dapat menghasilkan skor 100 karena FCF bukan faktor skor.',
     caution: 'Bukan peluang untung atau confidence. Bobot belum dikalibrasi empiris, belum relatif sektor; bukti satu sumber belum diverifikasi independen.'
   },
+  {
+    term: 'Capital-to-RWA proxy',
+    fullName: 'Rasio modal terhadap aset tertimbang menurut risiko dari field provider',
+    category: 'Analisis',
+    icon: Shield,
+    definition: 'Perhitungan aritmetis total capital dibagi total risk-weighted assets pada FY yang sama.',
+    formula: 'Total Capital ÷ Total Risk-Weighted Assets × 100%',
+    interpretation: 'Dalam objective bank kanonik, nilai minimal 12% menjadi salah satu syarat screening.',
+    example: 'Total capital 160 dan risk-weighted assets 1.000 menghasilkan proxy 16%.',
+    caution: 'Bukan CAR regulator resmi dan bukan validasi independen kecukupan modal bank.'
+  },
+  {
+    term: 'Bank Health Score',
+    fullName: 'Skor heuristik bank-health-3f-v1',
+    category: 'Analisis',
+    icon: Calculator,
+    definition: 'Heuristik ranking dari faktor ROE, capital-to-RWA proxy, dan P/BV untuk bank yang lolos kriteria.',
+    formula: 'round(0,40 × skor ROE + 0,40 × skor proxy modal + 0,20 × skor P/BV)',
+    interpretation: 'Skor mengurutkan kandidat dalam hasil screening dan tidak memiliki ambang kelulusan tambahan.',
+    example: 'Nilai lebih tinggi berarti kombinasi tiga faktor mendapat skor formula lebih tinggi, bukan bank lebih aman.',
+    caution: 'Bukan peluang untung, confidence, kalibrasi risiko, penilaian NPL/NIM, moat, atau kualitas kredit.'
+  },
   // Ukuran
   {
     term: 'Market Cap',

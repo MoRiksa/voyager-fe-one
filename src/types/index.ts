@@ -34,10 +34,10 @@ export interface ResearchObjectivePreset {
   id: string
   title: string
   objective: string
-  category: 'Quality & Moat' | 'Valuation & Dividends' | 'Growth Compounders' | 'Sector Deep-Dive'
-  universe: string
+  category?: 'Quality & Moat' | 'Valuation & Dividends' | 'Growth Compounders' | 'Sector Deep-Dive' | 'Bank Health'
+  universe?: string
   expectedCandidates: number
-  tags: string[]
+  tags?: string[]
 }
 
 export interface ResearchBrief {
@@ -111,7 +111,7 @@ export interface CandidateTrend {
 
 export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-health-3f-v1'
   sourceOrigin?: ProviderSourceOrigin
   providerSource?: ProviderSourceMetadata
   symbol: string
@@ -120,14 +120,22 @@ export interface CandidateCompany {
   subsector: string
   marketCapTrillionIdr: number
   priceIdr: number
-  peRatio: number
+  peRatio?: number
   pbvRatio: number
   evToEbitda?: number
   roePercent: number
-  roaPercent: number
-  debtToEquity: number
+  roaPercent?: number
+  debtToEquity?: number
   currentRatio?: number
-  freeCashFlowYieldPercent: number
+  freeCashFlowYieldPercent?: number
+  bankMetrics?: {
+    totalCapital: number
+    totalRiskWeightedAssets: number
+    capitalToRwaPercent: number
+    capitalRatioLabel: 'Capital-to-RWA proxy; bukan CAR regulator resmi'
+    pbPeerAverage?: number
+    pbScoringBasis: 'peer-relative' | 'absolute-fallback'
+  }
   revenue3yCagrPercent?: number
   netIncome3yCagrPercent?: number
   dividendYieldPercent?: number
@@ -152,7 +160,7 @@ export interface CandidateCompany {
     asOf?: string
     period?: string
   }[]
-  dupontAnalysis: DuPontAnalysis
+  dupontAnalysis?: DuPontAnalysis
   peerRankInMemory?: string
 
   // Optional API-backed presentation data
@@ -170,7 +178,7 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-health-3f-v1'
   sourceOrigins?: ProviderSourceOrigin[]
   providerSources?: ProviderSourceMetadata[]
   stage: string
@@ -227,6 +235,7 @@ export interface ResearchReport {
 export interface ResearchContract {
   version: string
   status: 'supported' | 'unsupported'
+  objectiveType?: 'generic-quality' | 'bank-health' | 'unsupported'
   supportedObjective: string
   criteria: string[]
   unsupportedReasons: string[]
