@@ -35,7 +35,7 @@ const loadPreview = async () => {
 }
 watch(request, () => { error.value = ''; void loadPreview() })
 const chooseTemplate = (preset: ResearchObjectivePreset) => {
-  if (!preset.supported || isSubmitting.value) return
+  if (!preset.supported || preset.availableForNewResearch === false || isSubmitting.value) return
   selectedPreset.value = preset.id
   objective.value = preset.objective
   error.value = ''
@@ -84,7 +84,7 @@ const submit = async () => {
       <div class="space-y-6">
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="text-lg font-bold">Pilih tujuan secara eksplisit</h2>
-          <div class="mt-4 grid gap-3"><div v-for="preset in store.presets" :key="preset.id"><button :data-testid="`preset-${preset.id}`" type="button" :aria-pressed="selectedPreset === preset.id && objective === preset.objective" :disabled="isSubmitting || !preset.supported" class="min-h-12 w-full rounded-xl border p-4 text-left font-semibold disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500" :class="preset.supported ? 'border-blue-200 bg-blue-50 text-[#2F64A8]' : ''" @click="chooseTemplate(preset)">{{ preset.title }}<span class="block text-xs font-normal">{{ preset.supported ? 'Dapat dijalankan' : 'Belum didukung' }}</span></button><p v-if="!preset.supported" class="mt-1 px-2 text-xs leading-5 text-slate-600">{{ preset.unsupportedReasons?.join(' ') }}</p></div></div>
+          <div class="mt-4 grid gap-3"><div v-for="preset in store.presets" :key="preset.id"><button :data-testid="`preset-${preset.id}`" type="button" :aria-pressed="selectedPreset === preset.id && objective === preset.objective" :disabled="isSubmitting || !preset.supported || preset.availableForNewResearch === false" class="min-h-12 w-full rounded-xl border p-4 text-left font-semibold disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500" :class="preset.supported && preset.availableForNewResearch !== false ? 'border-blue-200 bg-blue-50 text-[#2F64A8]' : ''" @click="chooseTemplate(preset)">{{ preset.title }}<span class="block text-xs font-normal">{{ !preset.supported ? 'Belum didukung' : preset.availableForNewResearch === false ? 'Tidak ditawarkan untuk riset baru' : 'Dapat dijalankan' }}</span></button><p v-if="!preset.supported || preset.availableForNewResearch === false" class="mt-1 px-2 text-xs leading-5 text-slate-600">{{ preset.availabilityReason || preset.unsupportedReasons?.join(' ') }}</p></div></div>
           <label for="research-objective" class="mt-5 block text-sm font-bold">Tujuan yang diperiksa</label>
           <textarea id="research-objective" data-testid="research-objective" v-model="objective" :disabled="isSubmitting" rows="4" aria-describedby="objective-help" class="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6" @input="selectedPreset = 'custom'"></textarea>
           <p id="objective-help" class="mt-2 text-xs leading-5 text-slate-600">Tujuan bebas belum dapat diterjemahkan menjadi aturan. Screen bank hanya memakai objective kanonik, ROE, dan P/BV untuk menyusun shortlist riset lanjutan.</p>

@@ -19,7 +19,8 @@ try {
   assert.equal(preview.estimatedDurationSeconds, null)
   assert.equal(preview.estimatedCredits, null)
   const presets = (await request('/research-presets')).data.presets
-  assert.deepEqual(presets.filter(p => p.supported).map(p => p.id), ['obj-three-factor-screening', 'obj-banking-moat'])
+  assert.deepEqual(presets.filter(p => p.supported && p.availableForNewResearch !== false).map(p => p.id), ['obj-banking-moat'])
+  assert.match(presets.find(p => p.id === 'obj-three-factor-screening').availabilityReason, /bukan cakupan pasar yang representatif/)
   for (const objective of ['Cari bank Indonesia yang sehat', 'Cari dividen berkelanjutan']) {
     const body = { ...payload, objective, presetId: 'custom' }
     assert.equal((await request('/research-preview', body)).data.preview.contract.status, 'unsupported')

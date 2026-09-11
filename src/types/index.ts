@@ -29,6 +29,8 @@ export interface PillarStep {
 
 export interface ResearchObjectivePreset {
   supported?: boolean
+  availableForNewResearch?: boolean
+  availabilityReason?: string
   unsupportedReasons?: string[]
   contract?: ResearchContract
   id: string

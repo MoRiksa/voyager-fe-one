@@ -64,6 +64,17 @@ Deployment production 2026-09-11:
 - Verifikasi bersifat read-only. Ranking bank live end-to-end, outage, export, pekerjaan
   aktif saat restart, dan validitas luas belum dinyatakan lulus.
 
+Probe production live berikutnya menjalankan create → start → worker → report → delete
+untuk bank screen. Hasil terminal memuat BMRI, BBCA, dan BBRI, seluruhnya subsektor Banks,
+FY2025, formula `bank-screen-2f-v1`, tanpa narasi AI dan dengan evidence single-source
+unverified. Sesi probe dihapus memakai revision terbaru dan endpoint kemudian 404; jumlah
+sesi kembali ke baseline dua. Probe membuktikan integrasi, bukan validitas ranking investasi.
+
+Objective generic tiga faktor tetap didukung untuk kompatibilitas, tetapi tidak lagi
+ditawarkan pada riset baru karena hanya memakai delapan simbol pertama provider. Capability
+preset membedakan dukungan kontrak dari ketersediaan untuk pengguna baru. Bank screen menjadi
+satu-satunya objective baru yang dapat dipilih sampai discovery generic representatif tersedia.
+
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
 - V-01/V-02/V-07/V-09 dan UI V-05: bootstrap/simulasi/fallback sintetis dihapus;

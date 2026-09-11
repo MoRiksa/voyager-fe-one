@@ -335,6 +335,35 @@ Commit dan deployment:
   hasil ranking live end-to-end, durability restart pekerjaan aktif, dan export production
   belum dinyatakan lulus.
 
+### Putaran production live 2026-09-11 — create sampai cleanup
+
+Probe terkontrol membuat satu sesi `obj-banking-moat`, memulai worker, menunggu state
+terminal, membaca snapshot authoritative, lalu menghapus sesi dengan revision terbaru.
+Cleanup diverifikasi melalui HTTP 404 dan jumlah sesi production kembali menjadi dua.
+
+Hasil:
+- Status proses `COMPLETED`; `objectiveStatus=answered`.
+- Seluruh kandidat bersektor `Financials`, subsektor `Banks`, FY2025, dan memakai
+  `bank-screen-2f-v1`.
+- Kandidat probe: BMRI (ROE 17,1941%; P/BV 1,4393x; skor 32), BBCA (ROE 20,4259%;
+  P/BV 3,4985x; skor 31), dan BBRI (ROE 17,1186%; P/BV 1,6594x; skor 29).
+- `sourceOrigin=cache` menunjukkan cache provider nyata yang telah divalidasi metadata,
+  bukan fixture. `narrativeStatus=unavailable` dan
+  `evidenceStatus=single-source-unverified` dipertahankan.
+- Tidak ada sesi probe yang tertinggal.
+
+Batas bukti: putaran ini membuktikan integrasi create/start/worker/provider cache/report/
+delete production. Putaran ini tidak membuktikan ranking tersebut layak untuk keputusan
+investasi, tidak menguji outage, dan tidak merekonsiliasi BBRI atau seluruh 48 bank ke
+sumber resmi. ID sesi probe tidak menjadi artefak permanen karena sudah dihapus.
+
+Sesudah probe, objective generic tiga faktor ditandai `availableForNewResearch=false`.
+Backend tetap mempertahankannya untuk kompatibilitas sesi/kontrak lama, tetapi frontend
+tidak menawarkan objective tersebut kepada pengguna baru karena discovery delapan simbol
+pertama provider bukan cakupan pasar yang representatif. Bank screen menjadi satu-satunya
+pilihan riset baru yang executable; preset unsupported tetap terlihat dengan alasan.
+Contract, interaction, 21-route smoke, typecheck, dan build lulus LOCAL setelah perubahan.
+
 ### Putaran LOCAL 2026-09-11 — frontend dengan backend baru
 
 Frontend working tree, tanpa commit/push/deploy. Backend sibling `../voyager-be-one`
