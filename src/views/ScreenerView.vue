@@ -29,7 +29,7 @@ const visibleCompanies = computed(() => [...(resultMode.value === 'retained' ? r
 }))
 const initialCount = computed(() => store.screeningFunnel[0]?.count || 0)
 const hasScreeningData = computed(() => store.screeningFunnel.length > 0)
-const isBank = computed(() => store.candidates.some(candidate => candidate.formulaVersion === 'bank-health-3f-v1') || store.screeningFunnel.some(stage => stage.formulaVersion === 'bank-health-3f-v1'))
+const isBank = computed(() => store.candidates.some(candidate => candidate.formulaVersion === 'bank-screen-2f-v1') || store.screeningFunnel.some(stage => stage.formulaVersion === 'bank-screen-2f-v1'))
 const previousCount = computed(() => activeStep.value?.inputSymbols?.length ?? (selectedStage.value > 0 ? store.screeningFunnel[selectedStage.value - 1]?.count || 0 : initialCount.value))
 const excludedCount = computed(() => activeStep.value?.excludedCount ?? excludedSymbols.value.length)
 const exclusionImpact = computed(() => previousCount.value ? (excludedCount.value / previousCount.value) * 100 : 0)
@@ -160,14 +160,14 @@ watch(() => store.screeningFunnel.length, length => {
             <span class="rounded-lg bg-[#407EC9]/10 px-2.5 py-1 font-mono text-sm font-bold text-[#2F64A8]">Skor {{ metric(candidate.qualityScore, '/100') }}</span>
           </div>
           <div v-if="missingMetrics(candidate).length" class="mt-3 flex flex-wrap gap-1"><span v-for="missing in missingMetrics(candidate)" :key="missing" class="rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-900">Data hilang: {{ missing }}</span></div>
-          <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.roePercent, '%') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'Capital-to-RWA proxy' : 'P/E' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? metric(candidate.bankMetrics?.capitalToRwaPercent, '%') : metric(candidate.peRatio, 'x') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'P/BV' : 'FCF yield' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? metric(candidate.pbvRatio, 'x') : metric(candidate.freeCashFlowYieldPercent, '%') }}</dd></div></dl>
-          <p class="mt-3 text-[11px] leading-5 text-slate-500">{{ isBank ? 'Skor bank adalah heuristik ranking tanpa ambang tambahan. Capital-to-RWA bukan CAR regulator resmi.' : 'Skor 80+ adalah ambang heuristik tiga faktor.' }} Bukan confidence. Benchmark sektor belum tersedia.</p>
+          <dl class="mt-4 grid grid-cols-3 gap-2 text-xs"><div><dt class="text-slate-500">ROE</dt><dd class="mt-1 font-mono font-bold">{{ metric(candidate.roePercent, '%') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'P/BV' : 'P/E' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? metric(candidate.pbvRatio, 'x') : metric(candidate.peRatio, 'x') }}</dd></div><div><dt class="text-slate-500">{{ isBank ? 'Skor' : 'FCF yield' }}</dt><dd class="mt-1 font-mono font-bold">{{ isBank ? metric(candidate.qualityScore, '/100') : metric(candidate.freeCashFlowYieldPercent, '%') }}</dd></div></dl>
+          <p class="mt-3 text-[11px] leading-5 text-slate-500">{{ isBank ? 'Skor bank adalah ranking ROE 60% dan P/BV 40% tanpa ambang tambahan.' : 'Skor 80+ adalah ambang heuristik tiga faktor.' }} Bukan confidence. Benchmark sektor belum tersedia.</p>
           <div class="mt-4 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" :class="resultMode === 'retained' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'"><CheckCircle2 v-if="resultMode === 'retained'" class="mt-0.5 h-3.5 w-3.5 shrink-0" /><XCircle v-else class="mt-0.5 h-3.5 w-3.5 shrink-0" />{{ resultMode === 'retained' ? 'Diteruskan pada tahap ini.' : exclusionReasons(candidate).join('; ') || 'Alasan tidak diteruskan belum tersedia.' }}</div>
         </article>
       </div>
 
       <div v-if="visibleCompanies.length > 0" class="hidden overflow-x-auto md:block">
-        <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. <template v-if="isBank">ROE, capital-to-RWA proxy, dan P/BV adalah faktor bank-health-3f-v1. Proxy bukan CAR regulator resmi; skor hanya ranking heuristik.</template><template v-else>ROE, P/E, Debt/Equity, dan FCF memakai aturan quality-3f-v2. Skor 80/100 adalah ambang kualitas.</template> Bukan rekomendasi membeli.</p>
+        <p data-testid="screener-metric-guide" class="mb-4 text-xs leading-5 text-slate-500">Kapitalisasi menunjukkan ukuran perusahaan. <template v-if="isBank">ROE 60% dan P/BV 40% adalah faktor bank-screen-2f-v1; skor hanya ranking heuristik.</template><template v-else>ROE, P/E, Debt/Equity, dan FCF memakai aturan quality-3f-v2. Skor 80/100 adalah ambang kualitas.</template> Bukan rekomendasi membeli.</p>
         <table class="w-full text-left text-xs">
           <caption class="sr-only">{{ resultMode === 'retained' ? `Perusahaan yang lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` : `Perusahaan yang tidak lolos tahap ${activeStep.stage}, diurutkan berdasarkan ${sortLabel}` }}</caption>
           <thead>
@@ -177,8 +177,8 @@ watch(() => store.screeningFunnel.length, length => {
                <th scope="col" class="pb-3 pr-4">Sektor</th>
                <th scope="col" class="pb-3 pr-4 text-right">Kapitalisasi</th>
                <th scope="col" class="pb-3 pr-4 text-right">ROE</th>
-               <th scope="col" class="pb-3 pr-4 text-right">{{ isBank ? 'Capital-to-RWA proxy' : 'P/E' }}</th>
-               <th scope="col" class="pb-3 pr-4 text-right">{{ isBank ? 'P/BV' : 'Debt/Equity' }}</th>
+               <th scope="col" class="pb-3 pr-4 text-right">{{ isBank ? 'P/BV' : 'P/E' }}</th>
+               <th v-if="!isBank" scope="col" class="pb-3 pr-4 text-right">Debt/Equity</th>
                <th v-if="!isBank" scope="col" class="pb-3 pr-4 text-right">FCF yield</th>
                <th scope="col" class="pb-3 text-right">Skor {{ isBank ? 'heuristik' : 'kualitas' }}</th>
             </tr>
@@ -203,8 +203,8 @@ watch(() => store.screeningFunnel.length, length => {
               <td class="py-3.5 pr-4 font-sans text-slate-700">{{ candidate.sector }}</td>
                <td class="py-3.5 pr-4 text-right text-slate-800"><span v-if="Number.isFinite(candidate.marketCapTrillionIdr)">IDR {{ candidate.marketCapTrillionIdr }}T</span><span v-else class="rounded bg-amber-100 px-1.5 py-1 font-sans text-[10px] font-bold text-amber-900">Data hilang</span></td>
                <td class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ metric(candidate.roePercent, '%') }}</td>
-               <td class="py-3.5 pr-4 text-right text-slate-800">{{ isBank ? metric(candidate.bankMetrics?.capitalToRwaPercent, '%') : metric(candidate.peRatio, 'x') }}</td>
-               <td class="py-3.5 pr-4 text-right text-slate-800">{{ isBank ? metric(candidate.pbvRatio, 'x') : metric(candidate.debtToEquity, 'x') }}</td>
+               <td class="py-3.5 pr-4 text-right text-slate-800">{{ isBank ? metric(candidate.pbvRatio, 'x') : metric(candidate.peRatio, 'x') }}</td>
+               <td v-if="!isBank" class="py-3.5 pr-4 text-right text-slate-800">{{ metric(candidate.debtToEquity, 'x') }}</td>
                <td v-if="!isBank" class="py-3.5 pr-4 text-right font-bold text-slate-900">{{ metric(candidate.freeCashFlowYieldPercent, '%') }}</td>
               <td class="py-3.5 text-right font-bold text-[#2F64A8]">
                 <span class="px-2 py-1 rounded bg-[#407EC9]/10 border border-[#407EC9]/20">
@@ -218,7 +218,7 @@ watch(() => store.screeningFunnel.length, length => {
     </div>
 
     <section data-testid="screener-next" class="grid gap-5 rounded-2xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div><p class="text-xs font-bold uppercase tracking-wider text-blue-200">Langkah berikutnya</p><h2 class="mt-2 text-xl font-bold">{{ store.candidates.length >= 2 ? `${store.candidates.length} kandidat siap dibandingkan` : store.candidates.length === 1 ? 'Satu kandidat siap ditinjau' : 'Tinjau alasan dan batas cakupan' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{{ store.candidates.length >= 2 ? isBank ? 'Bandingkan nilai absolut ROE, capital-to-RWA proxy, P/BV, dan skor heuristik. NPL, NIM, moat, dan kualitas kredit tidak dinilai.' : 'Bandingkan nilai absolut ROE, D/E, P/E, dan FCF. Pertumbuhan dan benchmark sektor belum dinilai.' : store.candidates.length === 1 ? 'Buka analisis untuk memahami risiko dan bukti pendukungnya.' : 'Periksa alasan seleksi dan data tidak lengkap. Ambang screening kanonik belum dapat diubah.' }}</p></div>
+      <div><p class="text-xs font-bold uppercase tracking-wider text-blue-200">Langkah berikutnya</p><h2 class="mt-2 text-xl font-bold">{{ store.candidates.length >= 2 ? `${store.candidates.length} kandidat siap dibandingkan` : store.candidates.length === 1 ? 'Satu kandidat siap ditinjau' : 'Tinjau alasan dan batas cakupan' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{{ store.candidates.length >= 2 ? isBank ? 'Bandingkan nilai absolut ROE, P/BV, dan skor heuristik, lalu lanjutkan riset bank secara independen.' : 'Bandingkan nilai absolut ROE, D/E, P/E, dan FCF. Pertumbuhan dan benchmark sektor belum dinilai.' : store.candidates.length === 1 ? 'Buka analisis untuk memahami risiko dan bukti pendukungnya.' : 'Periksa alasan seleksi dan data tidak lengkap. Ambang screening kanonik belum dapat diubah.' }}</p></div>
       <div class="flex flex-wrap gap-2">
         <router-link v-if="store.candidates.length >= 2" data-testid="screener-primary-next" :to="`/research/${store.report.sessionId}/peers`" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link>
         <router-link v-else-if="store.candidates.length === 1" data-testid="screener-primary-next" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Buka analisis <ArrowRight class="h-4 w-4" /></router-link>

@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Objective kanonik generic dan bank-health lulus LOCAL sintetis; production lama; validitas pasar nyata dan uji pengguna belum lulus |
+| Status | Objective kanonik generic dan bank screen lulus LOCAL sintetis; production lama; screen ROE/PBV belum tervalidasi luas dan uji pengguna belum lulus |
 | Last updated | 2026-09-11 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
@@ -38,19 +38,22 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Catatan delivery 2026-09-11 — minimum audit frontend
 
-Update bank-health: preset bank backend kini terintegrasi end-to-end di frontend dengan
-objective kanonik, exact preview criteria, top-8 provider coverage, `bank-health-3f-v1`,
-dan `bankMetrics`. UI hanya menampilkan ROE, capital-to-RWA proxy, P/BV, dan skor
-heuristik untuk formula bank; generic tetap `quality-3f-v2`. Capital-to-RWA bukan CAR
-regulator resmi. NPL, NIM, moat, kualitas kredit, D/E, FCF, P/E, dan DuPont tidak
-diklaim sebagai hasil formula bank. Preset lain tetap disabled/dijelaskan.
+Update bank screen: preset backend terintegrasi end-to-end dengan judul exact
+`Bank dengan ROE kuat untuk diteliti`, objective kanonik, exact preview criteria,
+top-8 dari 48 coverage, contract `bank-screen-contract-v1`, objectiveType
+`bank-screen`, dan formula `bank-screen-2f-v1`. UI hanya menampilkan ROE 60%, P/BV
+40%, dan skor ranking; generic tetap `quality-3f-v2`. Tidak ada faktor atau klaim
+modal, RWA, CAR, NPL, NIM, atau kesehatan bank. Preset lain tetap disabled/dijelaskan.
 
 Evidence LOCAL: contract dan browser tests memakai backend sibling aktual dengan provider
 HTTP sintetis, financial FY 2018..2025, valuation FY 2022..2026, dan common FY 2025.
-Reconnaissance sebelumnya atas provider mencatat docs `where`/`order_by`/`limit`/`offset`,
-48 bank dari query live, dan rentang array yang sama. Ini bukan rekonsiliasi independen
-atau validasi regulator. Status berikutnya: rekonsiliasi sampel bank terhadap sumber resmi,
-lalu uji pengguna/a11y; production tetap tidak disentuh.
+Rekonsiliasi independen terhadap sumber resmi menemukan empat field BBCA FY2025 cocok,
+tetapi BMRI mencampur earnings/equity konsolidasian dengan capital/RWA bank-only. Karena
+basis campuran tersebut, faktor modal dihapus seluruhnya. Sumber resmi:
+[BCA Annual Report 2025](https://www.bca.co.id/-/media/Feature/Report/File/S8/Laporan-Tahunan/2026/20260212-BCA-AR-2025-EN.pdf) dan
+[Bank Mandiri Annual Report 2025](https://www.bankmandiri.co.id/documents/38265486/0/%5BFINAL+-+2904%5D+ANNUAL+REPORT+BMRI+2025+%281%29.pdf/da87ca86-a02b-f394-b2e4-1ff3f268c0ee?t=1777514285182).
+Screen ROE/PBV provider-only belum direkonsiliasi independen secara luas. Market
+intelligence belum lengkap; uji pengguna/a11y dan production tetap terbuka.
 
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
@@ -58,12 +61,12 @@ lalu uji pengguna/a11y; production tetap tidak disentuh.
   preview objective+brief+presetId; template lock/deep link diperbaiki; objectiveStatus dan
   evidence/narrativeStatus ditampilkan; hasil mengutamakan alasan, risiko, periode lalu skor.
   Trace/log operasional dikeluarkan dari UI pengguna; ekspor hanya backend.
-- LOCAL: `test:interaction`, `test:smoke` (13 route), `test:canonical-flow`, build/typecheck,
+- LOCAL: `test:interaction`, `test:smoke` (21 route), `test:canonical-flow`, build/typecheck,
   dan diff check lulus. Backend nyata dijalankan dengan provider sintetis dan storage temporer,
   demo fixture nonaktif. Start error/retry tidak membuat sesi ganda; export error tidak membuat file palsu.
-- `test:architecture` gagal pada kelengkapan marker animasi serta temuan geometri diagram
-  internal. Runner sudah melaporkan elemen yang hilang tanpa crash. Full repository suite
-  tidak diklaim hijau. Rekonsiliasi sumber nyata, uji pengguna/screen reader,
+- `test:architecture` dijalankan terpisah dan gagal pada atlas lama: `Error: activity
+  (desktop):`. Full repository suite tidak diklaim hijau. Rekonsiliasi luas screen ROE/PBV,
+  uji pengguna/screen reader,
   PDF lengkap, production, auth dan durability tetap terbuka.
 - Tidak ada commit, push, deploy, atau delegasi. Detail putaran gagal/lulus dan batas bukti:
   [`pembuktian-hasil-voyager-one.md`, §5](pembuktian-hasil-voyager-one.md#5-catatan-verifikasi-per-putaran).
@@ -72,8 +75,8 @@ lalu uji pengguna/a11y; production tetap tidak disentuh.
 
 1. Rekonsiliasi data provider nyata untuk sampel lintas sektor: satuan, currency, FY,
    tanggal harga, rasio, dan provenance. Ini adalah syarat sebelum menilai model.
-2. Rekonsiliasi vertical slice bank-health yang sudah lulus LOCAL sintetis terhadap
-   sumber resmi/regulator untuk sampel bank. Objective lain tetap ditandai unsupported.
+2. Perluas rekonsiliasi independen screen ROE/PBV ke sampel bank yang lebih luas.
+   Objective lain tetap ditandai unsupported.
 3. Setelah akurasi data lulus, evaluasi dan kalibrasi formula scoring secara sektoral;
    quality score tetap bukan peluang untung atau confidence.
 4. Jalankan uji pengguna pemula, screen reader, zoom/kontras, dan verifikasi export

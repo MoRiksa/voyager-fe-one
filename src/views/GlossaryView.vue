@@ -155,26 +155,15 @@ const glossaryTerms = [
     caution: 'Bukan peluang untung atau confidence. Bobot belum dikalibrasi empiris, belum relatif sektor; bukti satu sumber belum diverifikasi independen.'
   },
   {
-    term: 'Capital-to-RWA proxy',
-    fullName: 'Rasio modal terhadap aset tertimbang menurut risiko dari field provider',
-    category: 'Analisis',
-    icon: Shield,
-    definition: 'Perhitungan aritmetis total capital dibagi total risk-weighted assets pada FY yang sama.',
-    formula: 'Total Capital ÷ Total Risk-Weighted Assets × 100%',
-    interpretation: 'Dalam objective bank kanonik, nilai minimal 12% menjadi salah satu syarat screening.',
-    example: 'Total capital 160 dan risk-weighted assets 1.000 menghasilkan proxy 16%.',
-    caution: 'Bukan CAR regulator resmi dan bukan validasi independen kecukupan modal bank.'
-  },
-  {
-    term: 'Bank Health Score',
-    fullName: 'Skor heuristik bank-health-3f-v1',
+    term: 'Bank Screen Score',
+    fullName: 'Skor heuristik bank-screen-2f-v1',
     category: 'Analisis',
     icon: Calculator,
-    definition: 'Heuristik ranking dari faktor ROE, capital-to-RWA proxy, dan P/BV untuk bank yang lolos kriteria.',
-    formula: 'round(0,40 × skor ROE + 0,40 × skor proxy modal + 0,20 × skor P/BV)',
+    definition: 'Heuristik ranking dari faktor ROE dan P/BV untuk bank yang lolos kriteria.',
+    formula: 'round(0,60 × skor ROE + 0,40 × skor P/BV)',
     interpretation: 'Skor mengurutkan kandidat dalam hasil screening dan tidak memiliki ambang kelulusan tambahan.',
-    example: 'Nilai lebih tinggi berarti kombinasi tiga faktor mendapat skor formula lebih tinggi, bukan bank lebih aman.',
-    caution: 'Bukan peluang untung, confidence, kalibrasi risiko, penilaian NPL/NIM, moat, atau kualitas kredit.'
+    example: 'Nilai lebih tinggi berarti kombinasi dua faktor mendapat skor formula lebih tinggi, bukan hasil riset bank yang lengkap.',
+    caution: 'Bukan peluang untung, confidence, kalibrasi risiko, atau penilaian kesehatan bank.'
   },
   // Ukuran
   {

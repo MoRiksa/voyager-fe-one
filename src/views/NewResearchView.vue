@@ -21,7 +21,7 @@ const createdId = ref('')
 let createdRequest = ''
 let idempotencyKey = ''
 let submittedRequest = ''
-const isBank = computed(() => store.presets.find(preset => preset.id === selectedPreset.value)?.contract?.objectiveType === 'bank-health')
+const isBank = computed(() => store.presets.find(preset => preset.id === selectedPreset.value)?.contract?.objectiveType === 'bank-screen')
 const request = computed(() => ({ objective: objective.value.trim(), presetId: selectedPreset.value, brief: { market: 'IDX' as const, sectorScope: isBank.value ? 'Perbankan' : 'Semua Sektor', indexScope: 'Semua Indeks', candidateCount: candidateCount.value, researchDepth: researchDepth.value, useSectorMetrics: false, optionalDimensions: [], clarificationNotes: [] } }))
 let previewRevision = 0
 const loadPreview = async () => {
@@ -87,7 +87,7 @@ const submit = async () => {
           <div class="mt-4 grid gap-3"><div v-for="preset in store.presets" :key="preset.id"><button :data-testid="`preset-${preset.id}`" type="button" :aria-pressed="selectedPreset === preset.id && objective === preset.objective" :disabled="isSubmitting || !preset.supported" class="min-h-12 w-full rounded-xl border p-4 text-left font-semibold disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500" :class="preset.supported ? 'border-blue-200 bg-blue-50 text-[#2F64A8]' : ''" @click="chooseTemplate(preset)">{{ preset.title }}<span class="block text-xs font-normal">{{ preset.supported ? 'Dapat dijalankan' : 'Belum didukung' }}</span></button><p v-if="!preset.supported" class="mt-1 px-2 text-xs leading-5 text-slate-600">{{ preset.unsupportedReasons?.join(' ') }}</p></div></div>
           <label for="research-objective" class="mt-5 block text-sm font-bold">Tujuan yang diperiksa</label>
           <textarea id="research-objective" data-testid="research-objective" v-model="objective" :disabled="isSubmitting" rows="4" aria-describedby="objective-help" class="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm leading-6" @input="selectedPreset = 'custom'"></textarea>
-          <p id="objective-help" class="mt-2 text-xs leading-5 text-slate-600">Tujuan bebas belum dapat diterjemahkan menjadi aturan. Screening bank hanya menilai objective kanonik dari ROE, capital-to-RWA proxy, dan P/BV; tidak menilai NPL, NIM, moat, kualitas kredit, atau dividen berkelanjutan.</p>
+          <p id="objective-help" class="mt-2 text-xs leading-5 text-slate-600">Tujuan bebas belum dapat diterjemahkan menjadi aturan. Screen bank hanya memakai objective kanonik, ROE, dan P/BV untuk menyusun shortlist riset lanjutan.</p>
         </section>
         <section class="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 class="font-bold">Cakupan yang didukung</h2><p class="mt-2 text-sm text-slate-600">IDX · {{ isBank ? 'Subsektor Banks' : 'Semua Sektor' }} · Semua Indeks. Tanpa dimensi tambahan.</p>

@@ -38,7 +38,7 @@ export async function localRuntime({ browser = false } = {}) {
       res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,
         overview: { sector: 'Financials', sub_sector: 'Banks', market_cap: 10_000_000_000_000, last_close_price: 1000, latest_close_date: '2026-09-09' },
         valuation: { historical_valuation: [2022, 2023, 2024, 2025, 2026].map(year => ({ year, pb: 2, pb_peer_avg: 3 })) },
-        financials: { historical_financials: Array.from({ length: 8 }, (_, index) => ({ year: 2018 + index, earnings: 20, total_assets: 1200, total_equity: 100, total_capital: 160, total_risk_weighted_asset: 1000 })) }
+        financials: { historical_financials: Array.from({ length: 8 }, (_, index) => ({ year: 2018 + index, earnings: 20, total_assets: 1200, total_equity: 100 })) }
       })); return
     }
     res.end(JSON.stringify({ symbol, company_name: `${symbol} synthetic test input`,

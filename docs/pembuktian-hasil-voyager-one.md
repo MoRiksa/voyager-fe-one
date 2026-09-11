@@ -271,22 +271,23 @@ Auth sebelumnya ditunda dalam keputusan proyek. ID ini tidak otomatis mengubah k
 
 ## 5. Catatan verifikasi per putaran
 
-### Putaran LOCAL 2026-09-11 — integrasi bank-health vertical slice
+### Putaran LOCAL 2026-09-11 — koreksi bank screen setelah rekonsiliasi resmi
 
 Frontend membaca kontrak/types/OpenAPI backend sibling tanpa mengubah arsitektur terpisah.
 Preset `obj-banking-moat` kini supported sebagai renderer kontrak kanonik berikut:
 
-`Screening bank IDX sehat dengan subsektor Banks, ROE >= 15%, capital-to-RWA proxy >= 12%, dan P/BV > 0.`
+`Screening bank IDX berkapitalisasi pasar terbesar dengan subsektor Banks, latest common FY, ROE >= 15%, dan P/BV > 0.`
 
-- Preview menampilkan enam kriteria backend secara utuh dan coverage maksimal delapan bank
+- Preview menampilkan lima kriteria backend secara utuh dan coverage maksimal delapan bank
   berkapitalisasi pasar terbesar dari structured screener provider (`limit=50`).
-- Candidate/report/screener/comparison/methodology/glossary mengenali
-  `bank-health-3f-v1` dan `bankMetrics`: ROE, capital-to-RWA proxy, P/BV, serta
-  score sebagai heuristik ranking. Capital-to-RWA selalu dinyatakan bukan CAR regulator resmi.
-- D/E, FCF, P/E, dan DuPont tidak dirender untuk formula bank. Jalur
+- Candidate/report/screener/comparison/methodology/glossary mengenali contract
+  `bank-screen-contract-v1`, objectiveType `bank-screen`, formula `bank-screen-2f-v1`,
+  ROE 60%, P/BV 40%, dan `bankMetrics` yang hanya menjelaskan basis scoring P/BV.
+- Field/claim capital, RWA, CAR, NPL, NIM, D/E, FCF, P/E, dan DuPont tidak dirender
+  untuk formula bank. Jalur
   `quality-3f-v2` generic tetap diuji dan dipertahankan.
-- Preset lain tetap disabled dengan alasan dari backend. UI tidak menjanjikan NPL, NIM,
-  moat, kualitas kredit, pertumbuhan, atau keberlanjutan dividen.
+- Preset bank memakai copy backend exact `Bank dengan ROE kuat untuk diteliti` dan bukan
+  klaim bank sehat. Preset lain tetap disabled dengan alasan dari backend.
 
 Runtime test memakai backend sibling aktual dan provider HTTP lokal sintetis. Query bank
 mengembalikan 10 simbol berurutan dengan pagination `count=48`; discovery mempertahankan
@@ -294,25 +295,31 @@ delapan teratas dan mencatat `COVERAGE_LIMIT`. Report sintetis memakai array fin
 FY 2018..2025 dan valuation FY 2022..2026; latest common FY yang dihasilkan adalah 2025.
 Label `live` hanya berarti transport lokal melalui boundary provider backend, bukan data pasar nyata.
 
-Reconnaissance provider nyata yang sudah diamati sebelum putaran ini dicatat apa adanya:
-dokumentasi resmi mendukung `where`, `order_by`, `limit`, dan `offset`; query live yang
-sudah dilakukan mengembalikan 48 bank; array financial berurutan naik 2018..2025 dan
-valuation 2022..2026, sehingga latest common FY adalah 2025. Observasi ini bukan
-rekonsiliasi independen, validasi regulator, atau pembuktian akurasi setiap emiten.
+Rekonsiliasi independen memakai [BCA Annual Report 2025](https://www.bca.co.id/-/media/Feature/Report/File/S8/Laporan-Tahunan/2026/20260212-BCA-AR-2025-EN.pdf)
+dan [Bank Mandiri Annual Report 2025](https://www.bankmandiri.co.id/documents/38265486/0/%5BFINAL+-+2904%5D+ANNUAL+REPORT+BMRI+2025+%281%29.pdf/da87ca86-a02b-f394-b2e4-1ff3f268c0ee?t=1777514285182).
+BBCA FY2025 cocok pada empat field provider: earnings 57.537.287 juta, equity
+281.687.555 juta, capital 284.351.775 juta, dan RWA 936.368.457 juta pada basis
+konsolidasian. BMRI mengungkap cacat basis: earnings 56.293.950 juta dan equity
+327.401.998 juta konsolidasian, tetapi capital 253.294.877 juta dan RWA 1.308.455.053
+juta bank-only; angka konsolidasian resmi adalah capital 322.895.630 juta dan RWA
+1.580.301.328 juta. Faktor modal karena itu dihapus dari requirement, eligibility,
+scoring, output, dan klaim. Rekonsiliasi dua perusahaan ini tidak memvalidasi luas
+screen ROE/PBV provider-only dan tidak melengkapi market intelligence produk.
 
 | Perintah | Hasil aktual |
 | --- | --- |
-| `npm run test:canonical-flow` | LULUS: exact objective/criteria, preview-plan-report parity, top-8 coverage, common FY 2025, `bankMetrics`, larangan field generic bank, dan regresi generic. |
-| `npm run test:interaction` | LULUS: supported/disabled presets, copy preview, flow backend aktual, render formula bank, dan tidak ada metrik generic pada laporan bank. |
+| `npm run test:canonical-flow` | LULUS: exact title/objective/contract, preview-plan-report parity, top-8 dari 48, common FY 2025, dua faktor, dan regresi generic. |
+| `npm run test:interaction` | LULUS: copy backend exact, render ROE 60% dan P/BV 40%, serta larangan metrik/klaim bank yang dihapus. |
 | `npx vue-tsc -b` | LULUS. |
 | `npm run test:smoke` | LULUS: 21 route dirender di Chromium terhadap backend lokal tanpa runtime exception. |
-| `VITE_BACKEND_URL=http://127.0.0.1:3000 npm run build` | LULUS, termasuk architecture polish tanpa perubahan, typecheck, 1859 modul, dan build 1,18s. |
+| `VITE_BACKEND_URL=http://127.0.0.1:3000 npm run build` | LULUS, termasuk architecture polish tanpa perubahan, typecheck, 1859 modul, dan build 4,28s. |
 | `git diff --check` | LULUS. |
-| `npm run test:architecture` | GAGAL pada temuan atlas lama: `activity (desktop): node/edge motion policy invalid: {"missing":["node","edge"]}`. Atlas tidak diubah; full repository suite tetap tidak diklaim hijau. |
+| `npm run test:architecture` | GAGAL terpisah pada atlas lama: `Error: activity (desktop):`. Atlas tidak diubah; full repository suite tetap tidak diklaim hijau. |
 
-Status: vertical slice bank **lulus LOCAL sintetis**. Next step: rekonsiliasi field, unit,
-periode, dan angka terhadap sumber resmi/regulator untuk sampel bank sebelum klaim validitas
-finansial; setelah itu uji pengguna dan screen reader. Tidak ada commit, push, atau deploy.
+Status: corrected bank screen **lulus seluruh gate produk LOCAL**. Kontrak bank telah
+dikoreksi setelah rekonsiliasi resmi dua perusahaan. Screen ROE/PBV provider-only belum
+tervalidasi independen secara luas dan market intelligence belum lengkap. Gate arsitektur
+terpisah tetap gagal pada atlas lama. Tidak ada commit, push, atau deploy.
 
 ### Putaran LOCAL 2026-09-11 — frontend dengan backend baru
 
@@ -493,4 +500,4 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-10 | Membuat register, kriteria, dan format pembuktian berdasarkan audit serta rekomendasi redesign | Tidak ada; dokumen persiapan, bukan verifikasi implementasi |
 | 2026-09-11 | Implementasi minimum frontend + integrasi backend baru, tanpa commit/deploy | Contract/browser/smoke/build lulus LOCAL; architecture gagal dan batas penerimaan dicatat §5 |
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
-| 2026-09-11 | Mengintegrasikan vertical slice bank-health backend ke frontend tanpa deploy | Contract/browser/typecheck/build LOCAL sintetis lulus; reconnaissance provider dicatat tanpa klaim rekonsiliasi atau validasi regulator |
+| 2026-09-11 | Mengoreksi frontend ke bank-screen-2f-v1 setelah rekonsiliasi BBCA/BMRI, tanpa deploy | Faktor modal dihapus karena BMRI mencampur basis; screen ROE/PBV belum tervalidasi luas dan market intelligence belum lengkap |

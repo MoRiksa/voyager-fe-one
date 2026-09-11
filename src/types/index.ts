@@ -111,7 +111,7 @@ export interface CandidateTrend {
 
 export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-health-3f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-screen-2f-v1'
   sourceOrigin?: ProviderSourceOrigin
   providerSource?: ProviderSourceMetadata
   symbol: string
@@ -129,10 +129,6 @@ export interface CandidateCompany {
   currentRatio?: number
   freeCashFlowYieldPercent?: number
   bankMetrics?: {
-    totalCapital: number
-    totalRiskWeightedAssets: number
-    capitalToRwaPercent: number
-    capitalRatioLabel: 'Capital-to-RWA proxy; bukan CAR regulator resmi'
     pbPeerAverage?: number
     pbScoringBasis: 'peer-relative' | 'absolute-fallback'
   }
@@ -178,7 +174,7 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-health-3f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-screen-2f-v1'
   sourceOrigins?: ProviderSourceOrigin[]
   providerSources?: ProviderSourceMetadata[]
   stage: string
@@ -235,7 +231,7 @@ export interface ResearchReport {
 export interface ResearchContract {
   version: string
   status: 'supported' | 'unsupported'
-  objectiveType?: 'generic-quality' | 'bank-health' | 'unsupported'
+  objectiveType?: 'generic-quality' | 'bank-screen' | 'unsupported'
   supportedObjective: string
   criteria: string[]
   unsupportedReasons: string[]
