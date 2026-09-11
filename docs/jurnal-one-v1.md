@@ -104,6 +104,14 @@ satu-satunya objective baru yang dapat dipilih sampai discovery generic represen
 Perubahan ini aktif melalui backend `7eb3b72` dan frontend `39f9b30`; backup backend
 tersedia di `/home/ubuntu/voyager-be-one-backups/20260911T045000Z/app-before-deploy.tgz`.
 
+Rekonsiliasi BBRI/BBNI kemudian membuktikan ROE/PBV provider belum memiliki basis yang
+cukup konsisten untuk skor gabungan. Backend `628dcf2` dan frontend `cc6b592` mengganti
+screen bank menjadi `bank-filter-v1` tanpa `qualityScore`/`scoreBreakdown`; urutan kandidat
+mengikuti kapitalisasi pasar provider, bukan ranking kualitas. Probe production menghasilkan
+BBCA, BBRI, BMRI pada FY2025 tanpa field skor, lalu sesi probe dihapus dan endpoint 404.
+Backup backend tersedia di
+`/home/ubuntu/voyager-be-one-backups/20260911T083500Z/app-before-deploy.tgz`.
+
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
 - V-01/V-02/V-07/V-09 dan UI V-05: bootstrap/simulasi/fallback sintetis dihapus;

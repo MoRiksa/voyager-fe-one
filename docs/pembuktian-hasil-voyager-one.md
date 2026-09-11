@@ -401,6 +401,25 @@ delete production. Putaran ini tidak membuktikan ranking tersebut layak untuk ke
 investasi, tidak menguji outage, dan tidak merekonsiliasi BBRI atau seluruh 48 bank ke
 sumber resmi. ID sesi probe tidak menjadi artefak permanen karena sudah dihapus.
 
+### Putaran production 2026-09-11 — bank filter tanpa skor
+
+Rekonsiliasi BBRI dan BBNI membatalkan kelayakan skor gabungan bank. Backend `628dcf2`
+dan frontend `cc6b592` mengubah kontrak menjadi `bank-filter-v1`: kandidat hanya lolos
+filter subsektor, ROE provider-derived, P/BV positif, dan common FY; urutan mengikuti
+kapitalisasi pasar provider. `qualityScore` dan `scoreBreakdown` tidak diterbitkan.
+
+Probe create → start → report → delete production menghasilkan BBCA, BBRI, dan BMRI
+dalam urutan provider, seluruhnya FY2025, `formulaVersion=bank-filter-v1`, serta tidak
+memiliki field skor. Sesi probe dihapus dan endpoint kemudian HTTP 404. Browser production
+menampilkan `Filter bank besar dengan ROE dan P/BV`; console 0 error/warning. Backend
+health HTTP 200. Backup pre-deploy tersedia di
+`/home/ubuntu/voyager-be-one-backups/20260911T083500Z/app-before-deploy.tgz`.
+
+Satu sesi lain muncul di production selama verifikasi dan tidak berasal dari probe ini.
+Sesi tersebut tidak diubah atau dihapus. Bukti ini tidak mengubah status ROE/PBV menjadi
+terverifikasi; BBNI menunjukkan campuran laporan publikasi/final dan P/BV provider belum
+memiliki metadata basis yang cukup.
+
 Sesudah probe, objective generic tiga faktor ditandai `availableForNewResearch=false`.
 Backend tetap mempertahankannya untuk kompatibilitas sesi/kontrak lama, tetapi frontend
 tidak menawarkan objective tersebut kepada pengguna baru karena discovery delapan simbol
@@ -595,5 +614,6 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-11 | Implementasi minimum frontend + integrasi backend baru, tanpa commit/deploy | Contract/browser/smoke/build lulus LOCAL; architecture gagal dan batas penerimaan dicatat §5 |
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
 | 2026-09-11 | Mendeploy P0 dan corrected bank screen | Commit backend `24126fe`, frontend `f1b7f1e`; health/capabilities/scheduler/session/browser smoke production lulus read-only |
+| 2026-09-11 | Menghapus skor bank setelah rekonsiliasi BBRI/BBNI dan deploy bank filter | Backend `628dcf2`, frontend `cc6b592`; probe production tanpa field skor dan cleanup 404 lulus |
 | 2026-09-11 | Mengoreksi frontend ke bank-screen-2f-v1 setelah rekonsiliasi BBCA/BMRI, tanpa deploy | Faktor modal dihapus karena BMRI mencampur basis; screen ROE/PBV belum tervalidasi luas dan market intelligence belum lengkap |
 | 2026-09-11 | Mengoreksi frontend ke bank-filter-v1 sesuai backend sibling, tanpa commit/push/deploy | Candidate bank tanpa score; urutan market cap provider; temuan exact BBRI/BBNI dicatat dan bukan validasi penuh |
