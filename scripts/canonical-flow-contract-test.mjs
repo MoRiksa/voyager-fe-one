@@ -91,10 +91,13 @@ try {
   assert.equal(incompleteBankResult.report.objectiveStatus, 'cannot_assess')
   assert.ok(incompleteBankResult.screeningFunnel.flatMap(stage => stage.reasons).some(reason => reason.symbol === 'DYNAMIC2' && reason.code === 'DATA_INCOMPLETE'))
   await runtime.setMode('normal')
-  const md = await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export?format=markdown`)
+  const exportUrl = `${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export`
+  assert.equal((await fetch(`${exportUrl}?format=markdown`)).status, 428)
+  assert.equal((await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(completed.revision - 1) } })).status, 409)
+  const md = await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(completed.revision) } })
   assert.equal(md.status, 200)
   assert.ok((await md.text()).includes('quality-3f-v2'))
-  const json = await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export?format=json`)
+  const json = await fetch(`${exportUrl}?format=json`, { headers: { 'If-Match': String(completed.revision) } })
   assert.equal(json.status, 200)
   assert.deepEqual(await json.json(), completed)
   // Preserve mutation/revision coverage removed from the old source contract test.
@@ -127,11 +130,11 @@ try {
   assert.equal(failed.activeAttemptId, null)
   assert.equal(failed.report, null)
   assert.ok(failed.attempts.at(-1).failureReason)
-  assert.equal((await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${outage.id}/report/export?format=markdown`)).status, 409)
+  assert.equal((await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${outage.id}/report/export?format=markdown`, { headers: { 'If-Match': String(failed.revision) } })).status, 409)
   assert.equal((await request('/companies/UNSEEN')).response.status, 503)
   const store = readFileSync(new URL('../src/stores/researchStore.ts', import.meta.url), 'utf8')
   const api = readFileSync(new URL('../src/services/researchApi.ts', import.meta.url), 'utf8')
-  for (const name of ['startResearchSession', 'cancelResearchSession', 'retryResearchSession', 'duplicateResearchSession', 'answerClarification', 'sendFollowUp', 'deleteResearchSession']) {
+  for (const name of ['startResearchSession', 'cancelResearchSession', 'retryResearchSession', 'duplicateResearchSession', 'answerClarification', 'sendFollowUp', 'deleteResearchSession', 'exportReportFile']) {
     const implementation = api.split(`export const ${name} =`)[1]?.split('export const ')[0]
     assert.ok(implementation, name)
     assert.match(implementation, /'If-Match': String\(revision\)/, name)

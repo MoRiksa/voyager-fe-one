@@ -32,8 +32,8 @@ const tabKeydown = (event: KeyboardEvent, index: number) => {
 const download = async (format: 'markdown' | 'json') => {
   if (exportBusy.value) return
   exportBusy.value = true; exportError.value = ''
-  try { await exportReportFile(store.report.sessionId, format) }
-  catch (e) { exportError.value = e instanceof Error ? e.message : 'Ekspor tidak tersedia.' }
+  try { await exportReportFile(store.report.sessionId, store.currentRevision, format) }
+  catch (e) { exportError.value = e instanceof Error ? `${e.message} Muat ulang laporan sebelum mencoba lagi.` : 'Ekspor tidak tersedia. Muat ulang laporan sebelum mencoba lagi.' }
   finally { exportBusy.value = false }
 }
 let openedDetails: HTMLDetailsElement[] = []

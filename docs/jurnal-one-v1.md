@@ -38,7 +38,23 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Catatan delivery 2026-09-11 — minimum audit frontend
 
-Koreksi terbaru supersedes kontrak bank-screen di bawah untuk implementasi aktif. Frontend
+**Status aktif terbaru:** kontrak bank adalah `bank-evidence-contract-v1` dengan
+`formulaVersion=bank-evidence-v1`. Produk menampilkan hingga delapan bank dinamis menurut
+urutan kapitalisasi provider bila data tersedia. Tidak ada threshold ROE/PBV, skor, ranking
+kualitas, atau label lolos. ROE dan P/BV ditampilkan sebagai bukti provider yang belum
+terverifikasi basisnya. Missing pada anggota top-eight menghasilkan `cannot_assess`.
+
+Frontend `911e28a` dan source backend `628dcf2` telah disinkronkan ke production; backup
+backend tersedia di `/home/ubuntu/voyager-be-one-backups/20260911T094000Z/app-before-deploy.tgz`.
+Health dan contract production lulus. Entri bank-screen/bank-filter di bawah adalah riwayat
+koreksi yang telah superseded, bukan kontrak aktif.
+
+Export Markdown/JSON sekarang memakai `If-Match` revision snapshot. Gate LOCAL membuktikan
+missing/stale/current revision menghasilkan 428/409/200, JSON identik dengan snapshot, dan
+browser tidak membuat fallback file ketika terjadi konflik. Deployment export revision
+menunggu commit backend/frontend terkait.
+
+Riwayat koreksi berikut telah superseded oleh status aktif di atas. Frontend
 sekarang memakai preset exact `Filter bank besar dengan ROE dan P/BV`, objective exact
 `Filter bank besar IDX dari universe terstruktur provider berdasarkan urutan kapitalisasi pasar, subsektor Banks, latest common FY, provider-derived simple ROE >= 15%, dan P/BV > 0.`,
 contract `bank-filter-contract-v1`, objectiveType `bank-filter`, dan formulaVersion

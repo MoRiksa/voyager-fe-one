@@ -267,10 +267,11 @@ export const sendFollowUp = async (
 
 export const exportReportFile = async (
   id: string,
+  revision: number,
   format: 'markdown' | 'json' = 'markdown'
 ): Promise<void> => {
   const url = `${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/report/export?format=${format}`
-  const response = await fetch(url)
+  const response = await fetch(url, { headers: { 'If-Match': String(revision) } })
   if (!response.ok) throw await responseError(response, 'Gagal mengekspor laporan')
   const blob = await response.blob()
   const downloadUrl = window.URL.createObjectURL(blob)

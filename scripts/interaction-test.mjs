@@ -87,6 +87,7 @@ try {
   // Force only the export HTTP response to fail; UI must not create a fallback Blob.
   let exportRequests = 0
   r.on('Fetch.requestPaused', event => {
+    if (event.request.method === 'OPTIONS') { void r.send('Fetch.continueRequest', { requestId: event.requestId }); return }
     exportRequests++
     void r.send('Fetch.fulfillRequest', { requestId: event.requestId, responseCode: 503, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Access-Control-Allow-Origin', value: r.appUrl }], body: Buffer.from(JSON.stringify({ responseMessage: 'LOCAL export outage' })).toString('base64') })
   })

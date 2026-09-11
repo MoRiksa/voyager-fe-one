@@ -317,6 +317,8 @@ kelayakan investasi. Tidak ada klaim bahwa filter telah tervalidasi luas.
 
 ### Putaran LOCAL 2026-09-11 — koreksi bank screen setelah rekonsiliasi resmi
 
+> Riwayat berikut telah superseded oleh `bank-evidence-v1`; dipertahankan sebagai audit trail.
+
 Frontend membaca kontrak/types/OpenAPI backend sibling tanpa mengubah arsitektur terpisah.
 Preset `obj-banking-moat` kini supported sebagai renderer kontrak kanonik berikut:
 
@@ -615,6 +617,7 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
 | 2026-09-11 | Mendeploy P0 dan corrected bank screen | Commit backend `24126fe`, frontend `f1b7f1e`; health/capabilities/scheduler/session/browser smoke production lulus read-only |
 | 2026-09-11 | Menghapus skor bank setelah rekonsiliasi BBRI/BBNI dan deploy bank filter | Backend `628dcf2`, frontend `cc6b592`; probe production tanpa field skor dan cleanup 404 lulus |
+| 2026-09-11 | Mengganti bank filter dengan evidence review dan menambah export optimistic read | Evidence-first production contract lulus; export missing/stale/current revision 428/409/200 lulus LOCAL |
 | 2026-09-11 | Mengoreksi frontend ke bank-screen-2f-v1 setelah rekonsiliasi BBCA/BMRI, tanpa deploy | Faktor modal dihapus karena BMRI mencampur basis; screen ROE/PBV belum tervalidasi luas dan market intelligence belum lengkap |
 | 2026-09-11 | Mengoreksi frontend ke bank-filter-v1 sesuai backend sibling, tanpa commit/push/deploy | Candidate bank tanpa score; urutan market cap provider; temuan exact BBRI/BBNI dicatat dan bukan validasi penuh |
 | 2026-09-11 | Mengganti bank-filter-v1 dengan bank-evidence-v1 sesuai koreksi kontrak sibling, tanpa commit/push/deploy | Objective exact, `bank-evidence-contract-v1`, dan `bank-evidence` dipakai end-to-end karena ROE/PBV tidak valid sebagai ambang kualitas. LOCAL canonical/browser/smoke/typecheck/build lulus; membership top-eight dinamis, requested count UI tidak mengecilkan hasil, BBNI-like ROE 10% dan P/BV -0,5 tetap tampil, data top-eight hilang menghasilkan `cannot_assess`. Architecture diuji terpisah dan tetap gagal pada atlas lama: `Error: activity (desktop):`. |
