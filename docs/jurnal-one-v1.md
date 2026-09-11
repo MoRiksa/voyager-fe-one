@@ -74,6 +74,8 @@ Objective generic tiga faktor tetap didukung untuk kompatibilitas, tetapi tidak 
 ditawarkan pada riset baru karena hanya memakai delapan simbol pertama provider. Capability
 preset membedakan dukungan kontrak dari ketersediaan untuk pengguna baru. Bank screen menjadi
 satu-satunya objective baru yang dapat dipilih sampai discovery generic representatif tersedia.
+Perubahan ini aktif melalui backend `7eb3b72` dan frontend `39f9b30`; backup backend
+tersedia di `/home/ubuntu/voyager-be-one-backups/20260911T045000Z/app-before-deploy.tgz`.
 
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.

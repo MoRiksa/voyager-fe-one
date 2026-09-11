@@ -364,6 +364,13 @@ pertama provider bukan cakupan pasar yang representatif. Bank screen menjadi sat
 pilihan riset baru yang executable; preset unsupported tetap terlihat dengan alasan.
 Contract, interaction, 21-route smoke, typecheck, dan build lulus LOCAL setelah perubahan.
 
+Perubahan availability kemudian dideploy: backend `7eb3b72`, frontend `39f9b30`.
+Backup backend pre-deploy tersedia di
+`/home/ubuntu/voyager-be-one-backups/20260911T045000Z/app-before-deploy.tgz`.
+Production presets membuktikan generic `supported=true` tetapi
+`availableForNewResearch=false`, sedangkan bank screen `availableForNewResearch=true`.
+Browser production menampilkan state disabled dan alasannya; console 0 error/warning.
+
 ### Putaran LOCAL 2026-09-11 — frontend dengan backend baru
 
 Frontend working tree, tanpa commit/push/deploy. Backend sibling `../voyager-be-one`
