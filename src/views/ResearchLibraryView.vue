@@ -35,6 +35,13 @@ const filteredSessions = computed(() => store.recentSessions.filter(session => {
 const sessionTitle = (session: ResearchSession) => store.presets.find(preset => preset.id === session.presetId)?.title || 'Riset khusus'
 const statusMeta = (session: ResearchSession) => sessionStatusMeta(session.status)
 const canDelete = (session: ResearchSession) => !['UNDERSTANDING', 'PLANNING', 'DISCOVERING', 'SCREENING', 'RANKING', 'RESEARCHING', 'COMPARING', 'VALIDATING', 'REPORTING'].includes(session.status)
+const resultSummary = (session: ResearchSession) => {
+  if (!session.candidates.length) return 'Belum ada kandidat akhir yang tersedia.'
+  const candidate = session.candidates[0]
+  return candidate.formulaVersion === 'bank-filter-v1'
+    ? `Kandidat pertama ${candidate.symbol} mengikuti urutan market cap provider dan lolos filter ROE/PBV. Lakukan uji tuntas independen.`
+    : `Kandidat pertama ${candidate.symbol}, skor heuristik ${candidate.qualityScore ?? 'Tidak tersedia'}/100. Bukan confidence atau rekomendasi membeli.`
+}
 const duplicateSession = async (session: ResearchSession) => {
   store.setObjective(session.objective, session.presetId)
   store.setResearchBrief(session.brief)
@@ -86,7 +93,7 @@ const removeSession = async (id: string) => {
       <div v-else-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
         <article v-for="session in filteredSessions" :key="session.id" :data-testid="`library-session-${session.id}`" class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span class="status-badge" :class="statusMeta(session).className">{{ statusMeta(session).label }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} kandidat</span></div>
-          <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ session.candidates.length ? `Kandidat pertama ${session.candidates[0].symbol}, skor heuristik ${session.candidates[0].qualityScore ?? 'Tidak tersedia'}/100. Bukan confidence atau rekomendasi membeli.` : 'Belum ada kandidat akhir yang tersedia.' }}</div>
+          <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ resultSummary(session) }}</div>
           <div class="mt-5 border-t border-slate-100 pt-4 font-mono text-[11px] text-slate-500">{{ session.id }}</div>
           <p class="mt-4 text-xs text-slate-600">Laporan dibuat: {{ session.publishedAttemptId ? session.report.timestamp : 'Belum dipublikasikan' }}. Sumber dan periode tersedia di laporan sesi.</p>
           <div class="mt-5 flex flex-wrap items-center gap-2">

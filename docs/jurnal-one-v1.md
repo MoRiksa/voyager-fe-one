@@ -38,6 +38,33 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Catatan delivery 2026-09-11 — minimum audit frontend
 
+Koreksi terbaru supersedes kontrak bank-screen di bawah untuk implementasi aktif. Frontend
+sekarang memakai preset exact `Filter bank besar dengan ROE dan P/BV`, objective exact
+`Filter bank besar IDX dari universe terstruktur provider berdasarkan urutan kapitalisasi pasar, subsektor Banks, latest common FY, provider-derived simple ROE >= 15%, dan P/BV > 0.`,
+contract `bank-filter-contract-v1`, objectiveType `bank-filter`, dan formulaVersion
+`bank-filter-v1`. Bank adalah filter kelayakan tanpa `qualityScore`, `scoreBreakdown`,
+`bankMetrics`, `/100`, formula ranking, atau bobot 60/40. Kandidat mempertahankan urutan
+market cap provider dan ditandai “lolos filter ROE/PBV”. Generic tetap kompatibel dengan
+score pada level API.
+
+UI candidate/report/peers/screener/methodology/glossary/library menampilkan ROE
+`provider-derived-unverified`, P/BV historis provider, common FY, dan warning bahwa basis
+earnings, equity, serta tanggal dapat tidak cocok. Uji tuntas independen diperlukan.
+
+Temuan resmi exact dari dokumentasi backend: BBRI FY2025 memiliki provider `earnings`
+Rp56.652.384 juta yang cocok dengan laba pemilik entitas induk, tetapi `total_equity`
+Rp330.941.434 juta adalah total ekuitas termasuk kepentingan nonpengendali; pembagiannya
+mencampur parent earnings dan total equity. BBNI FY2025 memiliki provider `earnings`
+Rp20.040.703 juta mengikuti angka publikasi, sedangkan laporan tahunan final menyajikan
+laba pemilik entitas induk Rp19.562.342 juta dan total ekuitas Rp176.339.368 juta; ini
+mismatch publication/final dan bukan ROE terverifikasi. Sumber resmi:
+[BRI Annual Report 2025](https://ir-bri.com/misc/AR/AR2025-EN.pdf) dan
+[BNI Annual Report 2025](https://www.bni.co.id/Portals/1/BNI/Perusahaan/HubunganInvestor/Docs/BNI-AR-2025-IND.pdf).
+Rekonsiliasi hanya dua perusahaan dan tidak membuktikan validasi penuh provider atau filter.
+Verifikasi LOCAL: contract, browser interaction, 21-route smoke, `vue-tsc`, build, dan
+`git diff --check` lulus. Gate arsitektur terpisah tetap gagal pada atlas lama dengan
+`Error: activity (desktop):`; arsitektur tidak diubah dan full validation tidak diklaim.
+
 Update bank screen: preset backend terintegrasi end-to-end dengan judul exact
 `Bank dengan ROE kuat untuk diteliti`, objective kanonik, exact preview criteria,
 top-8 dari 48 coverage, contract `bank-screen-contract-v1`, objectiveType

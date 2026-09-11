@@ -155,15 +155,15 @@ const glossaryTerms = [
     caution: 'Bukan peluang untung atau confidence. Bobot belum dikalibrasi empiris, belum relatif sektor; bukti satu sumber belum diverifikasi independen.'
   },
   {
-    term: 'Bank Screen Score',
-    fullName: 'Skor heuristik bank-screen-2f-v1',
+    term: 'Bank Filter',
+    fullName: 'Filter bank-filter-v1',
     category: 'Analisis',
     icon: Calculator,
-    definition: 'Heuristik ranking dari faktor ROE dan P/BV untuk bank yang lolos kriteria.',
-    formula: 'round(0,60 × skor ROE + 0,40 × skor P/BV)',
-    interpretation: 'Skor mengurutkan kandidat dalam hasil screening dan tidak memiliki ambang kelulusan tambahan.',
-    example: 'Nilai lebih tinggi berarti kombinasi dua faktor mendapat skor formula lebih tinggi, bukan hasil riset bank yang lengkap.',
-    caution: 'Bukan peluang untung, confidence, kalibrasi risiko, atau penilaian kesehatan bank.'
+    definition: 'Filter kelayakan bank berdasarkan subsektor Banks, latest common FY, provider-derived simple ROE >= 15%, dan P/BV > 0.',
+    formula: 'Tidak ada formula skor; urutan mengikuti market cap provider.',
+    interpretation: 'Lolos filter ROE/PBV berarti memenuhi ambang input provider pada cakupan terbatas; urutan mengikuti market cap provider.',
+    example: 'ROE provider-derived-unverified dan P/BV historis provider ditampilkan pada common FY.',
+    caution: 'Basis earnings, equity, dan tanggal dapat tidak cocok. Lakukan uji tuntas independen; ini bukan penilaian kesehatan bank.'
   },
   // Ukuran
   {
@@ -262,6 +262,7 @@ const groupedTerms = computed(() => {
           v-for="item in terms"
           :key="item.term"
           class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm"
+          :data-testid="item.term === 'Bank Filter' ? 'bank-filter-glossary' : undefined"
         >
           <!-- Header -->
           <div class="flex items-start gap-3">
@@ -280,7 +281,7 @@ const groupedTerms = computed(() => {
           </p>
 
           <!-- Formula -->
-          <div class="mt-4 rounded-lg bg-slate-50 p-3">
+          <div v-if="item.term !== 'Bank Filter'" class="mt-4 rounded-lg bg-slate-50 p-3">
             <p class="text-xs font-semibold text-slate-500 mb-1">Rumus</p>
             <p class="font-mono text-xs text-slate-800">{{ item.formula }}</p>
           </div>

@@ -36,7 +36,7 @@ export interface ResearchObjectivePreset {
   id: string
   title: string
   objective: string
-  category?: 'Quality & Moat' | 'Valuation & Dividends' | 'Growth Compounders' | 'Sector Deep-Dive' | 'Bank Health'
+  category?: 'Quality & Moat' | 'Valuation & Dividends' | 'Growth Compounders' | 'Sector Deep-Dive' | 'Bank Health' | 'Bank Filter'
   universe?: string
   expectedCandidates: number
   tags?: string[]
@@ -113,7 +113,7 @@ export interface CandidateTrend {
 
 export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-screen-2f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-filter-v1'
   sourceOrigin?: ProviderSourceOrigin
   providerSource?: ProviderSourceMetadata
   symbol: string
@@ -130,17 +130,13 @@ export interface CandidateCompany {
   debtToEquity?: number
   currentRatio?: number
   freeCashFlowYieldPercent?: number
-  bankMetrics?: {
-    pbPeerAverage?: number
-    pbScoringBasis: 'peer-relative' | 'absolute-fallback'
-  }
   revenue3yCagrPercent?: number
   netIncome3yCagrPercent?: number
   dividendYieldPercent?: number
   
   // Derived Intelligence
-  qualityScore: number // 0 - 100 derived score
-  scoreBreakdown: ScoreBreakdown
+  qualityScore?: number // Generic quality objectives only
+  scoreBreakdown?: ScoreBreakdown
   rank: number
   confidenceLevel?: 'HIGH' | 'MEDIUM' | 'MODERATE'
   evidenceStatus?: string
@@ -176,7 +172,7 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
-  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-screen-2f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-filter-v1'
   sourceOrigins?: ProviderSourceOrigin[]
   providerSources?: ProviderSourceMetadata[]
   stage: string
@@ -233,7 +229,7 @@ export interface ResearchReport {
 export interface ResearchContract {
   version: string
   status: 'supported' | 'unsupported'
-  objectiveType?: 'generic-quality' | 'bank-screen' | 'unsupported'
+  objectiveType?: 'generic-quality' | 'bank-filter' | 'unsupported'
   supportedObjective: string
   criteria: string[]
   unsupportedReasons: string[]

@@ -8,15 +8,11 @@ import {
 
 const store = useResearchStore()
 const comparisonCandidates = computed(() => store.candidates)
-const isBank = computed(() => comparisonCandidates.value.some(candidate => candidate.formulaVersion === 'bank-screen-2f-v1'))
+const isBank = computed(() => comparisonCandidates.value.some(candidate => candidate.formulaVersion === 'bank-filter-v1'))
 const comparisonHighlights = computed(() => {
   if (!comparisonCandidates.value.length) return []
   const highest = (key: 'roePercent' | 'freeCashFlowYieldPercent' | 'qualityScore') => [...comparisonCandidates.value].sort((a, b) => (b[key] ?? -Infinity) - (a[key] ?? -Infinity))[0]
-  return isBank.value ? [
-    { label: 'ROE tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
-    { label: 'P/BV terendah', company: [...comparisonCandidates.value].sort((a, b) => a.pbvRatio - b.pbvRatio)[0], metric: `${[...comparisonCandidates.value].sort((a, b) => a.pbvRatio - b.pbvRatio)[0].pbvRatio}x P/BV` },
-    { label: 'Skor heuristik tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
-  ] : [
+  return isBank.value ? [] : [
     { label: 'Pengembalian modal tertinggi', company: highest('roePercent'), metric: `${highest('roePercent').roePercent}% ROE` },
     { label: 'Arus kas bebas tertinggi', company: highest('freeCashFlowYieldPercent'), metric: `${highest('freeCashFlowYieldPercent').freeCashFlowYieldPercent}% FCF yield` },
     { label: 'Skor kualitas tertinggi', company: highest('qualityScore'), metric: `skor ${highest('qualityScore').qualityScore}/100` }
@@ -47,7 +43,7 @@ const comparisonHighlights = computed(() => {
          Bandingkan kekuatan dan tradeoff kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Tinjau nilai absolut kandidat akhir. {{ isBank ? 'Screen bank membandingkan ROE dan P/BV.' : 'Pertumbuhan belum tersedia.' }} Benchmark sektor independen belum tersedia.
+         Tinjau nilai absolut kandidat akhir. {{ isBank ? 'Filter bank menampilkan ROE provider-derived-unverified dan P/BV historis provider dalam urutan market cap provider.' : 'Pertumbuhan belum tersedia.' }} Benchmark sektor independen belum tersedia.
       </p>
     </div>
 
@@ -68,7 +64,7 @@ const comparisonHighlights = computed(() => {
     </div>
 
     <section data-testid="peers-next" class="grid gap-5 rounded-2xl border border-[#407EC9]/20 bg-[#407EC9]/5 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div><p class="section-kicker">Lanjutkan riset</p><h2 class="mt-2 text-xl font-bold text-slate-950">{{ comparisonCandidates.length >= 2 ? 'Baca kesimpulan lengkap dan keterbatasannya' : 'Tinjau kembali hasil seleksi' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ comparisonCandidates.length >= 2 ? 'Laporan merangkum ranking, alasan pemilihan, risiko, sumber data, dan batas analisis untuk seluruh kandidat.' : 'Perbandingan membutuhkan sedikitnya dua kandidat. Lihat tahap seleksi untuk memahami hasil sesi ini.' }}</p></div>
+      <div><p class="section-kicker">Lanjutkan riset</p><h2 class="mt-2 text-xl font-bold text-slate-950">{{ comparisonCandidates.length >= 2 ? 'Baca kesimpulan lengkap dan keterbatasannya' : 'Tinjau kembali hasil seleksi' }}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ comparisonCandidates.length >= 2 ? isBank ? 'Laporan merangkum urutan market cap provider, alasan lolos filter, risiko, sumber data, dan batas analisis.' : 'Laporan merangkum ranking, alasan pemilihan, risiko, sumber data, dan batas analisis untuk seluruh kandidat.' : 'Perbandingan membutuhkan sedikitnya dua kandidat. Lihat tahap seleksi untuk memahami hasil sesi ini.' }}</p></div>
       <div class="flex flex-wrap gap-2"><router-link v-if="comparisonCandidates.length >= 2" data-testid="peers-primary-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan riset <ArrowRight class="h-4 w-4" /></router-link><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Kembali ke tahap seleksi</router-link></div>
     </section>
     </template>

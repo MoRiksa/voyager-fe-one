@@ -49,34 +49,35 @@ try {
   assert.equal(candidate.priceAsOf, '2026-09-09')
   assert.ok(candidate.providerSource.sourceRef.startsWith(runtime.providerUrl))
   const bankPreset = presets.find(p => p.id === 'obj-banking-moat')
-  assert.equal(bankPreset.title, 'Bank dengan ROE kuat untuk diteliti')
-  assert.equal(bankPreset.objective, 'Screening bank IDX berkapitalisasi pasar terbesar dengan subsektor Banks, latest common FY, ROE >= 15%, dan P/BV > 0.')
+  assert.equal(bankPreset.title, 'Filter bank besar dengan ROE dan P/BV')
+  assert.equal(bankPreset.objective, 'Filter bank besar IDX dari universe terstruktur provider berdasarkan urutan kapitalisasi pasar, subsektor Banks, latest common FY, provider-derived simple ROE >= 15%, dan P/BV > 0.')
   const bankPayload = { ...payload, objective: bankPreset.objective, presetId: bankPreset.id, brief: { ...payload.brief, sectorScope: 'Perbankan' } }
   const bankPreview = (await request('/research-preview', bankPayload)).data.preview
   assert.equal(bankPreview.contract.status, 'supported')
-  assert.equal(bankPreview.contract.version, 'bank-screen-contract-v1')
-  assert.equal(bankPreview.contract.objectiveType, 'bank-screen')
+  assert.equal(bankPreview.contract.version, 'bank-filter-contract-v1')
+  assert.equal(bankPreview.contract.objectiveType, 'bank-filter')
   assert.equal(bankPreview.contract.supportedObjective, bankPreset.objective)
   assert.deepEqual(bankPreview.contract.criteria, [
     'Bank berkapitalisasi pasar terbesar pada cakupan provider', 'Subsektor aktual = Banks',
-    'ROE terhitung >= 15%', 'P/BV > 0', 'Periode FY keuangan dan valuasi terbaru yang sama'
+    'Provider-derived simple ROE >= 15% (earnings/equity; basis dapat tidak cocok)', 'P/BV > 0', 'Periode FY keuangan dan valuasi terbaru yang sama'
   ])
   assert.equal(bankPreview.contract.discoveryLimit, 8)
   assert.match(bankPreview.contract.coveragePolicy, /delapan bank berkapitalisasi pasar terbesar/)
   const bankSession = await runtime.create(bankPayload); await runtime.start(bankSession)
   const bankCompleted = await runtime.finish(bankSession.id)
   assert.equal(bankCompleted.report.objective, bankPreset.objective)
+  assert.equal(bankCompleted.report.contract.version, 'bank-filter-contract-v1')
+  assert.equal(bankCompleted.report.contract.objectiveType, 'bank-filter')
   assert.deepEqual(bankCompleted.plan.contract, bankCompleted.report.contract)
   assert.deepEqual(bankCompleted.screeningFunnel[0].retainedSymbols, Array.from({ length: 8 }, (_, index) => `BANK${index + 1}`))
   assert.ok(bankCompleted.screeningFunnel[0].reasons.some(reason => reason.code === 'COVERAGE_LIMIT'))
-  for (const bank of bankCompleted.candidates) {
-    assert.equal(bank.formulaVersion, 'bank-screen-2f-v1')
+  assert.deepEqual(bankCompleted.candidates.map(bank => bank.symbol), Array.from({ length: 5 }, (_, index) => `BANK${index + 1}`))
+  for (const [index, bank] of bankCompleted.candidates.entries()) {
+    assert.equal(bank.formulaVersion, 'bank-filter-v1')
+    assert.equal(bank.rank, index + 1)
     assert.equal(bank.financialPeriod, 'FY2025')
-    assert.deepEqual(bank.bankMetrics, { pbPeerAverage: 3, pbScoringBasis: 'peer-relative' })
-    assert.ok(Math.abs(bank.scoreBreakdown.profitability - 100 / 3) < 1e-12)
-    assert.equal(bank.scoreBreakdown.valuation, 100)
-    assert.equal(bank.qualityScore, 60)
-    for (const field of ['debtToEquity', 'freeCashFlowYieldPercent', 'peRatio', 'dupontAnalysis']) assert.ok(!(field in bank), `${field} leaked into bank candidate`)
+    assert.equal(bank.evidenceStatus, 'provider-derived-unverified')
+    for (const field of ['qualityScore', 'scoreBreakdown', 'bankMetrics', 'debtToEquity', 'freeCashFlowYieldPercent', 'peRatio', 'dupontAnalysis']) assert.ok(!(field in bank), `${field} leaked into bank candidate`)
   }
   assert.doesNotMatch(JSON.stringify(bankCompleted.candidates), /capital|risk.weighted|\bRWA\b|\bCAR\b|NPL|NIM|bank (?:sehat|healthy)|kesehatan bank (?:kuat|baik)/i)
   const md = await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export?format=markdown`)
@@ -126,5 +127,5 @@ try {
   }
   assert.doesNotMatch(api, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
   assert.doesNotMatch(store, /ALL_COMPANIES_DATABASE|deriveSessionResults|runAutonomousResearch|confidenceLevel:|localStorage/)
-  console.log('LOCAL contract: generic quality-3f-v2 and bank-screen-2f-v1 preview/plan/report parity, top-8 of 48 bank coverage, common FY, two-factor metrics, unsupported objectives, missing data, outage and export refusal passed.')
+  console.log('LOCAL contract: generic quality-3f-v2 score compatibility and bank-filter-v1 preview/plan/report parity, score absence, provider order, top-8 of 48 coverage, common FY, unsupported objectives, missing data, outage and export refusal passed.')
 } finally { await runtime.close() }

@@ -13,7 +13,7 @@ try {
     [`/research/${created.id}/report`, 'Tujuan terjawab pada cakupan terbatas'],
     [`/research/${created.id}/company/TEST`, 'TEST — TEST synthetic test input'],
     ['/company/TEST', 'Profil global bukan hasil screening'],
-    ['/methodology', 'Cara skor dihitung'],
+    ['/methodology', 'Cara screening bekerja'],
     ['/glossary', 'Kamus Istilah Finansial'],
     [`/research/${created.id}/activity`, 'Cakupan dan aturan yang diperiksa'],
     [`/research/${created.id}/trace`, 'Cakupan dan aturan yang diperiksa'],

@@ -271,6 +271,50 @@ Auth sebelumnya ditunda dalam keputusan proyek. ID ini tidak otomatis mengubah k
 
 ## 5. Catatan verifikasi per putaran
 
+### Putaran LOCAL 2026-09-11 — koreksi frontend ke bank-filter-v1
+
+Frontend diselaraskan dengan kontrak backend sibling terbaru tanpa mengubah backend atau
+arsitektur terpisah. Entry ini menggantikan kesimpulan bank-screen pada putaran terdahulu;
+catatan lama dipertahankan sebagai riwayat, bukan kontrak aktif.
+
+- Preset exact backend: `Filter bank besar dengan ROE dan P/BV`.
+- Objective exact backend: `Filter bank besar IDX dari universe terstruktur provider berdasarkan urutan kapitalisasi pasar, subsektor Banks, latest common FY, provider-derived simple ROE >= 15%, dan P/BV > 0.`
+- Contract aktif `bank-filter-contract-v1`, objectiveType `bank-filter`, dan formulaVersion
+  `bank-filter-v1`. Candidate bank tidak memiliki `qualityScore`, `scoreBreakdown`,
+  `bankMetrics`, `/100`, atau formula/bobot ranking. Urutan mengikuti market cap provider.
+- Candidate card, report, peers, screener, methodology, glossary, dan library menampilkan
+  status “lolos filter ROE/PBV”, ROE `provider-derived-unverified`, P/BV historis provider,
+  serta common FY. Warning menyatakan basis earnings, equity, dan tanggal dapat tidak cocok
+  dan uji tuntas independen diperlukan.
+- Generic `quality-3f-v2` tetap kompatibel dengan score dan diperiksa pada level API.
+
+Rekonsiliasi resmi yang disuplai dokumentasi backend terbatas pada dua perusahaan. Sumber:
+[BRI Annual Report 2025](https://ir-bri.com/misc/AR/AR2025-EN.pdf) dan
+[BNI Annual Report 2025](https://www.bni.co.id/Portals/1/BNI/Perusahaan/HubunganInvestor/Docs/BNI-AR-2025-IND.pdf).
+
+Temuan exact BBRI FY2025: provider `earnings` Rp56.652.384 juta cocok dengan laba yang
+dapat diatribusikan kepada pemilik entitas induk, sedangkan `total_equity` Rp330.941.434
+juta adalah total ekuitas termasuk kepentingan nonpengendali. Pembagian tersebut mencampur
+basis parent earnings dengan total equity.
+
+Temuan exact BBNI FY2025: provider `earnings` Rp20.040.703 juta mengikuti angka publikasi,
+sedangkan laporan tahunan final menyajikan laba pemilik entitas induk Rp19.562.342 juta dan
+total ekuitas Rp176.339.368 juta. Ini mismatch publication/final; hasil pembagian provider
+tidak boleh dinyatakan sebagai ROE terverifikasi.
+
+Rekonsiliasi dua perusahaan bukan validasi penuh provider, seluruh universe bank, atau
+kelayakan investasi. Tidak ada klaim bahwa filter telah tervalidasi luas.
+
+| Perintah | Hasil aktual |
+| --- | --- |
+| `npm run test:canonical-flow` | LULUS: exact preset/objective/contract, generic score compatibility, candidate bank tanpa score, urutan provider, top-8 dari 48, dan common FY2025. |
+| `npm run test:interaction` | LULUS: report, peers, screener, methodology, glossary, dan library bank tanpa score, `/100`, bobot 60/40, atau formula ranking. |
+| `npm run test:smoke` | LULUS: 21 route di Chromium terhadap backend sibling aktual dan provider lokal sintetis; tidak ada runtime exception. |
+| `npx vue-tsc -b` | LULUS. |
+| `VITE_BACKEND_URL=http://127.0.0.1:3000 npm run build` | LULUS; architecture polish 0 file berubah, typecheck, 1859 modul, dan Vite build. |
+| `git diff --check` | LULUS. |
+| `npm run test:architecture` | GAGAL terpisah pada atlas lama: `Error: activity (desktop):`. Arsitektur tidak diubah dan full repository validation tidak diklaim. |
+
 ### Putaran LOCAL 2026-09-11 — koreksi bank screen setelah rekonsiliasi resmi
 
 Frontend membaca kontrak/types/OpenAPI backend sibling tanpa mengubah arsitektur terpisah.
@@ -552,3 +596,4 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
 | 2026-09-11 | Mendeploy P0 dan corrected bank screen | Commit backend `24126fe`, frontend `f1b7f1e`; health/capabilities/scheduler/session/browser smoke production lulus read-only |
 | 2026-09-11 | Mengoreksi frontend ke bank-screen-2f-v1 setelah rekonsiliasi BBCA/BMRI, tanpa deploy | Faktor modal dihapus karena BMRI mencampur basis; screen ROE/PBV belum tervalidasi luas dan market intelligence belum lengkap |
+| 2026-09-11 | Mengoreksi frontend ke bank-filter-v1 sesuai backend sibling, tanpa commit/push/deploy | Candidate bank tanpa score; urutan market cap provider; temuan exact BBRI/BBNI dicatat dan bukan validasi penuh |
