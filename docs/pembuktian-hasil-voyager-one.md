@@ -6,7 +6,7 @@
 | --- | --- |
 | Dibuat | 2026-09-10 |
 | Terakhir diperbarui | 2026-09-11 |
-| Status | P0 diimplementasikan dan lulus LOCAL pada kontrak terbatas; validitas pasar nyata, uji pengguna, production, dan public readiness belum lulus. |
+| Status | P0 dan corrected bank screen deployed serta lulus compatibility smoke production; validitas luas, uji pengguna, durability, dan public readiness belum lulus. |
 | Baseline audit frontend | `705e7b0` |
 | Baseline audit backend | `6226bdd` |
 
@@ -319,7 +319,21 @@ screen ROE/PBV provider-only dan tidak melengkapi market intelligence produk.
 Status: corrected bank screen **lulus seluruh gate produk LOCAL**. Kontrak bank telah
 dikoreksi setelah rekonsiliasi resmi dua perusahaan. Screen ROE/PBV provider-only belum
 tervalidasi independen secara luas dan market intelligence belum lengkap. Gate arsitektur
-terpisah tetap gagal pada atlas lama. Tidak ada commit, push, atau deploy.
+terpisah tetap gagal pada atlas lama.
+
+Commit dan deployment:
+- Backend koreksi: `24126fe`; frontend koreksi: `f1b7f1e`.
+- Frontend Vercel dan backend PM2 telah dideploy; backup backend pre-deploy tersedia di
+  `/home/ubuntu/voyager-be-one-backups/20260911T041913Z/app-before-deploy.tgz`.
+- Health backend public HTTP 200; PM2 online dan compiled service direstart.
+- Capabilities production memuat `screening-contract-v1` dan `bank-screen-contract-v1`.
+- Scheduler production HTTP 501 `SCHEDULER_UNAVAILABLE`, bukan daftar jadwal semu.
+- Dua sesi lama tetap terbaca setelah deployment. Browser production `/research/new`
+  menampilkan preset bank dengan status `Dapat dijalankan`; console 0 error/warning dan
+  request capabilities, presets, serta sessions HTTP 200.
+- Verifikasi production ini read-only dan tidak membuat sesi bank baru. Karena itu outage,
+  hasil ranking live end-to-end, durability restart pekerjaan aktif, dan export production
+  belum dinyatakan lulus.
 
 ### Putaran LOCAL 2026-09-11 — frontend dengan backend baru
 
@@ -486,8 +500,8 @@ legacy, **bukan bukti automation tersedia**; gate HTTP 501 diuji lewat backend n
 | --- | --- |
 | Kesesuaian tujuan dan hasil | LOCAL kanonik generic dan bank lulus; objective lainnya unsupported |
 | Akurasi finansial dan validitas scoring | Formula/input sintetis dan UI tiga faktor diuji; validitas pasar nyata belum dibuktikan |
-| Fallback tanpa dummy dan pemulihan | Minimum frontend LOCAL lulus; durability/restart production belum dibuktikan |
-| Provenance serta ekspor | LOCAL metadata dan error ekspor lulus; PDF/race revision belum lengkap |
+| Fallback tanpa dummy dan pemulihan | LOCAL lulus dan kontrak production terpasang; outage/durability restart production belum dibuktikan |
+| Provenance serta ekspor | LOCAL metadata/PDF/error ekspor lulus; race revision dan export production belum lengkap |
 | Pengalaman nonteknis dan aksesibilitas | Keyboard/mobile sebagian lulus; uji pengguna belum; diagram architecture gagal |
 | Kesiapan penggunaan publik | Belum dibuktikan; keputusan scope terkait tetap berlaku |
 
@@ -500,4 +514,5 @@ Kesimpulan penerimaan tidak dirata-ratakan dari jumlah test yang lulus. Satu keg
 | 2026-09-10 | Membuat register, kriteria, dan format pembuktian berdasarkan audit serta rekomendasi redesign | Tidak ada; dokumen persiapan, bukan verifikasi implementasi |
 | 2026-09-11 | Implementasi minimum frontend + integrasi backend baru, tanpa commit/deploy | Contract/browser/smoke/build lulus LOCAL; architecture gagal dan batas penerimaan dicatat §5 |
 | 2026-09-11 | Menyelaraskan register dengan bukti aktual dan menetapkan urutan delivery | P0 LOCAL terbatas; provider nyata, objective vertikal, uji pengguna, production, dan public readiness tetap terbuka |
+| 2026-09-11 | Mendeploy P0 dan corrected bank screen | Commit backend `24126fe`, frontend `f1b7f1e`; health/capabilities/scheduler/session/browser smoke production lulus read-only |
 | 2026-09-11 | Mengoreksi frontend ke bank-screen-2f-v1 setelah rekonsiliasi BBCA/BMRI, tanpa deploy | Faktor modal dihapus karena BMRI mencampur basis; screen ROE/PBV belum tervalidasi luas dan market intelligence belum lengkap |

@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Objective kanonik generic dan bank screen lulus LOCAL sintetis; production lama; screen ROE/PBV belum tervalidasi luas dan uji pengguna belum lulus |
+| Status | P0 dan corrected bank screen deployed; compatibility smoke production lulus; validitas luas dan uji pengguna belum lulus |
 | Last updated | 2026-09-11 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
@@ -54,6 +54,15 @@ basis campuran tersebut, faktor modal dihapus seluruhnya. Sumber resmi:
 [Bank Mandiri Annual Report 2025](https://www.bankmandiri.co.id/documents/38265486/0/%5BFINAL+-+2904%5D+ANNUAL+REPORT+BMRI+2025+%281%29.pdf/da87ca86-a02b-f394-b2e4-1ff3f268c0ee?t=1777514285182).
 Screen ROE/PBV provider-only belum direkonsiliasi independen secara luas. Market
 intelligence belum lengkap; uji pengguna/a11y dan production tetap terbuka.
+
+Deployment production 2026-09-11:
+- Backend `24126fe` aktif pada PM2; frontend `f1b7f1e` aktif melalui Vercel.
+- Backup backend: `/home/ubuntu/voyager-be-one-backups/20260911T041913Z/app-before-deploy.tgz`.
+- Health public HTTP 200; dua objective contract tersedia; scheduler HTTP 501 dengan pesan
+  tidak tersedia; dua sesi lama tetap terbaca.
+- Browser production menampilkan preset bank corrected tanpa console warning/error.
+- Verifikasi bersifat read-only. Ranking bank live end-to-end, outage, export, pekerjaan
+  aktif saat restart, dan validitas luas belum dinyatakan lulus.
 
 - Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
   Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
