@@ -51,8 +51,10 @@ koreksi yang telah superseded, bukan kontrak aktif.
 
 Export Markdown/JSON sekarang memakai `If-Match` revision snapshot. Gate LOCAL membuktikan
 missing/stale/current revision menghasilkan 428/409/200, JSON identik dengan snapshot, dan
-browser tidak membuat fallback file ketika terjadi konflik. Deployment export revision
-menunggu commit backend/frontend terkait.
+browser tidak membuat fallback file ketika terjadi konflik. Backend `a37c06b` dan frontend
+`b16f33c` telah dideploy. GET production pada sesi completed existing menghasilkan
+428/409/200 tanpa mutasi. Backup backend tersedia di
+`/home/ubuntu/voyager-be-one-backups/20260911T095000Z/app-before-deploy.tgz`.
 
 Riwayat koreksi berikut telah superseded oleh status aktif di atas. Frontend
 sekarang memakai preset exact `Filter bank besar dengan ROE dan P/BV`, objective exact
