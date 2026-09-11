@@ -87,6 +87,7 @@ try {
       const motion = await evaluate(`(() => {
         const node = document.querySelector('[data-animate="node"]')
         const edge = document.querySelector('[data-animate="edge"]')
+        if (!node || !edge) return { missing: [!node && 'node', !edge && 'edge'].filter(Boolean) }
         return {
           nodeAnimation: getComputedStyle(node).animationName,
           edgeAnimation: getComputedStyle(edge).animationName,
@@ -97,19 +98,20 @@ try {
           sourceActive: Boolean(document.querySelector('.voyager-source-active'))
         }
       })()`)
-      if (motion.nodeAnimation !== 'none' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing || !motion.edgeFrom || !motion.edgeTo || !motion.nodeId || !motion.sourceActive) {
+      if (motion.missing || motion.nodeAnimation !== 'none' || motion.edgeAnimation !== 'voyager-edge-stream' || !motion.playing || !motion.edgeFrom || !motion.edgeTo || !motion.nodeId || !motion.sourceActive) {
         failures.push(`${diagram} (${viewport.name}): node/edge motion policy invalid: ${JSON.stringify(motion)}`)
       }
       if (viewport.name === 'mobile') {
         const mobileScale = await evaluate(`(() => {
           const container = document.querySelector('.diagram-container')
           const svg = document.querySelector('svg')
+          if (!container || !svg) return { missing: [!container && 'container', !svg && 'svg'].filter(Boolean) }
           return {
             svgWidth: svg.getBoundingClientRect().width,
             scrollable: container.scrollWidth > container.clientWidth
           }
         })()`)
-        if (mobileScale.svgWidth < 850 || !mobileScale.scrollable) failures.push(`${diagram} (mobile): diagram was compressed below a readable scale: ${JSON.stringify(mobileScale)}`)
+        if (mobileScale.missing || mobileScale.svgWidth < 850 || !mobileScale.scrollable) failures.push(`${diagram} (mobile): diagram was compressed below a readable scale: ${JSON.stringify(mobileScale)}`)
       }
       if (viewport.name === 'desktop') {
         await evaluate('document.dispatchEvent(new Event("voyager-flow-restart"))')
@@ -167,17 +169,20 @@ try {
         const outerSpacing = await evaluate(`(() => {
           const laneLeft = 40
           const laneRight = 680
-          const left = document.querySelector('[data-node-id="home"]').getBBox()
           const rightIds = ['library', 'company', 'report']
+          const leftNode = document.querySelector('[data-node-id="home"]')
+          const rightNodes = rightIds.map(id => document.querySelector('[data-node-id="' + id + '"]'))
+          if (!leftNode || rightNodes.some(node => !node)) return { missing: ['home', ...rightIds].filter((id, index) => index === 0 ? !leftNode : !rightNodes[index - 1]) }
+          const left = leftNode.getBBox()
           return {
             left: left.x - laneLeft,
-            right: Math.min(...rightIds.map(id => {
-              const box = document.querySelector('[data-node-id="' + id + '"]').getBBox()
+            right: Math.min(...rightNodes.map(node => {
+              const box = node.getBBox()
               return laneRight - box.x - box.width
             }))
           }
         })()`)
-        if (Math.min(outerSpacing.left, outerSpacing.right) < 100 || Math.abs(outerSpacing.left - outerSpacing.right) > 16) failures.push(`${diagram} (${viewport.name}): lane content is not centered: ${JSON.stringify(outerSpacing)}`)
+        if (outerSpacing.missing || Math.min(outerSpacing.left, outerSpacing.right) < 100 || Math.abs(outerSpacing.left - outerSpacing.right) > 16) failures.push(`${diagram} (${viewport.name}): lane content is not centered: ${JSON.stringify(outerSpacing)}`)
       }
       const problems = await evaluate(`(() => {
         const overlap = (a, b, inset = 1) => a.x + inset < b.x + b.width && a.x + a.width - inset > b.x && a.y + inset < b.y + b.height && a.y + a.height - inset > b.y

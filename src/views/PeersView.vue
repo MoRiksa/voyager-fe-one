@@ -42,7 +42,7 @@ const comparisonHighlights = computed(() => {
          Bandingkan kekuatan dan tradeoff kandidat
       </h1>
       <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-         Pilih 2–5 kandidat akhir untuk membandingkan kualitas, profitabilitas, valuasi, pertumbuhan, neraca, atau arus kas.
+         Tinjau nilai absolut kandidat akhir. Pertumbuhan dan benchmark sektor belum tersedia.
       </p>
     </div>
 

@@ -28,6 +28,9 @@ export interface PillarStep {
 }
 
 export interface ResearchObjectivePreset {
+  supported?: boolean
+  unsupportedReasons?: string[]
+  contract?: ResearchContract
   id: string
   title: string
   objective: string
@@ -49,6 +52,7 @@ export interface ResearchBrief {
 }
 
 export interface ResearchPlan {
+  contract?: ResearchContract
   objective: string
   universe: string
   criteria: string[]
@@ -60,8 +64,8 @@ export interface ResearchPlan {
   }[]
   hypothesis: string
   requiredDataPoints: string[]
-  estimatedDurationSeconds: number
-  estimatedCredits: number
+  estimatedDurationSeconds: number | null
+  estimatedCredits: number | null
 }
 
 export interface ToolCallLog {
@@ -107,7 +111,7 @@ export interface CandidateTrend {
 
 export interface CandidateCompany {
   artifactVersion?: 'candidate-v2'
-  formulaVersion?: 'quality-3f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2'
   sourceOrigin?: ProviderSourceOrigin
   providerSource?: ProviderSourceMetadata
   symbol: string
@@ -132,7 +136,9 @@ export interface CandidateCompany {
   qualityScore: number // 0 - 100 derived score
   scoreBreakdown: ScoreBreakdown
   rank: number
-  confidenceLevel: 'HIGH' | 'MEDIUM' | 'MODERATE'
+  confidenceLevel?: 'HIGH' | 'MEDIUM' | 'MODERATE'
+  evidenceStatus?: string
+  narrativeStatus?: string
   
   // Explainability
   whySelected: string
@@ -164,7 +170,7 @@ export interface CandidateCompany {
 
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
-  formulaVersion?: 'quality-3f-v1'
+  formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2'
   sourceOrigins?: ProviderSourceOrigin[]
   providerSources?: ProviderSourceMetadata[]
   stage: string
@@ -203,6 +209,8 @@ export interface ScreeningReason {
 }
 
 export interface ResearchReport {
+  contract?: ResearchContract
+  objectiveStatus?: 'answered' | 'not_answered' | 'cannot_assess'
   sessionId: string
   timestamp: string
   objective: string
@@ -214,6 +222,17 @@ export interface ResearchReport {
   limitations: string[]
   uncertaintyNotes: string
   disclaimer: string
+}
+
+export interface ResearchContract {
+  version: string
+  status: 'supported' | 'unsupported'
+  supportedObjective: string
+  criteria: string[]
+  unsupportedReasons: string[]
+  discoveryLimit: number
+  coveragePolicy: string
+  limitations: string[]
 }
 
 export interface ProvenanceRecord {

@@ -43,13 +43,13 @@ const router = createRouter({
     {
       path: '/research/:id/activity',
       name: 'research-activity',
-      component: () => import('../views/ActivityView.vue'),
+      redirect: to => `/research/${to.params.id}`,
       meta: { title: 'Aktivitas Riset' }
     },
     {
       path: '/research/:id/trace',
       name: 'research-trace',
-      component: () => import('../views/TraceView.vue'),
+      redirect: to => `/research/${to.params.id}`,
       meta: { title: 'Audit Teknis' }
     },
     {
@@ -85,13 +85,13 @@ const router = createRouter({
     {
       path: '/activity',
       name: 'activity',
-      component: () => import('../views/ActivityView.vue'),
+      redirect: '/research',
       meta: { title: 'Aktivitas Riset' }
     },
     {
       path: '/trace',
       name: 'trace',
-      component: () => import('../views/TraceView.vue'),
+      redirect: '/research',
       meta: { title: 'Audit Teknis' }
     },
     {
@@ -115,7 +115,7 @@ const router = createRouter({
     {
       path: '/schedules',
       name: 'schedules',
-      component: () => import('../views/SchedulesView.vue'),
+      redirect: '/research',
       meta: { title: 'Riset Terjadwal' }
     },
     {

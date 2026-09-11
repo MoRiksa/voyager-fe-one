@@ -148,11 +148,11 @@ const glossaryTerms = [
     fullName: 'Skor Kualitas',
     category: 'Analisis',
     icon: Calculator,
-    definition: 'Skor gabungan 0-100 yang merangkum profitabilitas, pertumbuhan, solvabilitas, valuasi, dan konsistensi.',
-    formula: '(25% × Profitabilitas) + (25% × Pertumbuhan) + (20% × Solvabilitas) + (20% × Valuasi) + (10% × Konsistensi)',
-    interpretation: '90-100: Sangat kuat. 80-89: Kuat. 70-79: Campuran. <70: Tidak diprioritaskan.',
-    example: 'Skor 85 berarti perusahaan memiliki profil fundamental yang kuat dengan beberapa tradeoff.',
-    caution: 'Skor tinggi bukan rekomendasi beli. Ini hanya alat prioritisasi untuk riset lebih lanjut.'
+    definition: 'Skor heuristik quality-3f-v2 dari profitabilitas (ROE), solvabilitas (D/E), dan valuasi (P/E). Pertumbuhan dan konsistensi belum dinilai.',
+    formula: 'round((0.25 × P + 0.20 × S + 0.20 × V) / 0.65)',
+    interpretation: 'Skor ≥80 memenuhi ambang skor shortlist; aturan finansial dan validitas data tetap harus dipenuhi.',
+    example: 'FCF negatif tetap dapat menghasilkan skor 100 karena FCF bukan faktor skor.',
+    caution: 'Bukan peluang untung atau confidence. Bobot belum dikalibrasi empiris, belum relatif sektor; bukti satu sumber belum diverifikasi independen.'
   },
   // Ukuran
   {

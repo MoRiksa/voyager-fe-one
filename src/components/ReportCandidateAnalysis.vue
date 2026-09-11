@@ -1,237 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AlertTriangle, ArrowUpRight, BarChart3, CheckCircle2 } from '@lucide/vue'
 import type { CandidateCompany } from '../types'
-
-const props = defineProps<{
-  candidates: CandidateCompany[]
-  selectedTicker: string
-  sessionId: string
-}>()
-
-const emit = defineEmits<{
-  'update:selectedTicker': [ticker: string]
-}>()
-
-const activeCandidate = computed(() => {
-  return props.candidates.find(candidate => candidate.symbol === props.selectedTicker) || props.candidates[0]
-})
-const compactSource = (source: string) => source.startsWith('Derived')
-  ? `Turunan · ${source.split('/').pop()}`
-  : source.startsWith('http') ? `Sectors API · ${source.split('/').filter(Boolean).slice(-2).join('/')}` : source
+import CandidateCard from './CandidateCard.vue'
+const props = defineProps<{ candidates: CandidateCompany[]; selectedTicker: string; sessionId: string }>()
+const emit = defineEmits<{ 'update:selectedTicker': [ticker: string] }>()
+const activeCandidate = computed(() => props.candidates.find(c => c.symbol === props.selectedTicker) || props.candidates[0])
+const factors = computed(() => activeCandidate.value ? [
+  { label: 'Profitabilitas (ROE)', value: activeCandidate.value.scoreBreakdown?.profitability, weight: '38,46%' },
+  { label: 'Solvabilitas (D/E)', value: activeCandidate.value.scoreBreakdown?.solvency, weight: '30,77%' },
+  { label: 'Valuasi (P/E)', value: activeCandidate.value.scoreBreakdown?.valuation, weight: '30,77%' }
+] : [])
+const metric = (value: number | undefined, suffix = '') => Number.isFinite(value) ? `${value!.toLocaleString('id-ID', { maximumFractionDigits: 2 })}${suffix}` : 'Tidak tersedia'
 </script>
-
 <template>
-  <div v-if="activeCandidate" class="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-      <div>
-        <div class="text-xs font-bold uppercase tracking-wider text-[#2F64A8] font-mono">
-          Analisis mendalam
-        </div>
-        <h3 class="text-lg font-bold text-slate-900">
-          Kandidat: <span class="font-mono text-[#2F64A8]">{{ activeCandidate.symbol }}</span> ({{ activeCandidate.name }})
-        </h3>
-        <router-link :to="`/research/${sessionId}/company/${activeCandidate.symbol}`" class="text-link mt-2 inline-flex">Buka halaman perusahaan <ArrowUpRight class="h-4 w-4" /></router-link>
-      </div>
-
-      <!-- Horizontal Candidate Ticker Tabs -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-        <button
-          v-for="c in candidates"
-          :key="c.symbol"
-          @click="emit('update:selectedTicker', c.symbol)"
-          :aria-pressed="selectedTicker === c.symbol"
-          class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-          :class="selectedTicker === c.symbol
-            ? 'bg-[#2F64A8] text-white shadow-sm'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-        >
-          <span>#{{ c.rank }}</span>
-          <span>{{ c.symbol }}</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Active Candidate Content -->
-    <div class="space-y-6">
-      <!-- 4-Stat Strip -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-          <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Skor kualitas</span>
-          <p class="text-xl font-bold font-mono text-[#2F64A8] mt-0.5">{{ activeCandidate.qualityScore }}<span class="text-xs text-slate-500">/100</span></p>
-        </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-          <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Return on Equity</span>
-          <p class="text-xl font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.roePercent }}%</p>
-        </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-          <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Valuation (P/E)</span>
-          <p class="text-xl font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.peRatio }}x</p>
-        </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
-          <span class="text-xs font-mono uppercase text-slate-500 font-semibold">Free Cash Flow Yield</span>
-          <p class="text-xl font-bold font-mono text-emerald-700 mt-0.5">{{ activeCandidate.freeCashFlowYieldPercent }}%</p>
-        </div>
-      </div>
-
-      <!-- 3-Stage DuPont ROE Decomposition Visualizer -->
-      <div class="p-5 rounded-2xl bg-[#407EC9]/5 border border-[#407EC9]/20 space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <BarChart3 class="w-4 h-4 text-[#407EC9]" />
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-              Dekomposisi ROE DuPont 3 Tahap
-            </h4>
-          </div>
-          <span class="text-xs font-mono font-bold text-[#407EC9]">
-            ROE terhitung: {{ activeCandidate.dupontAnalysis.calculatedRoe }}%
-          </span>
-        </div>
-
-        <!-- Formula Chain Visualizer -->
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
-          <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-            <span class="block text-xs uppercase font-mono text-slate-500 font-bold">1. Margin Laba</span>
-            <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.netProfitMargin }}%</p>
-            <span class="text-[10px] text-slate-500">Profitabilitas operasional</span>
-          </div>
-
-          <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-            <span class="block text-xs uppercase font-mono text-slate-500 font-bold">2. Perputaran Aset</span>
-            <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.assetTurnover }}x</p>
-            <span class="text-[10px] text-slate-500">Efisiensi aset</span>
-          </div>
-
-          <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-            <span class="block text-xs uppercase font-mono text-slate-500 font-bold">3. Multiplier Ekuitas</span>
-            <p class="text-base font-bold font-mono text-slate-900 mt-0.5">{{ activeCandidate.dupontAnalysis.equityMultiplier }}x</p>
-            <span class="text-[10px] text-slate-500">Leverage finansial</span>
-          </div>
-
-          <div class="p-3 rounded-xl bg-[#2F64A8] text-white shadow-sm">
-            <span class="text-[10px] uppercase font-mono text-white/80 font-bold block">= ROE Terhitung</span>
-            <p class="text-base font-bold font-mono text-white mt-0.5">{{ activeCandidate.dupontAnalysis.calculatedRoe }}%</p>
-            <span class="text-[10px] text-white/80">Return gabungan</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5-Factor Scoring Meters -->
-      <div class="space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-          Faktor penilaian tersedia (skala 0-100)
-        </h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div v-if="Number.isFinite(activeCandidate.scoreBreakdown.consistency)" class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-600 font-medium">Profitabilitas & ROIC · bobot 25%</span>
-              <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.profitability }}/100</span>
-            </div>
-            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div class="h-full bg-[#407EC9] rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.profitability}%` }"></div>
-            </div>
-          </div>
-          <div v-if="Number.isFinite(activeCandidate.scoreBreakdown.growth)" class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex justify-between text-xs"><span class="text-slate-600 font-medium">Konsistensi laba dan dividen · bobot 10%</span><span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.consistency }}/100</span></div>
-            <div class="h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-slate-500" :style="{ width: `${activeCandidate.scoreBreakdown.consistency}%` }"></div></div>
-          </div>
-
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-600 font-medium">Solvabilitas dan kesehatan utang · bobot 20%</span>
-              <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.solvency }}/100</span>
-            </div>
-            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-600 rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.solvency}%` }"></div>
-            </div>
-          </div>
-
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-600 font-medium">Valuasi relatif · bobot 20%</span>
-              <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.valuation }}/100</span>
-            </div>
-            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div class="h-full bg-amber-500 rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.valuation}%` }"></div>
-            </div>
-          </div>
-
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-600 font-medium">Pertumbuhan · bobot 25%</span>
-              <span class="font-mono font-bold text-slate-900">{{ activeCandidate.scoreBreakdown.growth }}/100</span>
-            </div>
-            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div class="h-full bg-indigo-500 rounded-full" :style="{ width: `${activeCandidate.scoreBreakdown.growth}%` }"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Why Selected & Strengths / Concerns -->
-      <div class="space-y-3">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-          Alasan pemilihan dan risiko
-        </h4>
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 leading-relaxed">
-          <strong>Inti tesis:</strong> {{ activeCandidate.whySelected }}
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Strengths -->
-          <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/70 space-y-2">
-            <span class="text-xs font-bold text-emerald-900 uppercase font-mono flex items-center gap-1.5">
-              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
-              Keunggulan kompetitif utama
-            </span>
-            <ul class="space-y-1.5 text-xs text-slate-700">
-              <li v-for="(s, idx) in activeCandidate.keyStrengths" :key="idx" class="flex items-start gap-1.5">
-                <span class="text-emerald-600 font-bold">•</span>
-                <span>{{ s }}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Concerns -->
-          <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 space-y-2">
-            <span class="text-xs font-bold text-amber-900 uppercase font-mono flex items-center gap-1.5">
-              <AlertTriangle class="w-3.5 h-3.5 text-amber-600" />
-              Risiko dan hal yang perlu dipantau
-            </span>
-            <ul class="space-y-1.5 text-xs text-slate-700">
-              <li v-for="(c, idx) in activeCandidate.potentialConcerns" :key="idx" class="flex items-start gap-1.5">
-                <span class="text-amber-600 font-bold">•</span>
-                <span>{{ c }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Evidence Citations Strip -->
-      <div class="space-y-2">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">
-          Data pendukung
-        </h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[11px]">
-          <div
-            v-for="(citation, idx) in activeCandidate.evidenceCitations"
-            :key="idx"
-            class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-start justify-between gap-2"
-          >
-            <div>
-              <div class="font-bold text-slate-800">{{ citation.metric }}: <span class="text-[#2F64A8]">{{ citation.value }}</span></div>
-              <div class="text-[10px] text-slate-500 font-sans mt-0.5">{{ citation.context }}</div>
-            </div>
-            <div class="shrink-0 text-right">
-              <span class="block rounded bg-slate-200 px-1.5 py-0.5 text-[10px] text-slate-700" :title="citation.source">{{ compactSource(citation.source) }}</span>
-              <span v-if="citation.period" class="mt-1 block text-[10px] text-slate-500">Periode: {{ citation.period }}</span>
-              <span v-if="citation.asOf" class="mt-1 block text-[10px] text-slate-500">Per tanggal: {{ citation.asOf }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div v-if="activeCandidate" class="space-y-5">
+    <div class="flex flex-wrap gap-2" aria-label="Pilih kandidat"><button v-for="candidate in candidates" :key="candidate.symbol" type="button" :aria-pressed="activeCandidate.symbol === candidate.symbol" class="button-secondary" @click="emit('update:selectedTicker', candidate.symbol)">{{ candidate.symbol }}</button></div>
+    <CandidateCard :candidate="activeCandidate" />
+    <section class="rounded-2xl border border-slate-200 bg-white p-6"><h3 class="text-lg font-bold">Tiga faktor pendukung</h3><p class="mt-2 text-sm leading-6 text-slate-600">{{ activeCandidate.formulaVersion || 'Versi formula tidak tersedia' }}. Bobot heuristik 25:20:20 dinormalisasi terhadap 65. Belum dikalibrasi empiris, bukan penilaian relatif sektor. Pertumbuhan dan konsistensi belum dinilai.</p><dl class="mt-5 grid gap-4 sm:grid-cols-3"><div v-for="factor in factors" :key="factor.label" class="rounded-xl bg-slate-50 p-4"><dt class="text-sm">{{ factor.label }} · {{ factor.weight }}</dt><dd class="mt-2 font-mono font-bold">{{ metric(factor.value) }}<span v-if="Number.isFinite(factor.value)">/100</span></dd></div></dl><details class="mt-4"><summary class="min-h-11 cursor-pointer text-sm font-semibold">Rumus dan asumsi</summary><pre class="overflow-x-auto rounded-xl bg-slate-50 p-4 text-xs leading-6">P = clamp(round(ROE × 4.2), 40, 100)
+S = clamp(round((2.5 − min(2.5, D/E)) × 40), 30, 100)
+V = clamp(round((35 − min(35, P/E)) × 3.5), 30, 100)
+Q = round((0.25P + 0.20S + 0.20V) / 0.65)</pre><p class="mt-3 text-sm leading-6 text-slate-600">Input harus bermakna dan FY keuangan/valuasi sama. FCF bukan faktor skor. FCF negatif dapat menghasilkan Q=100; ini bukan bukti arus kas sehat.</p></details></section>
+    <details class="rounded-2xl border border-slate-200 bg-white p-6"><summary class="min-h-11 cursor-pointer font-bold">Dekomposisi ROE DuPont</summary><p class="mt-3 text-sm leading-6 text-slate-600">Identitas aljabar dari laporan yang sama, bukan pemeriksaan silang independen. Rasio menggunakan saldo akhir.</p><dl v-if="activeCandidate.dupontAnalysis" class="mt-4 grid gap-4 sm:grid-cols-2"><div><dt>Margin laba bersih</dt><dd>{{ metric(activeCandidate.dupontAnalysis.netProfitMargin, '%') }}</dd></div><div><dt>Perputaran aset</dt><dd>{{ metric(activeCandidate.dupontAnalysis.assetTurnover, 'x') }}</dd></div><div><dt>Pengali ekuitas</dt><dd>{{ metric(activeCandidate.dupontAnalysis.equityMultiplier, 'x') }}</dd></div><div><dt>ROE terhitung</dt><dd>{{ metric(activeCandidate.dupontAnalysis.calculatedRoe, '%') }}</dd></div></dl><p v-else class="mt-3 text-sm">Dekomposisi belum tersedia.</p></details>
   </div>
-  <div v-else class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><h2 class="font-bold text-slate-900">Tidak ada kandidat dalam laporan ini</h2><p class="mt-2 text-sm text-slate-600">Tidak ada perusahaan dalam hasil sesi yang memenuhi seluruh kriteria.</p></div>
+  <p v-else class="rounded-2xl border border-slate-200 bg-white p-6">Tidak ada kandidat yang dapat ditampilkan. Tinjau alasan seleksi dan kelengkapan data.</p>
 </template>

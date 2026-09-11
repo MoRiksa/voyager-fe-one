@@ -93,7 +93,7 @@ const sessionNavItems = computed(() => [
       </nav>
     </div>
 
-    <div class="shrink-0 border-t border-slate-200 bg-slate-50/80 p-3">
+    <div v-if="store.report.sessionId" class="shrink-0 border-t border-slate-200 bg-slate-50/80 p-3">
       <div class="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wider text-[#2F64A8]"><CircleDot class="h-3 w-3" /> Sesi aktif</div>
       <router-link data-testid="sidebar-active-session" :to="`/research/${store.report.sessionId}`" class="block rounded-xl border border-[#407EC9]/20 bg-white p-3 transition-colors hover:border-[#407EC9]/50 hover:bg-blue-50" :aria-current="currentRouteName === 'research-session' ? 'page' : undefined">
         <p class="line-clamp-2 text-xs font-bold leading-5 text-slate-900">{{ sessionTitle }}</p>
@@ -106,7 +106,7 @@ const sessionNavItems = computed(() => [
         </router-link>
       </nav>
       <div class="mt-2 px-1 text-xs leading-4 text-slate-500">
-        <strong>Data contoh.</strong> Gunakan untuk mencoba alur riset.
+        Cakupan terbatas. Periksa sumber dan periode sebelum menggunakan hasil.
       </div>
     </div>
   </aside>

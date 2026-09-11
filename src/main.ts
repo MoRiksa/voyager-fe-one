@@ -10,7 +10,6 @@ const pinia = createPinia()
 
 app.use(pinia)
 const researchStore = useResearchStore(pinia)
-researchStore.hydrateSessions()
 void researchStore.refreshSessions()
 app.use(router)
 app.mount('#app')

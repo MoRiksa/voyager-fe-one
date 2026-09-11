@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Dokumen | Acuan tunggal delivery end-to-end Voyager One V1 |
-| Status | Aktif, backend-authoritative production berjalan; usability gate lokal lulus |
-| Last updated | 2026-09-10 |
+| Status | P0 frontend/backend lulus LOCAL pada objective kanonik terbatas; production lama; validitas pasar nyata dan uji pengguna belum lulus |
+| Last updated | 2026-09-11 |
 | Product scope | Seluruh delivery fundamental Voyager One V1 |
 | Scope setelah Voyager One | Technical analysis, khusus Voyager Two V1 |
 | Frontend repository | `https://github.com/MoRiksa/voyager-fe-one` |
@@ -25,6 +25,9 @@ sebagai status implementasi terbaru:
 - [`sectors-api-integration-recommendations.md`](sectors-api-integration-recommendations.md): rekomendasi provider Sectors.
 - [`screen-reader-audit.md`](screen-reader-audit.md): prosedur audit assistive technology.
 - [`voyager-two-v1.md`](voyager-two-v1.md): discovery dan delivery track technical analysis.
+- [`audit-kesesuaian-produk-2026-09-10.md`](audit-kesesuaian-produk-2026-09-10.md): temuan dan bukti awal kesenjangan terhadap tujuan produk.
+- [`rekomendasi-layout-redesign-2026-09-10.md`](rekomendasi-layout-redesign-2026-09-10.md): arah pengalaman pengguna nonteknis dan kriteria penerimaan.
+- [`pembuktian-hasil-voyager-one.md`](pembuktian-hasil-voyager-one.md): register perbaikan dan bukti verifikasi yang diperbarui selama pengerjaan; pembuatan dokumen tidak menandakan perbaikan telah lulus.
 
 Jika implementasi berubah, perbarui kolom **Actual**, checklist fase, bukti
 verifikasi, keputusan, risiko, dan tanggal dokumen ini dalam commit yang sama.
@@ -32,6 +35,46 @@ Jangan menandai checklist selesai hanya karena kode sudah ditulis; checklist bar
 selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ## 2. North Star Produk
+
+### Catatan delivery 2026-09-11 — minimum audit frontend
+
+- Integrasi kontrak backend baru di sibling `voyager-be-one`, tanpa mengubah backend.
+  Hanya screening IDX tiga faktor executable. Bank/dividen/pendalaman/peer sektor unsupported.
+- V-01/V-02/V-07/V-09 dan UI V-05: bootstrap/simulasi/fallback sintetis dihapus;
+  preview objective+brief+presetId; template lock/deep link diperbaiki; objectiveStatus dan
+  evidence/narrativeStatus ditampilkan; hasil mengutamakan alasan, risiko, periode lalu skor.
+  Trace/log operasional dikeluarkan dari UI pengguna; ekspor hanya backend.
+- LOCAL: `test:interaction`, `test:smoke` (13 route), `test:canonical-flow`, build/typecheck,
+  dan diff check lulus. Backend nyata dijalankan dengan provider sintetis dan storage temporer,
+  demo fixture nonaktif. Start error/retry tidak membuat sesi ganda; export error tidak membuat file palsu.
+- `test:architecture` gagal pada kelengkapan marker animasi serta temuan geometri diagram
+  internal. Runner sudah melaporkan elemen yang hilang tanpa crash. Full repository suite
+  tidak diklaim hijau. Rekonsiliasi sumber nyata, uji pengguna/screen reader,
+  PDF lengkap, production, auth dan durability tetap terbuka.
+- Tidak ada commit, push, deploy, atau delegasi. Detail putaran gagal/lulus dan batas bukti:
+  [`pembuktian-hasil-voyager-one.md`, §5](pembuktian-hasil-voyager-one.md#5-catatan-verifikasi-per-putaran).
+
+### Urutan delivery berikutnya
+
+1. Rekonsiliasi data provider nyata untuk sampel lintas sektor: satuan, currency, FY,
+   tanggal harga, rasio, dan provenance. Ini adalah syarat sebelum menilai model.
+2. Pilih satu vertical slice objective utama (direkomendasikan bank sehat), tetapkan
+   kriteria yang benar-benar tersedia, lalu gunakan kontrak yang sama dari preview
+   sampai laporan. Objective lain tetap ditandai unsupported.
+3. Setelah akurasi data lulus, evaluasi dan kalibrasi formula scoring secara sektoral;
+   quality score tetap bukan peluang untung atau confidence.
+4. Jalankan uji pengguna pemula, screen reader, zoom/kontras, dan verifikasi export
+   revision race. Perbaiki hierarki berdasarkan salah tafsir aktual.
+5. Putuskan auth/ownership sebelum klaim kesiapan publik, lalu uji durability restart,
+   backup, dan restore.
+6. Commit/deploy hanya setelah gate lokal terkait lulus. Verifikasi production dicatat
+   terpisah; deployment tidak mengubah status validitas finansial atau uji pengguna.
+
+Architecture Atlas adalah dokumentasi internal dan bukan bagian alur pengguna. Gate
+diagram tetap diperbaiki serta dicatat terpisah, tetapi tidak boleh menggantikan atau
+menyamarkan acceptance gate produk di atas.
+
+Visi di bawah merupakan arah produk; bukan seluruh kemampuan backend yang tersedia saat ini.
 
 Voyager One menerima tujuan riset, menyusun strategi, memilih data dan tools,
 menjalankan screening dan deep research, memvalidasi bukti, lalu menerbitkan

@@ -1,280 +1,49 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onUnmounted, ref, watch } from 'vue'
 import { useResearchStore } from '../stores/researchStore'
+import { getResearchSessionFull, startResearchSession } from '../services/researchApi'
 import { sessionStatusMeta } from '../utils/status'
 import CandidateCard from '../components/CandidateCard.vue'
 import DataProvenance from '../components/DataProvenance.vue'
-import { Activity, AlertTriangle, ArrowRight, CheckCircle2, Clock3, Loader2, MessageSquare, RotateCcw, Send, Square, Terminal } from '@lucide/vue'
-
 const store = useResearchStore()
-const route = useRoute()
-const activePanel = ref<'overview' | 'activity' | 'results'>('overview')
-const followUp = ref('')
-const followUpResponse = ref('')
-const clarificationAnswer = ref('')
-const sessionFound = ref(true)
-const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecuting))
-const contractBanners: Record<string, { title: string; description: string; className: string }> = {
-  PARTIAL: { title: 'Hasil parsial tersedia', description: 'Sebagian tahap selesai. Tinjau kandidat dan jejak aktivitas yang tersedia sebelum menggunakan hasil.', className: 'border-amber-200 bg-amber-50 text-amber-950' },
-  FAILED: { title: 'Riset tidak berhasil diselesaikan', description: 'Proses berhenti sebelum seluruh langkah selesai. Data yang sudah tersimpan tetap dapat ditinjau.', className: 'border-rose-200 bg-rose-50 text-rose-950' },
-  CANCELLED: { title: 'Riset dibatalkan', description: 'Sesi dihentikan sebelum selesai. Tidak ada proses lanjutan yang dijalankan dari halaman ini.', className: 'border-slate-300 bg-slate-100 text-slate-900' },
-  NEEDS_INPUT: { title: 'Riset memerlukan input', description: 'Rencana membutuhkan klarifikasi sebelum dapat dilanjutkan. Jawaban akan disimpan bersama brief sesi.', className: 'border-blue-200 bg-blue-50 text-blue-950' }
-}
-const contractBanner = computed(() => contractBanners[String(store.status)])
-
-import { getResearchSessionFull } from '../services/researchApi'
-
-const terminalStatuses = new Set(['IDLE', 'COMPLETED', 'FAILED', 'PARTIAL', 'CANCELLED', 'NEEDS_INPUT'])
-const stepStatuses = computed<Record<number, 'pending' | 'running' | 'completed' | 'failed'>>(() =>
-  Object.fromEntries(store.activePlan.steps.map((step, index) => {
-    const status = store.pillars[index]?.status
-    return [step.order, status === 'active' ? 'running' : status === 'completed' ? 'completed' : status === 'failed' ? 'failed' : 'pending']
-  }))
-)
-let pollToken = 0
-
-const pollAuthoritativeSession = async (id: string, token: number) => {
-  while (token === pollToken) {
-    await new Promise(resolve => setTimeout(resolve, 750))
+const busy = ref(false)
+const readError = ref('')
+let token = 0
+const poll = async (id: string, current: number) => {
+  while (current === token && store.isExecuting) {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    if (current !== token) return
     try {
       const session = await getResearchSessionFull(id)
-      if (token !== pollToken) return
-      store.hydrateFromBackendSession(session)
-      if (terminalStatuses.has(session.status)) {
-        store.disconnectSse()
-        return
-      }
-    } catch {
-      // Keep the last authoritative snapshot and retry transient read failures.
-    }
+      if (current !== token) return
+      store.hydrateFromBackendSession(session); readError.value = ''
+    } catch { readError.value = 'Pembaruan status terputus. Snapshot terakhir ditampilkan; mencoba menghubungkan kembali.' }
   }
 }
-
-onUnmounted(() => {
-  pollToken += 1
-  store.disconnectSse()
-})
-
-watch(() => String(route.params.id), async id => {
-  if (!id) return
-  const token = ++pollToken
-  try {
-    const backendSession = await getResearchSessionFull(id)
-    if (token !== pollToken) return
-    store.hydrateFromBackendSession(backendSession)
-    sessionFound.value = true
-    if (!terminalStatuses.has(backendSession.status)) {
-      store.connectSse(id)
-      void pollAuthoritativeSession(id, token)
-    }
-  } catch {
-    sessionFound.value = store.loadSession(id) || id === store.report.sessionId
-  }
+watch(() => [store.report.sessionId, store.isExecuting] as const, ([id, running]) => {
+  const current = ++token
+  if (id && running) void poll(id, current)
 }, { immediate: true })
-
-const activePillar = computed(() => store.pillars.find(pillar => pillar.status === 'active'))
-const completedCount = computed(() => store.pillars.filter(pillar => pillar.status === 'completed').length)
-const progress = computed(() => Math.round((completedCount.value / store.pillars.length) * 100))
-const sessionDescription = computed(() => activePillar.value?.subtitle || (store.isExecuting
-  ? 'Riset sedang berjalan. Hasil akan tersedia setelah seluruh tahap selesai.'
-  : store.status === 'PARTIAL'
-    ? 'Sebagian hasil tersimpan dan dapat ditinjau dengan memperhatikan keterbatasannya.'
-    : store.status === 'NEEDS_INPUT'
-      ? 'Riset memerlukan klarifikasi sebelum proses dapat dilanjutkan.'
-      : store.status === 'CANCELLED'
-        ? 'Riset dibatalkan. Hasil yang sudah tersimpan tetap tersedia untuk ditinjau.'
-  : store.status === 'FAILED'
-    ? 'Proses sebelumnya terputus. Hasil yang telah tersimpan tetap dapat ditinjau.'
-    : store.status === 'COMPLETED'
-      ? 'Hasil riset, kandidat, dan laporan telah tersedia untuk ditinjau.'
-      : 'Riset sudah disiapkan dan akan segera dimulai.'))
-const progressLabel = computed(() => activePillar.value?.name || (store.status === 'COMPLETED' ? 'Riset selesai' : store.status === 'PARTIAL' ? 'Hasil parsial' : store.status === 'NEEDS_INPUT' ? 'Menunggu klarifikasi' : store.status === 'CANCELLED' ? 'Riset dibatalkan' : store.status === 'FAILED' ? 'Proses terputus' : 'Menyiapkan riset'))
-
-const isSubmittingFollowUp = ref(false)
-const isSubmittingClarification = ref(false)
-const isSubmittingLifecycle = ref(false)
-
-const askFollowUp = async () => {
-  if (!followUp.value.trim() || isSubmittingFollowUp.value) return
-  isSubmittingFollowUp.value = true
-  followUpResponse.value = 'Menyiapkan jawaban dari hasil riset...'
+onUnmounted(() => { token += 1; store.disconnectSse() })
+const act = async (action: 'start' | 'retry' | 'cancel') => {
+  if (busy.value) return
+  busy.value = true
   try {
-    const answer = await store.addFollowUp(followUp.value.trim())
-    followUpResponse.value = answer || 'Catatan telah disimpan pada sesi riset ini.'
-    followUp.value = ''
-  } catch {
-    followUpResponse.value = 'Pertanyaan belum dapat diproses. Coba lagi beberapa saat.'
-  } finally {
-    isSubmittingFollowUp.value = false
-  }
-}
-
-const answerClarification = async () => {
-  if (!clarificationAnswer.value.trim() || isSubmittingClarification.value) return
-  isSubmittingClarification.value = true
-  try {
-    const success = await store.answerClarification(clarificationAnswer.value.trim())
-    if (success) {
-      clarificationAnswer.value = ''
-      store.notify('Klarifikasi disimpan pada brief sesi.', 'success')
-    } else {
-      store.notify('Sesi berubah atau klarifikasi gagal. Status terbaru sudah dimuat.', 'error')
-    }
-  } finally {
-    isSubmittingClarification.value = false
-  }
-}
-
-const cancel = async () => {
-  if (isSubmittingLifecycle.value) return
-  isSubmittingLifecycle.value = true
-  const success = await store.cancelResearch()
-  isSubmittingLifecycle.value = false
-  if (success) {
-    pollToken += 1
-    store.notify('Riset dibatalkan. Hasil yang sudah tersimpan tetap dipertahankan.', 'info')
-  } else {
-    store.notify('Sesi berubah atau pembatalan gagal. Status terbaru sudah dimuat.', 'error')
-  }
-}
-
-const retry = async () => {
-  if (isSubmittingLifecycle.value) return
-  isSubmittingLifecycle.value = true
-  const success = await store.retryResearch()
-  isSubmittingLifecycle.value = false
-  if (success) {
-    const token = ++pollToken
-    void pollAuthoritativeSession(store.report.sessionId, token)
-    store.notify('Riset dijalankan ulang dari awal.', 'info')
-  } else {
-    store.notify('Sesi berubah atau retry gagal. Status terbaru sudah dimuat.', 'error')
-  }
+    if (action === 'start') store.hydrateFromBackendSession((await startResearchSession(store.report.sessionId, store.currentRevision)).session)
+    else if (action === 'retry') await store.retryResearch()
+    else await store.cancelResearch()
+  } catch (error) { store.notify(error instanceof Error ? error.message : 'Proses gagal dimulai.', 'error') }
+  finally { busy.value = false }
 }
 </script>
-
 <template>
-  <div v-if="!sessionFound" class="mx-auto flex min-h-[65dvh] max-w-xl flex-col items-center justify-center px-6 text-center">
-    <h1 class="text-2xl font-bold text-slate-950">Sesi riset tidak ditemukan</h1>
-    <p class="mt-3 text-sm leading-6 text-slate-600">Sesi ini tidak tersedia di perangkat ini atau telah melewati batas riwayat lokal.</p>
-    <router-link to="/" class="button-primary mt-6">Kembali ke beranda</router-link>
-  </div>
-  <div v-else class="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
-    <header class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div class="max-w-4xl">
-          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-            <span class="text-[#2F64A8]">Sesi {{ store.report.sessionId }}</span>
-             <span class="status-badge" :class="statusMeta.className">{{ statusMeta.label }}</span>
-          </div>
-          <h1 class="mt-3 text-2xl font-bold leading-tight tracking-tight text-slate-950 sm:text-3xl">{{ store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Riset khusus Anda' }}</h1>
-          <div class="mt-4 max-w-4xl rounded-xl bg-slate-50 p-4"><span class="text-xs font-bold text-slate-500">Tujuan riset</span><p class="mt-1 text-sm leading-6 text-slate-700">{{ store.currentObjective }}</p></div>
-          <p class="mt-3 text-sm leading-6 text-slate-600">{{ sessionDescription }}</p>
-        </div>
-        <div class="flex shrink-0 flex-wrap gap-2">
-          <button v-if="store.isExecuting" type="button" data-testid="session-cancel" class="button-secondary text-rose-700" :disabled="isSubmittingLifecycle" @click="cancel"><Square class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Membatalkan...' : 'Batalkan' }}</button>
-          <button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status)" type="button" data-testid="session-retry" class="button-secondary" :disabled="isSubmittingLifecycle" @click="retry"><RotateCcw class="h-4 w-4" /> {{ isSubmittingLifecycle ? 'Memulai...' : 'Jalankan ulang' }}</button>
-          <template v-if="store.status === 'COMPLETED' || (store.status === 'PARTIAL' && store.candidates.length)">
-           <router-link v-if="store.candidates.length" data-testid="session-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan <ArrowRight class="h-4 w-4" /></router-link>
-           <router-link v-if="store.candidates.length >= 2" :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Lihat cara kandidat dipilih</router-link>
-           <router-link v-else-if="store.candidates.length === 1" :to="`/research/${store.report.sessionId}/company/${store.candidates[0].symbol}`" class="button-secondary">Buka analisis kandidat</router-link>
-           <router-link v-else data-testid="session-next" to="/research/new" class="button-primary">Ubah kriteria riset <ArrowRight class="h-4 w-4" /></router-link>
-          </template>
-        </div>
-      </div>
-      <div class="mt-7">
-         <div class="mb-2 flex items-center justify-between text-xs font-semibold text-slate-600"><span>{{ progressLabel }}</span><span class="font-mono">{{ progress }}%</span></div>
-        <div class="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"><div class="h-full rounded-full bg-[#407EC9] transition-[width] duration-300" :style="{ width: `${progress}%` }"></div></div>
-      </div>
-      <DataProvenance source="prototype-fixture-v1 dan metrik turunan sesi" :generated-at="store.report.timestamp" compact class="mt-5" />
+  <div class="page-shell space-y-6">
+    <header class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8"><p class="section-kicker">Sesi riset</p><h1 class="mt-2 text-2xl font-bold">{{ store.currentObjective }}</h1><p class="mt-4 text-sm font-semibold" role="status">Proses: {{ sessionStatusMeta(store.status, store.isExecuting).label }}</p><p class="mt-2 text-sm leading-6 text-slate-600">{{ store.status === 'COMPLETED' ? 'Perhitungan selesai. Status pemenuhan tujuan dan keterbatasan terdapat dalam laporan.' : store.isExecuting ? 'Screening berjalan. Kandidat hanya tersedia setelah publikasi hasil.' : 'Sesi belum menghasilkan proses screening yang selesai.' }}</p><p v-if="store.failureReason" role="alert" class="mt-3 text-sm leading-6 text-rose-700">{{ store.failureReason }}</p><p v-if="readError" role="alert" class="mt-3 text-sm text-amber-900">{{ readError }}</p>
+      <div class="mt-5 flex flex-wrap gap-3"><button v-if="store.status === 'IDLE' && store.activePlan.contract?.status === 'supported'" type="button" :disabled="busy" class="button-primary" @click="act('start')">Mulai sesi</button><button v-if="store.isExecuting" data-testid="session-cancel" type="button" :disabled="busy" class="button-secondary" @click="act('cancel')">Batalkan</button><button v-if="['FAILED', 'PARTIAL', 'CANCELLED'].includes(store.status) && store.activePlan.contract?.status === 'supported'" data-testid="session-retry" type="button" :disabled="busy" class="button-primary" @click="act('retry')">Jalankan ulang</button><router-link v-if="store.publishedAttemptId" data-testid="session-next" :to="`/research/${store.report.sessionId}/report`" class="button-primary">Baca laporan</router-link><router-link v-if="store.screeningFunnel.length" :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau alasan seleksi</router-link></div>
     </header>
-
-    <section v-if="contractBanner" role="status" class="mt-4 flex gap-3 rounded-2xl border p-4" :class="contractBanner.className">
-      <AlertTriangle class="mt-0.5 h-5 w-5 shrink-0" />
-      <div><h2 class="text-sm font-bold">{{ contractBanner.title }}</h2><p class="mt-1 text-xs leading-5 opacity-80">{{ contractBanner.description }}</p></div>
-    </section>
-    <form v-if="store.status === 'NEEDS_INPUT'" data-testid="clarification-form" class="mt-4 rounded-2xl border border-blue-200 bg-white p-5" @submit.prevent="answerClarification">
-      <label for="clarification-answer" class="text-sm font-bold text-slate-900">{{ store.clarificationQuestion }}</label>
-      <p class="mt-1 text-xs text-slate-500">Jawaban disimpan pada brief sesi dan dapat ditinjau kembali.</p>
-      <div class="mt-3 flex flex-col gap-2 sm:flex-row"><input id="clarification-answer" v-model="clarificationAnswer" data-testid="clarification-answer" required class="min-h-11 flex-1 rounded-xl border border-slate-300 px-3 text-sm" placeholder="Tulis prioritas Anda" /><button type="submit" class="button-primary">Simpan klarifikasi</button></div>
-    </form>
-
-    <div class="mt-6 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1 lg:hidden" aria-label="Panel sesi">
-      <button v-for="panel in [{ id: 'overview', label: 'Ringkasan' }, { id: 'activity', label: 'Aktivitas' }, { id: 'results', label: 'Hasil' }]" :key="panel.id" type="button" class="min-h-11 flex-1 rounded-lg px-4 text-xs font-bold" :class="activePanel === panel.id ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'" :aria-pressed="activePanel === panel.id" @click="activePanel = panel.id as typeof activePanel">{{ panel.label }}</button>
-    </div>
-
-    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_21rem]">
-      <div class="space-y-6">
-        <details v-show="activePanel === 'overview' || (activePanel === 'results' && !store.candidates.length)" :open="!store.candidates.length" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <summary class="min-h-11 cursor-pointer py-2 text-base font-bold text-slate-950">Cara hasil ini dibuat <span class="ml-2 text-xs font-medium text-slate-500">{{ completedCount }}/{{ store.pillars.length }} tahap</span></summary>
-          <div class="mt-4 flex items-start justify-between gap-3"><div><p class="section-kicker">Rencana riset</p><h2 class="mt-1 text-xl font-bold text-slate-950">Kriteria dan langkah yang dijalankan</h2></div></div>
-          <dl class="mt-5 grid gap-4 sm:grid-cols-2">
-             <div data-testid="persisted-brief" class="rounded-xl border border-slate-200 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Pilihan riset</dt><dd class="mt-2 text-sm leading-6 text-slate-800">{{ store.activeBrief.market }} · {{ store.activeBrief.sectorScope }} · {{ store.activeBrief.indexScope }} · target {{ store.activeBrief.candidateCount }} kandidat · {{ store.activeBrief.researchDepth.toLowerCase() }}</dd><dd class="mt-1 text-xs text-slate-500">{{ store.activeBrief.useSectorMetrics ? 'Metrik spesifik sektor bila tersedia' : 'Metrik umum' }}<template v-if="store.activeBrief.optionalDimensions.length"> · {{ store.activeBrief.optionalDimensions.join(', ') }}</template></dd></div>
-             <div class="rounded-xl bg-slate-50 p-4 sm:col-span-2"><dt class="text-xs font-bold text-slate-500">Perusahaan yang diperiksa</dt><dd class="mt-1 text-sm leading-6 text-slate-800">{{ store.activePlan.universe }}</dd></div>
-            <div class="rounded-xl bg-blue-50 p-4 sm:col-span-2"><dt class="text-xs font-bold text-[#2F64A8]">Hipotesis</dt><dd class="mt-1 text-sm leading-6 text-slate-800">{{ store.activePlan.hypothesis }}</dd></div>
-            <div><dt class="text-sm font-bold text-slate-900">Kriteria diterapkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="criterion in store.activePlan.criteria" :key="criterion">{{ criterion }}</li><li v-if="!store.activePlan.criteria.length">Belum ada kriteria aktif.</li></ul></dd></div>
-            <div><dt class="text-sm font-bold text-slate-900">Data yang dibutuhkan</dt><dd><ul class="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600"><li v-for="dataPoint in store.activePlan.requiredDataPoints" :key="dataPoint">{{ dataPoint }}</li><li v-if="!store.activePlan.requiredDataPoints.length">Belum ada data wajib.</li></ul></dd></div>
-          </dl>
-          <h3 class="mt-6 text-sm font-bold text-slate-900">Langkah riset</h3>
-          <ol class="mt-3 space-y-2">
-            <li v-for="step in store.activePlan.steps" :key="`${step.order}-${step.action}`" 
-                class="grid grid-cols-[2.5rem_1fr] gap-3 rounded-xl border p-4 transition-all duration-200"
-                :class="stepStatuses[step.order] === 'running' ? 'border-blue-400 bg-blue-50/60 shadow-sm' : stepStatuses[step.order] === 'completed' ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-white'">
-              <div class="flex items-center justify-center">
-                <span v-if="stepStatuses[step.order] === 'running'" class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 font-mono text-xs font-bold text-white shadow-sm">
-                  <Loader2 class="h-4 w-4 animate-spin text-white" />
-                </span>
-                <span v-else-if="stepStatuses[step.order] === 'completed'" class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 font-mono text-xs font-bold text-white shadow-sm">
-                  ✓
-                </span>
-                <span v-else class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-700">
-                  {{ step.order }}
-                </span>
-              </div>
-              <div>
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <h4 class="text-sm font-bold text-slate-900">{{ step.action }}</h4>
-                  <span v-if="stepStatuses[step.order] === 'running'" class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800 animate-pulse">Sedang diproses...</span>
-                  <span v-else-if="stepStatuses[step.order] === 'completed'" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">✓ Selesai</span>
-                </div>
-                <p class="mt-1 text-xs leading-5 text-slate-500">{{ step.description }}</p>
-              </div>
-            </li>
-            <li v-if="!store.activePlan.steps.length" class="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500">Langkah eksekusi belum disusun.</li>
-          </ol>
-        </details>
-
-        <section v-show="activePanel === 'overview' || activePanel === 'results'" aria-labelledby="session-results-title">
-           <div class="mb-4 flex items-end justify-between">
-             <div>
-               <p class="section-kicker">{{ store.status === 'COMPLETED' ? 'Hasil akhir' : store.status === 'PARTIAL' ? 'Hasil parsial' : 'Menunggu hasil' }}</p>
-               <h2 id="session-results-title" class="mt-1 text-xl font-bold text-slate-950">Kandidat teratas dari seleksi akhir</h2>
-             </div>
-             <router-link v-if="store.candidates.length >= 2 && (store.status === 'COMPLETED' || store.status === 'PARTIAL')" :to="`/research/${store.report.sessionId}/peers`" class="text-link hidden sm:inline-flex">Bandingkan kandidat <ArrowRight class="h-4 w-4" /></router-link>
-           </div>
-          <div v-if="store.candidates.length" class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates.slice(0, 4)" :key="candidate.symbol" :candidate="candidate" /></div>
-           <div v-else-if="store.status === 'COMPLETED'" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center"><h3 class="font-bold text-slate-900">Tidak ada kandidat yang lolos</h3><p class="mt-2 text-sm text-slate-600">Tinjau tahap penyaringan untuk melihat perusahaan yang gugur, lalu gunakan riset ini sebagai template untuk menyesuaikan kriteria.</p><div class="mt-5 flex flex-wrap justify-center gap-2"><router-link :to="`/research/${store.report.sessionId}/screener`" class="button-secondary">Tinjau tahap seleksi</router-link><router-link to="/research/new" class="button-primary">Ubah kriteria</router-link></div></div>
-           <div v-else class="rounded-2xl border border-blue-200 bg-blue-50 p-8 text-center"><Clock3 class="mx-auto h-5 w-5 text-[#407EC9]" /><h3 class="mt-3 font-bold text-slate-900">Kandidat belum tersedia</h3><p class="mt-2 text-sm text-slate-600">Hasil akhir akan muncul otomatis setelah proses riset selesai.</p></div>
-        </section>
-
-        <section v-show="activePanel === 'activity'" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:hidden">
-          <h2 class="text-lg font-bold text-slate-950">Aktivitas terbaru</h2>
-          <div class="mt-4 space-y-4"><div v-for="call in store.toolCalls.slice(-6).reverse()" :key="call.id" class="border-l-2 border-slate-200 pl-4"><p class="text-sm font-bold text-slate-900">{{ call.outputSummary }}</p><p class="mt-1 font-mono text-xs text-slate-500">{{ call.timestamp }} · {{ call.sourceKind === 'prototype-fixture' ? 'fixture v1' : 'input pengguna' }}</p></div></div>
-        </section>
-
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div class="flex items-center gap-2"><MessageSquare class="h-4 w-4 text-[#407EC9]" /><h2 class="text-lg font-bold text-slate-950">Catatan lanjutan</h2></div>
-          <p class="mt-1 text-xs leading-5 text-slate-500">Simpan pertanyaan atau ide untuk riset berikutnya. Catatan tidak menghitung ulang hasil sesi ini.</p>
-          <form class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="askFollowUp"><label for="follow-up" class="sr-only">Catatan lanjutan</label><input id="follow-up" v-model="followUp" class="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 text-sm focus:border-[#2F64A8]" placeholder="Contoh: Bandingkan tiga kandidat teratas dari sisi risiko." /><button type="submit" class="button-primary"><Send class="h-4 w-4" /> Simpan catatan</button></form>
-          <p v-if="followUpResponse" role="status" class="mt-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-900">{{ followUpResponse }}</p>
-        </section>
-      </div>
-
-      <aside class="hidden space-y-4 lg:block">
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-center gap-2"><Activity class="h-4 w-4 text-[#407EC9]" /><h2 class="text-sm font-bold text-slate-950">Aktivitas sesi</h2></div><div class="mt-5 space-y-5"><div v-for="call in store.toolCalls.slice(-5).reverse()" :key="call.id" class="relative border-l-2 border-slate-200 pl-4"><span class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-[#407EC9]"></span><p class="text-xs font-semibold leading-5 text-slate-800">{{ call.outputSummary }}</p><p class="mt-1 font-mono text-[11px] text-slate-500">{{ call.timestamp }} · {{ call.sourceKind === 'prototype-fixture' ? 'fixture v1' : 'input pengguna' }}</p></div></div><router-link :to="`/research/${store.report.sessionId}/activity`" class="text-link mt-5">Lihat seluruh aktivitas <ArrowRight class="h-4 w-4" /></router-link></section>
-        <section class="rounded-2xl bg-slate-900 p-5 text-white"><Terminal class="h-4 w-4 text-blue-200" /><h2 class="mt-4 text-sm font-bold">Perlu detail teknis?</h2><p class="mt-2 text-xs leading-5 text-slate-300">Payload dan metadata tersedia tanpa memenuhi ruang kerja utama.</p><router-link :to="`/research/${store.report.sessionId}/trace`" class="mt-4 inline-flex min-h-11 items-center gap-2 text-xs font-bold text-white">Buka audit teknis <ArrowRight class="h-4 w-4" /></router-link></section>
-      </aside>
-    </div>
+    <section v-if="store.activePlan.contract?.status !== 'supported'" class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950"><h2 class="font-bold">Tujuan belum didukung atau kontrak sesi lama belum terverifikasi</h2><p v-for="reason in store.activePlan.contract?.unsupportedReasons" :key="reason">{{ reason }}</p><router-link to="/research/new" class="mt-3 inline-block underline">Pilih screening yang didukung</router-link></section>
+    <section v-if="store.publishedAttemptId" class="space-y-4"><h2 class="text-xl font-bold">Kandidat untuk ditinjau</h2><p class="text-sm leading-6 text-slate-600">{{ store.report.objectiveStatus === 'cannot_assess' ? 'Sebagian data belum dapat dinilai. Tidak lengkap berbeda dari gagal kriteria.' : store.report.objectiveStatus === 'not_answered' ? 'Tidak ada kandidat lolos; tujuan belum terjawab.' : 'Shortlist hanya menjawab aturan kanonik pada cakupan terbatas.' }}</p><div class="grid gap-4 xl:grid-cols-2"><CandidateCard v-for="candidate in store.candidates" :key="candidate.symbol" :candidate="candidate" /></div></section>
+    <DataProvenance />
+    <details class="rounded-2xl border border-slate-200 bg-white p-6"><summary class="min-h-11 cursor-pointer font-bold">Cakupan dan aturan yang diperiksa</summary><p data-testid="persisted-brief" class="mt-3 text-sm leading-6">{{ store.activeBrief.market }} · {{ store.activeBrief.sectorScope }} · {{ store.activeBrief.indexScope }} · maksimal {{ store.activeBrief.candidateCount }} kandidat · {{ store.activeBrief.researchDepth }}</p><p class="mt-3 text-sm leading-6">{{ store.activePlan.contract?.coveragePolicy || store.activePlan.universe }}</p><ul class="mt-3 list-disc space-y-2 pl-5 text-sm"><li v-for="criterion in store.activePlan.contract?.criteria || store.activePlan.criteria" :key="criterion">{{ criterion }}</li></ul><p class="mt-4 text-sm leading-6 text-slate-600">Pendalaman, peer benchmark, kesehatan bank, dan keberlanjutan dividen belum didukung. Status proses selesai tidak berarti seluruh kemampuan tersebut dijalankan.</p></details>
   </div>
 </template>

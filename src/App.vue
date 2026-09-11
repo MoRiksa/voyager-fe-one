@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
@@ -9,14 +9,33 @@ import CandidateDetailModal from './components/CandidateDetailModal.vue'
 import MethodologyModal from './components/MethodologyModal.vue'
 import { useResearchStore } from './stores/researchStore'
 import { AlertCircle, CheckCircle2, Info, X } from '@lucide/vue'
+import { getResearchSessionFull, ResearchApiError } from './services/researchApi'
 
 const route = useRoute()
 const router = useRouter()
 const store = useResearchStore()
 
-watch(() => route.params.id, id => {
-  if (route.name !== 'research-session' && typeof id === 'string' && id !== store.report.sessionId && !store.loadSession(id)) router.replace('/not-found')
-}, { immediate: true })
+const loadingSession = ref(false)
+const sessionError = ref('')
+let loadToken = 0
+const loadRouteSession = async () => {
+  const token = ++loadToken
+  const id = route.params.id
+  sessionError.value = ''
+  loadingSession.value = false
+  if (typeof id !== 'string') return
+  loadingSession.value = true
+  store.disconnectSse()
+  try {
+    const session = await getResearchSessionFull(id)
+    if (token === loadToken) store.hydrateFromBackendSession(session)
+  } catch (error) {
+    if (token !== loadToken) return
+    if (error instanceof ResearchApiError && error.status === 404) await router.replace('/not-found')
+    else sessionError.value = error instanceof Error ? error.message : 'Sesi belum dapat dimuat.'
+  } finally { if (token === loadToken) loadingSession.value = false }
+}
+watch(() => route.params.id, loadRouteSession, { immediate: true })
 </script>
 
 <template>
@@ -30,7 +49,9 @@ watch(() => route.params.id, id => {
       <AppNavbar />
 
       <main id="main-content" tabindex="-1" class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12">
-        <router-view />
+        <p v-if="loadingSession" role="status" class="page-shell">Memuat sesi dari layanan riset…</p>
+        <section v-else-if="sessionError" class="page-shell"><h1 class="text-2xl font-bold">Sesi belum dapat dimuat</h1><p role="alert" class="mt-3 text-rose-700">{{ sessionError }}</p><button type="button" class="button-primary mt-4" @click="loadRouteSession">Coba lagi</button></section>
+        <router-view v-else />
       </main>
 
       <!-- Institutional Footer -->

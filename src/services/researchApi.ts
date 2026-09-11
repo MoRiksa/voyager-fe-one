@@ -44,6 +44,14 @@ const validStatuses = new Set<string>([
 const isAgentStatus = (value: unknown): value is AgentStatus =>
   typeof value === 'string' && validStatuses.has(value)
 
+export class ResearchApiError extends Error {
+  constructor(message: string, readonly status: number) { super(message) }
+}
+const responseError = async (response: Response, context: string) => {
+  const payload = await response.json().catch(() => null)
+  return new ResearchApiError(`${context} (HTTP ${response.status}). ${payload?.responseMessage || payload?.message || 'Layanan tidak memberikan detail; coba lagi.'}`, response.status)
+}
+
 const getHeaders = (idempotencyKey?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -67,7 +75,7 @@ export const createResearchSession = async (
   })
 
   if (!response.ok) {
-    throw new Error('Backend gagal membuat sesi riset.')
+    throw await responseError(response, 'Gagal membuat sesi riset')
   }
 
   const payload: any = await response.json()
@@ -83,7 +91,7 @@ export const startResearchSession = async (id: string, revision: number): Promis
     method: 'POST',
     headers: { 'If-Match': String(revision) }
   })
-  if (!response.ok) throw new Error('Backend gagal memulai sesi riset.')
+  if (!response.ok) throw await responseError(response, 'Gagal memulai sesi riset')
   const payload: any = await response.json()
   if (!payload?.session?.id || !isAgentStatus(payload.session.status)) {
     throw new Error('Response backend tidak memiliki status sesi yang valid.')
@@ -103,7 +111,7 @@ export const getResearchSession = async (id: string): Promise<ResearchSessionRes
 
 export const getResearchSessionFull = async (id: string): Promise<ResearchSession> => {
   const response = await fetch(`${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}`)
-  if (!response.ok) throw new Error('Backend gagal memuat detail sesi riset.')
+  if (!response.ok) throw await responseError(response, 'Gagal memuat detail sesi riset')
   const payload: any = await response.json()
   if (!payload?.session?.id) throw new Error('Sesi riset tidak ditemukan di backend.')
   return payload.session
@@ -209,7 +217,7 @@ export const retryResearchSession = async (id: string, revision: number): Promis
     method: 'POST',
     headers: { 'If-Match': String(revision) }
   })
-  if (!response.ok) throw new Error('Gagal mengulang sesi riset.')
+  if (!response.ok) throw await responseError(response, 'Gagal mengulang sesi riset')
   const payload: any = await response.json()
   return payload.session
 }
@@ -253,7 +261,7 @@ export const sendFollowUp = async (
     headers: { 'Content-Type': 'application/json', 'If-Match': String(revision) },
     body: JSON.stringify({ question })
   })
-  if (!response.ok) throw new Error('Gagal mengirim pertanyaan follow-up ke AI.')
+  if (!response.ok) throw await responseError(response, 'Jawaban AI tidak tersedia')
   return response.json()
 }
 
@@ -263,7 +271,7 @@ export const exportReportFile = async (
 ): Promise<void> => {
   const url = `${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/report/export?format=${format}`
   const response = await fetch(url)
-  if (!response.ok) throw new Error('Gagal mengekspor laporan.')
+  if (!response.ok) throw await responseError(response, 'Gagal mengekspor laporan')
   const blob = await response.blob()
   const downloadUrl = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -299,7 +307,7 @@ export const deleteResearchSession = async (id: string, revision: number): Promi
 
 export const getCompany = async (symbol: string): Promise<any> => {
   const response = await fetch(`${backendUrl}/api/v1/companies/${encodeURIComponent(symbol)}`)
-  if (!response.ok) throw new Error('Gagal memuat profil perusahaan.')
+  if (!response.ok) throw await responseError(response, 'Gagal memuat profil perusahaan')
   const payload: any = await response.json()
   return payload.company
 }
@@ -324,13 +332,13 @@ export const getResearchPresets = async (): Promise<any[]> => {
   return payload.presets || []
 }
 
-export const getResearchPreview = async (brief: any): Promise<any> => {
+export const getResearchPreview = async (request: CreateResearchRequest): Promise<any> => {
   const response = await fetch(`${backendUrl}/api/v1/research-preview`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ brief })
+    body: JSON.stringify(request)
   })
-  if (!response.ok) throw new Error('Gagal memuat estimasi preview.')
+  if (!response.ok) throw await responseError(response, 'Gagal memuat preview')
   const payload: any = await response.json()
   return payload.preview
 }
@@ -386,6 +394,7 @@ export const subscribeSessionSse = (
   eventSource.addEventListener('completed', handleMessage as EventListener)
   eventSource.addEventListener('session.cancelled', handleMessage as EventListener)
   eventSource.addEventListener('session.retried', handleMessage as EventListener)
+  eventSource.addEventListener('session.failed', handleMessage as EventListener)
 
   eventSource.onerror = (err) => {
     if (onError) onError(err)
