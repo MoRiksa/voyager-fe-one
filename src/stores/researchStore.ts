@@ -8,6 +8,24 @@ const emptyPlan = (): ResearchPlan => ({ objective: '', universe: 'Belum tersedi
 const defaultBrief = (): ResearchBrief => ({ market: 'IDX', sectorScope: 'Semua Sektor', indexScope: 'Semua Indeks', candidateCount: 5, researchDepth: 'Standar', useSectorMetrics: false, optionalDimensions: [], clarificationNotes: [] })
 const activeStatuses = new Set<AgentStatus>(['UNDERSTANDING', 'PLANNING', 'DISCOVERING', 'SCREENING', 'RANKING', 'RESEARCHING', 'COMPARING', 'VALIDATING', 'REPORTING'])
 
+const formulaVersions = (session: ResearchSession) => new Set([
+  ...(session.candidates || []),
+  ...(session.screeningFunnel || []),
+  ...(session.report?.topCandidates || []),
+  ...(session.report?.screeningFunnel || [])
+].map(item => item.formulaVersion).filter(Boolean))
+
+export const isRestrictedSession = (session: ResearchSession) => {
+  const contract = session.report?.contract || session.plan?.contract
+  const formulas = formulaVersions(session)
+  return contract?.status !== 'supported'
+    || contract.version !== 'bank-evidence-contract-v1'
+    || contract.objectiveType !== 'bank-evidence'
+    || formulas.size > 1
+    || (formulas.size === 1 && !formulas.has('bank-evidence-v1'))
+    || session.report?.objectiveStatus === 'cannot_assess'
+}
+
 export const useResearchStore = defineStore('research', () => {
   const currentObjective = ref('')
   const activePresetId = ref('custom')
@@ -33,6 +51,10 @@ export const useResearchStore = defineStore('research', () => {
   const isMethodologyModalOpen = ref(false)
   const clarificationQuestion = ref<string | null>(null)
   const provenanceTrail = ref<ProvenanceRecord[]>([])
+  const isActiveSessionRestricted = computed(() => {
+    const session = sessions.value.find(item => item.id === report.value.sessionId)
+    return session ? isRestrictedSession(session) : true
+  })
   const schedules = ref<ScheduledTask[]>([])
   const sseConnected = ref(false)
   let unsubscribe: (() => void) | undefined
@@ -108,7 +130,7 @@ export const useResearchStore = defineStore('research', () => {
   }
   const duplicateSession = async (id: string) => {
     const session = sessions.value.find(s => s.id === id)
-    if (typeof session?.revision !== 'number') return null
+    if (typeof session?.revision !== 'number' || isRestrictedSession(session)) return null
     try { const copy = await api.duplicateResearchSession(id, session.revision); hydrateFromBackendSession(copy); return copy.id } catch (error) { notify(errorMessage(error), 'error'); return null }
   }
   const deleteSession = async (id: string) => {
@@ -124,7 +146,7 @@ export const useResearchStore = defineStore('research', () => {
   const toggleSchedule = async (id: string, enabled: boolean) => { try { await api.toggleResearchSchedule(id, enabled); await fetchSchedules() } catch (error) { notify(errorMessage(error), 'error') } }
   const runScheduleNow = async (id: string) => { try { const result = await api.runResearchScheduleNow(id); hydrateFromBackendSession(result.session); return result } catch (error) { notify(errorMessage(error), 'error'); return null } }
   const createCompanyResearch = async (symbol: string, objective?: string) => { try { const session = await api.createCompanyResearchSession(symbol, objective); hydrateFromBackendSession(session); return session.id } catch (error) { notify(errorMessage(error), 'error'); return null } }
-  return { currentObjective, activePresetId, activeBrief, status, isExecuting, presets, sessions, recentSessions, report, activePlan, pillars, candidates, screeningFunnel, toolCalls, currentRevision, activeAttemptId, publishedAttemptId, failureReason, selectedSymbol, selectedCompany, isDetailModalOpen, isMethodologyModalOpen, clarificationQuestion, provenanceTrail, schedules, sseConnected, toast,
+  return { currentObjective, activePresetId, activeBrief, status, isExecuting, presets, sessions, recentSessions, report, activePlan, pillars, candidates, screeningFunnel, toolCalls, currentRevision, activeAttemptId, publishedAttemptId, failureReason, selectedSymbol, selectedCompany, isDetailModalOpen, isMethodologyModalOpen, clarificationQuestion, provenanceTrail, isActiveSessionRestricted, schedules, sseConnected, toast,
     hydrateFromBackendSession, refreshSessions, loadSession, setObjective, selectPreset, setResearchBrief, connectSse, disconnectSse, retryResearch, cancelResearch, addFollowUp, answerClarification, duplicateSession, deleteSession, fetchProvenance, fetchSchedules, createSchedule, toggleSchedule, runScheduleNow, createCompanyResearch, notify, dismissToast,
     openCandidateModal: (symbol: string) => { selectedSymbol.value = symbol; isDetailModalOpen.value = true }, closeCandidateModal: () => { isDetailModalOpen.value = false }, openMethodology: () => { isMethodologyModalOpen.value = true }, closeMethodology: () => { isMethodologyModalOpen.value = false }
   }

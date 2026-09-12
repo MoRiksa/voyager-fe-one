@@ -28,8 +28,10 @@ try {
   assert.equal(await r.evaluate(`document.querySelector('button[type="submit"]').disabled`), true)
   await r.evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
   await waitFor(() => r.evaluate(`!document.querySelector('button[type="submit"]').disabled`), 'Bank template did not unlock submit')
+  assert.equal(await r.evaluate(`document.querySelector('[data-testid="research-objective"]').readOnly`), true)
   const previewText = await r.evaluate(`document.querySelector('[data-testid="actual-universe"]').innerText`)
-  assert.ok(previewText.includes('Belum tersedia'))
+  assert.ok(previewText.includes('tidak mengenakan kredit'))
+  assert.ok(previewText.includes('bergantung respons penyedia data'))
   assert.ok(!previewText.includes('914'))
   await r.evaluate(`document.querySelector('button[type="submit"]').click()`)
   await waitFor(() => r.evaluate(`Boolean(document.querySelector('[data-testid="session-next"]'))`), 'Actual backend pipeline did not publish')
@@ -158,8 +160,10 @@ try {
   await r.setMode('bank-incomplete')
   const incompleteBank = await r.create({ ...r.payload, objective: 'Tinjau data ROE dan P/BV bank IDX berkapitalisasi pasar terbesar pada periode yang tersedia.', presetId: 'obj-banking-moat', brief: { ...r.payload.brief, sectorScope: 'Perbankan', candidateCount: 8 } }); await r.start(incompleteBank); await r.finish(incompleteBank.id)
   await r.navigate(`/research/${incompleteBank.id}/report`)
-  await r.text('Tujuan belum dapat dinilai sepenuhnya')
+  await r.text('Hasil tidak dapat digunakan')
   await r.text('Satu atau lebih bank pada cakupan top-eight belum memiliki data wajib')
+  await r.text('Laporan ini tidak dapat digunakan untuk keputusan investasi')
+  assert.equal(await r.evaluate(`document.body.innerText.includes('Salin ringkasan') || document.body.innerText.includes('Pilihan ekspor') || document.body.innerText.includes('Cetak / simpan PDF') || document.body.innerText.includes('Gunakan sebagai template')`), false)
   await r.setMode('normal')
   // Start refusal retains the created session and releases busy; retry does not duplicate.
   const countBefore = (await r.request('/research-sessions')).data.sessions.length
@@ -208,12 +212,12 @@ try {
   await r.setMode('incomplete')
   const missing = await r.create(); await r.start(missing); await r.finish(missing.id)
   await r.navigate(`/research/${missing.id}/report`)
-  await r.text('Tujuan belum dapat dinilai sepenuhnya')
+  await r.text('Hasil tidak dapat digunakan')
   await r.text('berbeda dari gagal kriteria finansial')
   await r.setMode('none')
   const none = await r.create(); await r.start(none); await r.finish(none.id)
   await r.navigate(`/research/${none.id}/report`)
-  await r.text('Tujuan belum terjawab: tidak ada data kandidat')
+  await r.text('Hasil tidak dapat digunakan')
   // Missing candidate data must remain unavailable, including absent narrative.
   r.on('Fetch.requestPaused', event => {
     const session = structuredClone(actual)

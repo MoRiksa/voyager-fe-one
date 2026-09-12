@@ -38,6 +38,26 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Catatan delivery 2026-09-11 — minimum audit frontend
 
+### Uji persona nonteknis 2026-09-12
+
+Dua perjalanan production dilakukan sebagai pengguna pertama kali: pemula yang ingin
+memahami produk dan calon pembeli yang cenderung membaca hasil sebagai rekomendasi. Keduanya
+menolak memakai produk untuk keputusan beli karena laporan lama dengan pertanyaan bank masih
+menampilkan AADI/ACES, skor 98/100, dan bahasa kandidat unggul. Data ACES FY2019 juga tampil
+bersama harga 2026. Ini simulasi perilaku pengguna oleh evaluator, bukan observasi manusia
+eksternal; klaim usability final belum dibuat.
+
+Perbaikan mengarantina semua sesi selain kontrak/formula aktif `bank-evidence-v1`, termasuk
+hasil `cannot_assess`. Arsip tetap dapat dibaca, tetapi kartu, sesi, dan laporan menampilkan
+larangan penggunaan sebelum hasil. Copy, print/PDF, export, duplicate, dan template
+dinonaktifkan; backend juga menolak duplicate/export direct API dengan `REPORT_RESTRICTED`.
+Alur baru mengunci objective preset serta menjelaskan bahwa Voyager tidak mengenakan kredit
+saat ini dan waktu selesai bergantung respons penyedia data, tanpa mengarang estimasi.
+
+Gate LOCAL: backend 95/95, typecheck, build; frontend canonical, interaction, 21-route smoke,
+typecheck, build, dan `git diff --check` lulus. Deployment dan production persona recheck
+dicatat setelah commit terkait.
+
 **Status aktif terbaru:** kontrak bank adalah `bank-evidence-contract-v1` dengan
 `formulaVersion=bank-evidence-v1`. Produk menampilkan hingga delapan bank dinamis menurut
 urutan kapitalisasi provider bila data tersedia. Tidak ada threshold ROE/PBV, skor, ranking

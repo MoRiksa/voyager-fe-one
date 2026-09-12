@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useResearchStore } from '../stores/researchStore'
+import { isRestrictedSession, useResearchStore } from '../stores/researchStore'
 import type { ResearchSession } from '../types'
 import { sessionStatusMeta } from '../utils/status'
 import { ArrowRight, Copy, FileText, Search, Trash2 } from '@lucide/vue'
@@ -36,6 +36,7 @@ const sessionTitle = (session: ResearchSession) => store.presets.find(preset => 
 const statusMeta = (session: ResearchSession) => sessionStatusMeta(session.status)
 const canDelete = (session: ResearchSession) => !['UNDERSTANDING', 'PLANNING', 'DISCOVERING', 'SCREENING', 'RANKING', 'RESEARCHING', 'COMPARING', 'VALIDATING', 'REPORTING'].includes(session.status)
 const resultSummary = (session: ResearchSession) => {
+  if (isRestrictedSession(session)) return 'Hasil ini memakai kontrak lama atau tidak memiliki data lengkap. Baca hanya sebagai arsip; jangan gunakan kandidat atau skor untuk keputusan investasi.'
   if (!session.candidates.length) return 'Belum ada kandidat akhir yang tersedia.'
   const candidate = session.candidates[0]
   return candidate.formulaVersion === 'bank-evidence-v1'
@@ -43,6 +44,7 @@ const resultSummary = (session: ResearchSession) => {
     : `Kandidat pertama ${candidate.symbol}, skor heuristik ${candidate.qualityScore ?? 'Tidak tersedia'}/100. Bukan confidence atau rekomendasi membeli.`
 }
 const duplicateSession = async (session: ResearchSession) => {
+  if (isRestrictedSession(session)) { store.notify('Arsip terbatas tidak dapat digunakan sebagai template.', 'error'); return }
   store.setObjective(session.objective, session.presetId)
   store.setResearchBrief(session.brief)
   const newId = await store.duplicateSession(session.id)
@@ -92,14 +94,14 @@ const removeSession = async (id: string) => {
       <div v-if="isLoading && !store.recentSessions.length" role="status" class="rounded-2xl border border-slate-200 bg-white p-10 text-center"><p class="font-semibold text-slate-800">Memuat riset tersimpan...</p><p class="mt-2 text-sm text-slate-500">Tunggu sebentar.</p></div>
       <div v-else-if="filteredSessions.length" class="grid gap-4 lg:grid-cols-2">
         <article v-for="session in filteredSessions" :key="session.id" :data-testid="`library-session-${session.id}`" class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span class="status-badge" :class="statusMeta(session).className">{{ statusMeta(session).label }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} kandidat</span></div>
+          <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span v-if="isRestrictedSession(session)" class="status-badge bg-rose-100 text-rose-800">Arsip terbatas</span><span v-else class="status-badge" :class="statusMeta(session).className">Proses {{ statusMeta(session).label.toLowerCase() }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span v-if="!isRestrictedSession(session)" class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} data bank</span></div>
           <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ resultSummary(session) }}</div>
           <div class="mt-5 border-t border-slate-100 pt-4 font-mono text-[11px] text-slate-500">{{ session.id }}</div>
           <p class="mt-4 text-xs text-slate-600">Laporan dibuat: {{ session.publishedAttemptId ? session.report.timestamp : 'Belum dipublikasikan' }}. Sumber dan periode tersedia di laporan sesi.</p>
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <router-link :to="`/research/${session.id}`" class="button-primary">Buka riset <ArrowRight class="h-4 w-4" /></router-link>
             <router-link v-if="session.status === 'COMPLETED' || (session.status === 'PARTIAL' && session.candidates.length)" :to="`/research/${session.id}/report`" class="button-secondary"><FileText class="h-4 w-4" /> {{ session.status === 'PARTIAL' ? 'Laporan parsial' : 'Laporan' }}</router-link>
-            <button type="button" :data-testid="`library-duplicate-${session.id}`" class="button-secondary" @click="duplicateSession(session)"><Copy class="h-4 w-4" /> Gunakan sebagai template</button>
+            <button v-if="!isRestrictedSession(session)" type="button" :data-testid="`library-duplicate-${session.id}`" class="button-secondary" @click="duplicateSession(session)"><Copy class="h-4 w-4" /> Gunakan sebagai template</button>
              <div v-if="pendingDeleteId === session.id" class="flex items-center gap-1"><button type="button" data-testid="library-confirm-delete" class="min-h-11 rounded-lg px-3 text-xs font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50" :disabled="deletingId === session.id" @click="removeSession(session.id)">{{ deletingId === session.id ? 'Menghapus...' : 'Hapus' }}</button><button type="button" class="min-h-11 rounded-lg px-3 text-xs font-bold text-slate-600" :disabled="deletingId === session.id" @click="pendingDeleteId = null">Batal</button></div>
              <button v-else type="button" class="icon-button ml-auto disabled:cursor-not-allowed disabled:opacity-35" :disabled="!canDelete(session)" :aria-label="canDelete(session) ? `Hapus ${sessionTitle(session)}` : 'Batalkan riset sebelum menghapus sesi'" @click="pendingDeleteId = session.id"><Trash2 class="h-4 w-4" /></button>
           </div>

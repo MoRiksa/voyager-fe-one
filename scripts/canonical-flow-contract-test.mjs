@@ -91,25 +91,28 @@ try {
   assert.equal(incompleteBankResult.report.objectiveStatus, 'cannot_assess')
   assert.ok(incompleteBankResult.screeningFunnel.flatMap(stage => stage.reasons).some(reason => reason.symbol === 'DYNAMIC2' && reason.code === 'DATA_INCOMPLETE'))
   await runtime.setMode('normal')
-  const exportUrl = `${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export`
+  const legacyExportUrl = `${runtime.apiUrl}/api/v1/research-sessions/${created.id}/report/export`
+  assert.equal((await fetch(`${legacyExportUrl}?format=markdown`, { headers: { 'If-Match': String(completed.revision) } })).status, 409)
+  const exportUrl = `${runtime.apiUrl}/api/v1/research-sessions/${bankSession.id}/report/export`
   assert.equal((await fetch(`${exportUrl}?format=markdown`)).status, 428)
-  assert.equal((await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(completed.revision - 1) } })).status, 409)
-  const md = await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(completed.revision) } })
+  assert.equal((await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(bankCompleted.revision - 1) } })).status, 409)
+  const md = await fetch(`${exportUrl}?format=markdown`, { headers: { 'If-Match': String(bankCompleted.revision) } })
   assert.equal(md.status, 200)
-  assert.ok((await md.text()).includes('quality-3f-v2'))
-  const json = await fetch(`${exportUrl}?format=json`, { headers: { 'If-Match': String(completed.revision) } })
+  assert.ok((await md.text()).includes('bank-evidence-v1'))
+  const json = await fetch(`${exportUrl}?format=json`, { headers: { 'If-Match': String(bankCompleted.revision) } })
   assert.equal(json.status, 200)
-  assert.deepEqual(await json.json(), completed)
+  assert.deepEqual(await json.json(), bankCompleted)
   // Preserve mutation/revision coverage removed from the old source contract test.
   for (const action of ['start', 'cancel', 'retry', 'duplicate', 'clarifications/unknown/answer', 'follow-ups']) {
     const body = action === 'follow-ups' ? { question: 'Apa risiko utamanya?' } : action.includes('clarifications') ? { answer: 'Jawaban pengujian' } : {}
     assert.equal((await request(`/research-sessions/${created.id}/${action}`, body)).response.status, 428, action)
     assert.equal((await request(`/research-sessions/${created.id}/${action}`, body, completed.revision - 1)).response.status, 409, action)
   }
-  const duplicate = await request(`/research-sessions/${created.id}/duplicate`, {}, completed.revision)
+  assert.equal((await request(`/research-sessions/${created.id}/duplicate`, {}, completed.revision)).response.status, 409)
+  const duplicate = await request(`/research-sessions/${bankSession.id}/duplicate`, {}, bankCompleted.revision)
   assert.equal(duplicate.response.status, 201)
   assert.notEqual(duplicate.data.session.id, created.id)
-  assert.deepEqual(duplicate.data.session.objective, completed.objective)
+  assert.deepEqual(duplicate.data.session.objective, bankCompleted.objective)
   for (const [revision, status] of [[undefined, 428], [duplicate.data.session.revision - 1, 409], [duplicate.data.session.revision, 200]]) {
     const deleted = await fetch(`${runtime.apiUrl}/api/v1/research-sessions/${duplicate.data.session.id}`, { method: 'DELETE', headers: revision === undefined ? {} : { 'If-Match': String(revision) } })
     assert.equal(deleted.status, status)

@@ -10,7 +10,7 @@ try {
     [`/research/${created.id}`, 'Cakupan dan aturan yang diperiksa'],
     [`/research/${created.id}/screener`, 'Proses penyaringan'],
     [`/research/${created.id}/peers`, 'Benchmark peer sektor belum didukung'],
-    [`/research/${created.id}/report`, 'Tujuan terjawab pada cakupan terbatas'],
+    [`/research/${created.id}/report`, 'Hasil tidak dapat digunakan'],
     [`/research/${created.id}/company/TEST`, 'TEST — TEST synthetic test input'],
     ['/company/TEST', 'Profil global bukan hasil screening'],
     ['/methodology', 'Cara tinjauan data bekerja'],
