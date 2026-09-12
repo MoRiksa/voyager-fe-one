@@ -5,6 +5,8 @@ try {
   await r.navigate('/')
   await r.text('Belum ada riset tersimpan')
   assert.equal(await r.evaluate(`Boolean(document.querySelector('[data-testid="sidebar-active-session"]'))`), false)
+  await r.text('Belum ada sesi yang sedang dibuka')
+  assert.equal(await r.evaluate(`Boolean(document.querySelector('[data-testid="sidebar-no-active-session"]'))`), true)
   await r.navigate('/research/new')
   await r.text('Pilih tujuan secara eksplisit')
   assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-consumer-growth"]').disabled`), true)

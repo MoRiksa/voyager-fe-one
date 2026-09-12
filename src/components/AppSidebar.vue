@@ -110,5 +110,10 @@ const sessionNavItems = computed(() => [
         Cakupan terbatas. Periksa sumber dan periode sebelum menggunakan hasil.
       </div>
     </div>
+    <div v-else data-testid="sidebar-no-active-session" class="shrink-0 border-t border-slate-200 bg-slate-50/80 p-4">
+      <p class="text-xs font-bold text-slate-800">Belum ada sesi yang sedang dibuka</p>
+      <p class="mt-1 text-xs leading-5 text-slate-500">Buka satu riset untuk menampilkan ringkasan dan tahapnya di sini.</p>
+      <router-link to="/research" class="button-secondary mt-3 w-full">Buka pustaka</router-link>
+    </div>
   </aside>
 </template>
