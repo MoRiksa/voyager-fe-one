@@ -15,6 +15,8 @@ try {
     ['/company/TEST', 'Profil global bukan hasil screening'],
     ['/methodology', 'Cara tinjauan data bekerja'],
     ['/glossary', 'Kamus Istilah Finansial'],
+    ['/help', 'Cara membaca Voyager One'],
+    ['/accessibility', 'Status aksesibilitas'],
     [`/research/${created.id}/activity`, 'Cakupan dan aturan yang diperiksa'],
     [`/research/${created.id}/trace`, 'Cakupan dan aturan yang diperiksa'],
     ['/activity', 'Temukan dan lanjutkan riset Anda'],

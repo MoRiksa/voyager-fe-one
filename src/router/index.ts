@@ -107,6 +107,18 @@ const router = createRouter({
       meta: { title: 'Kamus Istilah Finansial' }
     },
     {
+      path: '/help',
+      name: 'help',
+      component: () => import('../views/HelpView.vue'),
+      meta: { title: 'Bantuan' }
+    },
+    {
+      path: '/accessibility',
+      name: 'accessibility',
+      component: () => import('../views/AccessibilityView.vue'),
+      meta: { title: 'Status Aksesibilitas' }
+    },
+    {
       path: '/report',
       name: 'report',
       component: () => import('../views/ReportView.vue'),

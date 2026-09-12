@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { Home, Menu, X, Filter, GitCompare, BookOpen, Terminal, Search, History, Library, Compass } from '@lucide/vue'
+import { Home, Menu, X, Filter, GitCompare, BookOpen, Search, History, Library, CircleHelp } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
@@ -20,13 +20,13 @@ const primaryItems = computed(() => [
 ])
 
 const moreItems = computed(() => [
-  { label: 'Cara kandidat dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
-  { label: 'Bandingkan kandidat', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare },
+  ...(store.report.sessionId ? [
+    { label: 'Cara data dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
+    { label: 'Bandingkan data', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare }
+  ] : []),
   { label: 'Cara penilaian', to: '/methodology', icon: BookOpen },
   { label: 'Kamus istilah', to: '/glossary', icon: Library },
-  { label: 'Riset terjadwal', to: '/schedules', icon: Compass },
-  { label: 'Proses riset', to: `/research/${store.report.sessionId}/activity`, icon: Terminal },
-  { label: 'Detail teknis', to: `/research/${store.report.sessionId}/trace`, icon: Terminal }
+  { label: 'Bantuan', to: '/help', icon: CircleHelp }
 ])
 
 const moreIsActive = computed(() => ['research-session', 'report', 'research-report', 'screener', 'research-screener', 'research-company', 'peers', 'research-peers', 'methodology', 'glossary', 'schedules', 'activity', 'research-activity', 'trace', 'research-trace'].includes(String(route.name)))

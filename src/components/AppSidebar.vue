@@ -38,6 +38,7 @@ const navItems = computed(() => [
     items: [
       { names: ['methodology'], label: 'Cara penilaian', path: '/methodology', icon: BookOpen },
       { names: ['glossary'], label: 'Kamus istilah', path: '/glossary', icon: Library },
+      { names: ['help'], label: 'Bantuan', path: '/help', icon: Compass },
     ]
   }
 ])
@@ -70,7 +71,7 @@ const sessionNavItems = computed(() => [
       </div>
 
       <!-- Navigation Groups -->
-      <nav class="p-4 space-y-6">
+      <nav class="p-4 space-y-6" aria-label="Navigasi utama">
         <div v-for="section in navItems" :key="section.group">
           <div class="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
             {{ section.group }}

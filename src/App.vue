@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
@@ -36,6 +36,10 @@ const loadRouteSession = async () => {
   } finally { if (token === loadToken) loadingSession.value = false }
 }
 watch(() => route.params.id, loadRouteSession, { immediate: true })
+watch(() => route.fullPath, async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('#main-content')?.focus({ preventScroll: true })
+})
 </script>
 
 <template>
@@ -63,11 +67,7 @@ watch(() => route.params.id, loadRouteSession, { immediate: true })
             <span>Workspace riset finansial</span>
           </div>
 
-          <div class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500 text-xs">
-            <span>Sectors Hackathon 2026</span>
-            <span>•</span>
-            <span>Analisis terukur dan dapat ditelusuri</span>
-          </div>
+          <nav aria-label="Informasi produk" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500 text-xs"><router-link to="/help" class="underline">Bantuan</router-link><router-link to="/methodology" class="underline">Cara kerja</router-link><router-link to="/glossary" class="underline">Kamus</router-link><router-link to="/accessibility" class="underline">Status aksesibilitas</router-link></nav>
         </div>
       </footer>
     </div>

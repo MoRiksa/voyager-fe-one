@@ -5,6 +5,7 @@ import { isRestrictedSession, useResearchStore } from '../stores/researchStore'
 import type { ResearchSession } from '../types'
 import { sessionStatusMeta } from '../utils/status'
 import { ArrowRight, Copy, FileText, Search, Trash2 } from '@lucide/vue'
+import { formatDateTime } from '../utils/presentation'
 
 const store = useResearchStore()
 const router = useRouter()
@@ -71,7 +72,7 @@ const removeSession = async (id: string) => {
       <div class="max-w-3xl">
         <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Pustaka riset</p>
         <h1 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Temukan dan lanjutkan riset Anda</h1>
-        <p class="mt-3 text-sm leading-6 text-slate-300">Buka kembali hasil, tinjau laporan, atau gunakan riset lama sebagai titik awal. Daftar sesi dimuat dari workspace backend.</p>
+        <p class="mt-3 text-sm leading-6 text-slate-300">Buka kembali hasil dan tinjau laporan. Hanya laporan aktif dengan data lengkap yang dapat digunakan sebagai titik awal.</p>
       </div>
       <router-link to="/research/new" class="button-primary bg-white text-[#1E4270] hover:bg-blue-50">Mulai riset baru <ArrowRight class="h-4 w-4" /></router-link>
     </header>
@@ -97,7 +98,7 @@ const removeSession = async (id: string) => {
           <div class="flex items-start justify-between gap-3"><div class="min-w-0"><span v-if="isRestrictedSession(session)" class="status-badge bg-rose-100 text-rose-800">Arsip terbatas</span><span v-else class="status-badge" :class="statusMeta(session).className">Proses {{ statusMeta(session).label.toLowerCase() }}</span><h3 class="mt-3 text-lg font-bold leading-6 text-slate-950">{{ sessionTitle(session) }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ session.objective }}</p></div><span v-if="!isRestrictedSession(session)" class="shrink-0 font-mono text-xs font-bold text-[#2F64A8]">{{ session.candidates.length }} data bank</span></div>
           <div class="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><span class="font-semibold text-slate-800">Ringkasan hasil:</span> {{ resultSummary(session) }}</div>
           <div class="mt-5 border-t border-slate-100 pt-4 font-mono text-[11px] text-slate-500">{{ session.id }}</div>
-          <p class="mt-4 text-xs text-slate-600">Laporan dibuat: {{ session.publishedAttemptId ? session.report.timestamp : 'Belum dipublikasikan' }}. Sumber dan periode tersedia di laporan sesi.</p>
+          <p class="mt-4 text-xs text-slate-600">Laporan dibuat: <time v-if="session.publishedAttemptId" :datetime="session.report.timestamp">{{ formatDateTime(session.report.timestamp) }}</time><template v-else>Belum dipublikasikan</template>. Sumber dan periode tersedia di laporan sesi.</p>
           <div class="mt-5 flex flex-wrap items-center gap-2">
             <router-link :to="`/research/${session.id}`" class="button-primary">Buka riset <ArrowRight class="h-4 w-4" /></router-link>
             <router-link v-if="session.status === 'COMPLETED' || (session.status === 'PARTIAL' && session.candidates.length)" :to="`/research/${session.id}/report`" class="button-secondary"><FileText class="h-4 w-4" /> {{ session.status === 'PARTIAL' ? 'Laporan parsial' : 'Laporan' }}</router-link>

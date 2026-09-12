@@ -40,6 +40,23 @@ selesai setelah acceptance criteria dan verifikasi terkait lulus.
 
 ### Uji persona nonteknis 2026-09-12
 
+### Penyelesaian mandiri 2026-09-12
+
+Pekerjaan yang tidak memerlukan manusia eksternal atau keputusan legal telah diselesaikan.
+UI memakai waktu Indonesia/WIB, label asal data dan status bukti dalam bahasa awam, tautan
+HTTPS ke referensi penyedia, serta peringatan faktual selisih tahun periode keuangan terhadap
+waktu laporan. Tidak ada ambang kedaluwarsa finansial yang dikarang.
+
+Halaman Bantuan dan Status Aksesibilitas ditambahkan dengan batas yang jujur. Fokus berpindah
+ke konten utama setelah navigasi SPA, landmark diberi nama, referensi ARIA dan menu mobile
+diperbaiki. Gate aksesibilitas tanpa dependency memeriksa landmark, ARIA, ID unik, fokus
+route, dan overflow. Architecture Atlas juga hijau untuk sembilan diagram pada desktop/mobile.
+
+Backend menolak follow-up AI pada arsip terbatas dan regression restore menyalin repository
+ke direktori terisolasi lalu memuat snapshot yang sama tanpa mengubah sumber. Backend 96/96,
+typecheck, dan build lulus. Frontend canonical, interaction, accessibility, 23-route smoke,
+typecheck, build, Architecture Atlas, dan `git diff --check` lulus.
+
 Dua perjalanan production dilakukan sebagai pengguna pertama kali: pemula yang ingin
 memahami produk dan calon pembeli yang cenderung membaca hasil sebagai rekomendasi. Keduanya
 menolak memakai produk untuk keputusan beli karena laporan lama dengan pertanyaan bank masih
