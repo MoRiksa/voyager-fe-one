@@ -56,7 +56,13 @@ saat ini dan waktu selesai bergantung respons penyedia data, tanpa mengarang est
 
 Gate LOCAL: backend 95/95, typecheck, build; frontend canonical, interaction, 21-route smoke,
 typecheck, build, dan `git diff --check` lulus. Deployment dan production persona recheck
-dicatat setelah commit terkait.
+dicatat setelah commit terkait. Backend `fa85e76` dan frontend `3cd7bef` mengaktifkan
+karantina. Source evidence-first yang sebelumnya belum masuk commit ditemukan saat archive
+deploy sempat memunculkan preset filter lama; source tersebut dipublikasikan sebagai backend
+`320c693`, dideploy ulang, dan PM2 restart diverifikasi. Production kembali memuat
+`bank-evidence-contract-v1`. Direct export/duplicate arsip menghasilkan 409, warning muncul
+sebelum AADI/ACES pada desktop/mobile, action penyebaran tidak tersedia, dan sesi duplicate
+probe telah dihapus dengan GET akhir 404.
 
 **Status aktif terbaru:** kontrak bank adalah `bank-evidence-contract-v1` dengan
 `formulaVersion=bank-evidence-v1`. Produk menampilkan hingga delapan bank dinamis menurut
