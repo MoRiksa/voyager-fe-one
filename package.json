@@ -11,6 +11,7 @@
     "test:architecture": "node scripts/architecture-overlap-test.mjs",
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:canonical-flow": "node scripts/canonical-flow-contract-test.mjs",
+    "test:official-check": "node scripts/official-check-contract-test.mjs",
     "test:interaction": "node scripts/interaction-test.mjs",
     "test:accessibility": "node scripts/accessibility-test.mjs"
   },

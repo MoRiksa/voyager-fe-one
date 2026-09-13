@@ -11,8 +11,7 @@ try {
   await r.text('Pilih tujuan secara eksplisit')
   assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-consumer-growth"]').disabled`), true)
   await r.text('Pricing power, margin kotor, dan filter consumer belum didukung.')
-  assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-three-factor-screening"]').disabled`), true)
-  await r.text('Tidak ditawarkan untuk riset baru')
+  assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-three-factor-screening"]').disabled`), false)
   await r.evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
   await r.text('Tinjauan bukti ROE dan P/BV bank besar')
   await r.text('Earnings, equity, dan P/BV tersedia untuk ditampilkan')
@@ -205,10 +204,28 @@ try {
   assert.equal(await r.evaluate(`document.querySelector('[data-testid="relative-warning"]').getBoundingClientRect().height > 0`), true)
   assert.equal(await r.evaluate(`document.documentElement.scrollWidth <= innerWidth`), true)
   const profileCandidate = actual.candidates[0]
+  let officialCheckRequests = 0
+  r.on('Fetch.requestPaused', event => {
+     if (event.request.method === 'OPTIONS') { void r.send('Fetch.continueRequest', { requestId: event.requestId }); return }
+     officialCheckRequests++
+     const officialCheck = { status: 'completed', sessionId: id, symbol: profileCandidate.symbol, period: 'FY2025', checkedAt: '2026-09-09T10:00:00.000Z', fromCache: false, source: { authority: 'Bursa Efek Indonesia', issuerName: profileCandidate.name, fileId: 'official-test-file', fileName: 'Laporan Keuangan FY2025', url: 'https://www.idx.co.id/test-report', fileModified: '2026-03-01T08:00:00.000Z', sha256: 'abc123' }, metrics: [{ key: 'roe', label: 'ROE', providerValue: 10, officialValue: 10, difference: 0, status: 'matched', note: 'Nilai pada periode yang sama.' }, { key: 'pbv', label: 'P/BV', providerValue: 2, officialValue: 2.1, difference: -0.1, status: 'different', note: 'Perbedaan sumber pembulatan.' }], summary: 'Satu nilai sesuai dan satu nilai berbeda.', limitations: ['Perbandingan terbatas pada laporan yang tersedia.'], technical: { requestedModel: 'test-requested', returnedModel: 'test-returned', promptVersion: 'test-v1', totalTokens: 10 } }
+     void r.send('Fetch.fulfillRequest', { requestId: event.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }, { name: 'Access-Control-Allow-Origin', value: r.appUrl }], body: Buffer.from(JSON.stringify({ responseCode: '2000000', responseMessage: 'Success', officialCheck })).toString('base64') })
+  })
+  await r.send('Fetch.enable', { patterns: [{ urlPattern: '*research-sessions/*/candidates/*/official-check' }] })
   await r.navigate(`/research/${id}/company/${profileCandidate.symbol}`)
   await r.text(`${profileCandidate.symbol} — ${profileCandidate.name}`)
+  await r.text('Pemeriksaan data resmi')
+  assert.equal(officialCheckRequests, 0, 'Official check must not run eagerly')
+  await r.evaluate(`const button = document.querySelector('[data-testid="official-check-button"]'); button.click(); button.click()`)
+  await r.text('Periksa kembali')
+  assert.equal(officialCheckRequests, 1, 'Official check must ignore duplicate clicks while loading')
+  await r.text('Sesuai')
+  await r.text('Berbeda')
+  assert.equal(await r.evaluate(`document.querySelector('[data-testid="official-check-panel"]').innerText.includes('test-requested')`), false)
+  assert.equal(await r.evaluate(`document.querySelector('[data-testid="official-check-panel"]').querySelector('details').open`), false)
   assert.equal(await r.evaluate(`document.documentElement.scrollWidth <= innerWidth`), true)
   assert.equal(await r.evaluate(`document.body.innerText.includes('Riset mendalam ${profileCandidate.symbol}')`), false)
+  await r.send('Fetch.disable')
   // Distinguish missing data from a genuine zero-result financial selection.
   await r.setMode('incomplete')
   const missing = await r.create(); await r.start(missing); await r.finish(missing.id)

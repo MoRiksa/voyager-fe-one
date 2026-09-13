@@ -1,6 +1,7 @@
 import type {
   AgentStatus,
   CandidateCompany,
+  OfficialCheckResponse,
   ResearchBrief,
   ResearchReport,
   ResearchSession,
@@ -158,6 +159,17 @@ export const getCandidateDossier = async (id: string, symbol: string): Promise<C
   if (!response.ok) throw new Error('Gagal mengambil dossier kandidat.')
   const payload: any = await response.json()
   return payload.candidate
+}
+
+export const requestOfficialCheck = async (id: string, symbol: string): Promise<OfficialCheckResponse> => {
+  const response = await fetch(
+    `${backendUrl}/api/v1/research-sessions/${encodeURIComponent(id)}/candidates/${encodeURIComponent(symbol)}/official-check`,
+    { method: 'POST', headers: getHeaders() }
+  )
+  if (!response.ok) throw await responseError(response, 'Pemeriksaan data resmi gagal')
+  const payload: OfficialCheckResponse = await response.json()
+  if (!payload?.officialCheck) throw new Error('Response backend tidak memiliki hasil pemeriksaan data resmi.')
+  return payload
 }
 
 export const getReport = async (id: string): Promise<ResearchReport> => {

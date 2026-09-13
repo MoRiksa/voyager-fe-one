@@ -170,6 +170,59 @@ export interface CandidateCompany {
   trends?: CandidateTrend[]
 }
 
+export type OfficialCheckStatus = 'completed' | 'partial' | 'unavailable'
+export type OfficialCheckMetricKey = 'roe' | 'pbv'
+export type OfficialCheckMetricStatus = 'matched' | 'different' | 'insufficient'
+
+export interface OfficialCheckSource {
+  authority: 'Bursa Efek Indonesia'
+  issuerName: string
+  fileId: string
+  fileName: string
+  url: string
+  fileModified: string
+  sha256: string
+}
+
+export interface OfficialCheckMetric {
+  key: OfficialCheckMetricKey
+  label: string
+  providerValue: number | null
+  officialValue: number | null
+  difference: number | null
+  status: OfficialCheckMetricStatus
+  note: string
+}
+
+export interface OfficialCheckTechnical {
+  requestedModel: string
+  returnedModel: string
+  promptVersion: string
+  promptTokens?: number
+  completionTokens?: number
+  totalTokens?: number
+}
+
+export interface OfficialCheck {
+  status: OfficialCheckStatus
+  sessionId: string
+  symbol: string
+  period: string
+  checkedAt: string
+  fromCache: boolean
+  source?: OfficialCheckSource
+  metrics: OfficialCheckMetric[]
+  summary: string
+  limitations: string[]
+  technical?: OfficialCheckTechnical
+}
+
+export interface OfficialCheckResponse {
+  responseCode: string
+  responseMessage: string
+  officialCheck: OfficialCheck
+}
+
 export interface ScreeningFunnelStep {
   artifactVersion?: 'screening-stage-v2'
   formulaVersion?: 'quality-3f-v1' | 'quality-3f-v2' | 'bank-evidence-v1'
@@ -233,7 +286,7 @@ export interface ResearchContract {
   supportedObjective: string
   criteria: string[]
   unsupportedReasons: string[]
-  discoveryLimit: number
+  discoveryLimit: number | null
   coveragePolicy: string
   limitations: string[]
 }
