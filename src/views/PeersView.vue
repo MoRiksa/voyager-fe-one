@@ -26,11 +26,11 @@ const comparisonHighlights = computed(() => {
       <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
       <span class="section-kicker">{{ store.status === 'FAILED' ? 'Hasil belum lengkap' : 'Riset sedang berjalan' }}</span>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.status === 'FAILED' ? 'Perbandingan belum tersedia' : 'Menunggu kandidat akhir' }}</h1>
-      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">Perbandingan tersedia setelah proses seleksi menghasilkan kandidat akhir. Kembali ke sesi untuk mengikuti progress riset.</p>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? store.failureReason || 'Perbandingan tidak dibuat karena screening gagal.' : 'Perbandingan tersedia setelah proses seleksi menghasilkan sedikitnya dua kandidat akhir. Kembali ke sesi untuk mengikuti proses riset.' }}</p>
       <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
     </section>
     <template v-else>
-    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><strong>Perbandingan menggunakan hasil parsial.</strong> Kandidat atau nilai dapat berubah setelah seluruh tahap selesai.</section>
+    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><strong>Perbandingan menggunakan hasil parsial.</strong> {{ store.failureReason || 'Kandidat atau nilai dapat berubah setelah seluruh tahap selesai.' }}</section>
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">

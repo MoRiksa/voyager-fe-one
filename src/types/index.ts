@@ -15,7 +15,7 @@ export type AgentStatus =
   | 'COMPLETED' 
   | 'FAILED'
 
-export type PillarId = 'planner' | 'screener' | 'engine' | 'state' | 'report'
+export type PillarId = 'planner' | 'screener' | 'deep-research' | 'engine' | 'state' | 'report'
 
 export interface PillarStep {
   id: PillarId
@@ -25,6 +25,7 @@ export interface PillarStep {
   status: 'pending' | 'active' | 'completed' | 'failed'
   metricsSummary?: string
   durationMs?: number
+  reason?: string
 }
 
 export interface ResearchObjectivePreset {
@@ -355,4 +356,6 @@ export interface ResearchSession {
   ownerId?: string
   tenantId?: string
   provenanceTrail?: ProvenanceRecord[]
+  failureReason?: string
+  attempts?: { attemptId: string; state: string; failedStep?: number | null; failureReason?: string | null }[]
 }

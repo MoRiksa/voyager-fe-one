@@ -61,3 +61,15 @@ export const sourceHost = (reference: string) => {
   try { return new URL(reference).hostname }
   catch { return reference }
 }
+
+const phaseNames = ['Mengumpulkan universe', 'Memeriksa kelengkapan', 'Menerapkan kriteria', 'Menyusun peringkat', 'Menerbitkan hasil']
+
+export const researchFailureMessage = (reason?: string) => {
+  if (!reason) return ''
+  const phase = Number(reason.match(/^PHASE_(\d)_FAILED:/)?.[1])
+  const detail = reason
+    .replace(/^PHASE_\d_FAILED:\s*/, '')
+    .replace(/^PROVIDER_UNAVAILABLE:\s*/, '')
+    .replace(/Sectors API/g, 'Penyedia data')
+  return phase ? `${phaseNames[phase - 1] || `Tahap ${phase}`} gagal. ${detail}` : detail
+}

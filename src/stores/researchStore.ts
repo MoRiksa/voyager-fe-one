@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { AgentStatus, CandidateCompany, ResearchBrief, ResearchObjectivePreset, ResearchPlan, ResearchReport, ResearchSession, PillarStep, ToolCallLog, ScreeningFunnelStep, ProvenanceRecord, ScheduledTask } from '../types'
 import * as api from '../services/researchApi'
+import { researchFailureMessage } from '../utils/presentation'
 
 const emptyReport = (id = ''): ResearchReport => ({ sessionId: id, timestamp: '', objective: '', universeSummary: 'Belum ada laporan yang dipublikasikan.', screeningFunnel: [], methodologyOverview: '', topCandidates: [], peerComparisonNotes: '', limitations: [], uncertaintyNotes: '', disclaimer: '' })
 const emptyPlan = (): ResearchPlan => ({ objective: '', universe: 'Belum tersedia', criteria: [], steps: [], hypothesis: '', requiredDataPoints: [], estimatedDurationSeconds: null, estimatedCredits: null })
@@ -74,9 +75,9 @@ export const useResearchStore = defineStore('research', () => {
     currentRevision.value = session.revision
     activeAttemptId.value = session.activeAttemptId ?? null
     publishedAttemptId.value = session.publishedAttemptId ?? null
-    failureReason.value = session.failureReason || [...(session.attempts || [])].reverse().find((a: any) => a.state === 'FAILED')?.failureReason || ''
+    failureReason.value = researchFailureMessage(session.failureReason || [...(session.attempts || [])].reverse().find((a: any) => a.state === 'FAILED')?.failureReason)
     activePlan.value = session.plan ? { ...emptyPlan(), ...session.plan } : emptyPlan()
-    pillars.value = session.pillars || []
+    pillars.value = (session.pillars || []).map((pillar: PillarStep) => ({ ...pillar, reason: researchFailureMessage(pillar.reason) }))
     screeningFunnel.value = session.screeningFunnel || session.screening || []
     toolCalls.value = session.toolCalls || []
     candidates.value = (session.candidates || []).map((c: any) => ({

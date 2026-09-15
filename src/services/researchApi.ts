@@ -46,11 +46,17 @@ const isAgentStatus = (value: unknown): value is AgentStatus =>
   typeof value === 'string' && validStatuses.has(value)
 
 export class ResearchApiError extends Error {
-  constructor(message: string, readonly status: number) { super(message) }
+  constructor(message: string, readonly status: number, readonly code?: string, readonly requestId?: string) { super(message) }
 }
 const responseError = async (response: Response, context: string) => {
   const payload = await response.json().catch(() => null)
-  return new ResearchApiError(`${context} (HTTP ${response.status}). ${payload?.responseMessage || payload?.message || 'Layanan tidak memberikan detail; coba lagi.'}`, response.status)
+  const detail = payload?.responseMessage || payload?.message
+  const message = response.status === 429
+    ? 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.'
+    : response.status === 503
+      ? `${context}. Data yang diperlukan belum dapat diambil; hasil tidak diganti dengan data lain.`
+      : detail || `${context}. Coba lagi.`
+  return new ResearchApiError(message, response.status, payload?.responseCode, response.headers.get('X-Request-Id') || undefined)
 }
 
 const getHeaders = (idempotencyKey?: string): Record<string, string> => {

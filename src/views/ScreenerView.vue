@@ -64,11 +64,11 @@ watch(isBank, bank => { if (bank && sortBy.value === 'score') sortBy.value = 'ra
       <div v-if="store.isExecuting" class="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2F64A8]" role="progressbar" aria-label="Memproses"></div>
        <span class="section-kicker">{{ store.isExecuting ? 'Riset sedang berjalan' : 'Hasil belum tersedia' }}</span>
        <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ store.isExecuting ? 'Kandidat sedang diseleksi' : 'Tahap seleksi belum tersedia' }}</h1>
-      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? 'Kembali ke ringkasan sesi untuk melihat status dan hasil yang sempat tersimpan.' : 'Voyager One sedang mengevaluasi ruang lingkup dan kriteria. Hasil tahap seleksi akan muncul setelah riset selesai.' }}</p>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">{{ store.status === 'FAILED' ? store.failureReason || 'Penyaringan berhenti sebelum menghasilkan tahap yang aman untuk ditampilkan.' : 'Voyager One sedang mengevaluasi ruang lingkup dan kriteria. Hasil tahap seleksi akan muncul setelah riset selesai.' }}</p>
       <router-link :to="`/research/${store.report.sessionId}`" class="button-primary mt-6">Kembali ke progress riset</router-link>
     </section>
     <template v-else>
-    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border p-4 text-sm" :class="store.status === 'FAILED' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-amber-200 bg-amber-50 text-amber-900'"><strong>{{ store.status === 'FAILED' ? 'Penyaringan gagal sebelum selesai.' : 'Hasil penyaringan masih parsial.' }}</strong> Data tahap yang sudah tersedia tetap ditampilkan dan belum merupakan hasil akhir.</section>
+    <section v-if="store.status !== 'COMPLETED'" role="alert" class="rounded-2xl border p-4 text-sm" :class="store.status === 'FAILED' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-amber-200 bg-amber-50 text-amber-900'"><strong>{{ store.status === 'FAILED' ? 'Penyaringan gagal sebelum selesai.' : 'Hasil penyaringan masih parsial.' }}</strong> {{ store.failureReason || 'Data tahap yang sudah tersedia tetap ditampilkan dan belum merupakan hasil akhir.' }}</section>
     <!-- View Header -->
     <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
