@@ -155,7 +155,7 @@ const handleCreateSubmit = async () => {
                 </div>
 
                 <!-- Control Buttons -->
-                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                <div class="flex flex-wrap items-center gap-2 shrink-0 self-stretch sm:self-auto justify-end sm:justify-start">
                   <button
                     @click="handleToggle(task.id, task.enabled)"
                     type="button"
@@ -178,10 +178,10 @@ const handleCreateSubmit = async () => {
 
               <!-- Task Metadata Bar -->
               <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3.5 text-xs sm:grid-cols-4 font-mono">
-                <div>
+                <div class="col-span-2 sm:col-span-1">
                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Waktu pilihan</span>
-                  <span class="font-bold text-slate-800 flex items-center gap-1">
-                    <Clock class="h-3 w-3 text-[#2F64A8]" />
+                  <span class="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                    <Clock class="h-3 w-3 text-[#2F64A8] shrink-0" />
                     {{ scheduleLabel(task) }}
                   </span>
                 </div>
@@ -263,7 +263,7 @@ const handleCreateSubmit = async () => {
 
         <div>
           <p class="mb-2 text-xs font-bold text-slate-900">Pilih contoh aturan</p>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               v-for="preset in store.presets"
               :key="preset.id"
@@ -318,7 +318,7 @@ const handleCreateSubmit = async () => {
             </div>
             <div><label class="block font-bold text-slate-900 mb-1">Waktu</label><input v-model="newTime" type="time" required class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900" /></div>
             <div><label class="block font-bold text-slate-900 mb-1">Zona waktu</label><select v-model="newTimezone" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900"><option value="Asia/Jakarta">WIB</option><option value="Asia/Makassar">WITA</option><option value="Asia/Jayapura">WIT</option></select></div>
-            <div>
+            <div class="sm:col-span-2">
               <label class="block font-bold text-slate-900 mb-1">Jumlah kandidat</label>
               <select v-model.number="newCandidates" class="w-full min-h-10 rounded-xl border border-slate-300 bg-white px-3 text-slate-900">
                 <option :value="3">3 kandidat</option>

@@ -27,6 +27,64 @@ const display = (value: number) => Number.isFinite(value) ? value.toLocaleString
     <DataProvenance :generated-at="generatedAt" />
     <p data-testid="metric-explanation" class="text-sm leading-6 text-slate-600"><template v-if="bank">Kandidat ditampilkan dalam urutan market cap provider karena data top bank tersedia. Nilai ROE dan P/BV tidak menentukan keanggotaan. ROE provider-derived-unverified dan basis tanggal serta saham P/BV historis provider belum terverifikasi.</template><template v-else>Skor hanya memakai ROE, D/E, dan P/E. FCF yield menggunakan FCF FY dan kapitalisasi snapshot, bukan faktor skor. Skor bukan confidence atau peluang untung.</template></p>
     <p v-if="candidates.length < 2" data-testid="peers-empty" class="rounded-xl bg-slate-50 p-4 text-sm">Kandidat belum cukup untuk dibandingkan. Diperlukan sedikitnya dua kandidat.</p>
-    <template v-else><div class="grid gap-4 sm:grid-cols-2"><label class="text-sm font-semibold">Metrik<select v-model="metric" data-testid="metric-view" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option v-for="(label, key) in metrics" :key="key" :value="key">{{ label }}</option></select></label><label class="text-sm font-semibold">Urutan<select v-model="direction" data-testid="sort-direction" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option value="desc">Tertinggi ke terendah</option><option value="asc">Terendah ke tertinggi</option></select></label></div><div class="overflow-x-auto"><table class="w-full text-left text-sm"><caption class="sr-only">Perbandingan nilai absolut kandidat sesi, bukan benchmark sektor</caption><thead><tr class="border-b border-slate-200"><th scope="col" class="p-3">Kandidat / periode</th><th scope="col" class="p-3 text-right">{{ metrics[metric] }}</th></tr></thead><tbody><tr v-for="candidate in sorted" :key="candidate.symbol" :data-testid="`comparison-row-${candidate.symbol}`" class="border-b border-slate-100"><th scope="row" class="p-3 font-normal"><button type="button" class="min-h-11 font-bold text-[#2F64A8] underline" @click="$emit('open-candidate', candidate.symbol)">{{ candidate.symbol }}</button><p class="text-xs leading-5 text-slate-600">{{ candidate.sector }} · {{ candidate.financialPeriod || 'FY tidak tersedia' }}<br />Harga per: {{ candidate.priceAsOf || 'Tidak tersedia' }}</p></th><td class="p-3 text-right font-mono tabular-nums">{{ display(value(candidate) as number) }}</td></tr></tbody></table></div></template>
+    <template v-else>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="text-sm font-semibold">Metrik<select v-model="metric" data-testid="metric-view" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option v-for="(label, key) in metrics" :key="key" :value="key">{{ label }}</option></select></label>
+        <label class="text-sm font-semibold">Urutan<select v-model="direction" data-testid="sort-direction" class="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3"><option value="desc">Tertinggi ke terendah</option><option value="asc">Terendah ke tertinggi</option></select></label>
+      </div>
+
+      <!-- Mobile Card Stack (md:hidden) -->
+      <div class="grid gap-3 md:hidden">
+        <article
+          v-for="candidate in sorted"
+          :key="candidate.symbol"
+          :data-testid="`comparison-card-${candidate.symbol}`"
+          class="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <button
+                type="button"
+                class="min-h-11 font-mono font-bold text-base text-[#2F64A8] hover:underline"
+                @click="$emit('open-candidate', candidate.symbol)"
+              >
+                {{ candidate.symbol }}
+              </button>
+              <p class="text-xs text-slate-500">{{ candidate.sector }}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">{{ metrics[metric] }}</span>
+              <span class="font-mono text-base font-bold text-slate-900 tabular-nums">{{ display(value(candidate) as number) }}</span>
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-xs text-slate-500">
+            <span>{{ candidate.financialPeriod || 'FY tidak tersedia' }}</span>
+            <span>Harga: {{ candidate.priceAsOf || 'Tidak tersedia' }}</span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Desktop Table View (hidden md:block) -->
+      <div class="hidden overflow-x-auto md:block">
+        <table class="w-full text-left text-sm">
+          <caption class="sr-only">Perbandingan nilai absolut kandidat sesi, bukan benchmark sektor</caption>
+          <thead>
+            <tr class="border-b border-slate-200">
+              <th scope="col" class="p-3">Kandidat / periode</th>
+              <th scope="col" class="p-3 text-right">{{ metrics[metric] }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="candidate in sorted" :key="candidate.symbol" :data-testid="`comparison-row-${candidate.symbol}`" class="border-b border-slate-100">
+              <th scope="row" class="p-3 font-normal">
+                <button type="button" class="min-h-11 font-bold text-[#2F64A8] underline" @click="$emit('open-candidate', candidate.symbol)">{{ candidate.symbol }}</button>
+                <p class="text-xs leading-5 text-slate-600">{{ candidate.sector }} · {{ candidate.financialPeriod || 'FY tidak tersedia' }}<br />Harga per: {{ candidate.priceAsOf || 'Tidak tersedia' }}</p>
+              </th>
+              <td class="p-3 text-right font-mono tabular-nums">{{ display(value(candidate) as number) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
   </section>
 </template>
