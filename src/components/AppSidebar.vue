@@ -150,10 +150,10 @@ const watchlistItems = computed(() => {
     class="fixed left-3 top-3 bottom-3 z-30 select-none flex-col overflow-visible rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_40px_-12px_rgba(15,33,56,0.25)] ring-1 ring-slate-900/5 transition-[width] duration-300 ease-in-out"
     :class="collapsed ? 'w-16' : 'w-72'"
   >
-    <!-- Floating collapse toggle icon placed right in between sidebar header and main content -->
+    <!-- Floating Collapse Toggle Button placed on top of right border between header and first menu content -->
     <button
       type="button"
-      class="absolute -right-3.5 top-6 z-40 flex size-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition-all hover:bg-slate-50 hover:text-[#1E4270] hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#244F87]"
+      class="absolute -right-3.5 top-[4.75rem] z-40 flex size-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition-all hover:bg-slate-50 hover:text-[#1E4270] hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#244F87]"
       :title="collapsed ? 'Perluas bilah navigasi samping' : 'Ciutkan bilah navigasi samping'"
       :aria-label="collapsed ? 'Perluas bilah navigasi samping' : 'Ciutkan bilah navigasi samping'"
       @click="emit('toggle')"
@@ -181,8 +181,10 @@ const watchlistItems = computed(() => {
         </router-link>
       </div>
 
+      <div class="my-1 border-t border-slate-100" :class="collapsed ? 'mx-2' : 'mx-4'"></div>
+
       <!-- Navigation Groups -->
-      <nav class="space-y-6 pb-2" :class="collapsed ? 'px-2' : 'px-3'" aria-label="Navigasi utama">
+      <nav class="space-y-6 pt-1 pb-2" :class="collapsed ? 'px-2' : 'px-3'" aria-label="Navigasi utama">
         <div v-for="group in navItems" :key="group.group">
           <div
             v-if="!collapsed"
