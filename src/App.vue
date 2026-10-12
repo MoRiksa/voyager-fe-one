@@ -15,6 +15,11 @@ const route = useRoute()
 const router = useRouter()
 const store = useResearchStore()
 
+const isSidebarCollapsed = ref(false)
+const toggleSidebar = () => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value
+}
+
 const loadingSession = ref(false)
 const sessionError = ref('')
 let loadToken = 0
@@ -45,11 +50,18 @@ watch(() => route.fullPath, async () => {
 <template>
   <div class="min-h-dvh bg-[#F8FAFC] flex text-slate-900 selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
-    <!-- Persistent Left Sidebar Navigation -->
-    <AppSidebar class="hidden md:flex" />
+    <!-- Persistent Left Sidebar Navigation with Collapsible State -->
+    <AppSidebar
+      class="hidden md:flex"
+      :collapsed="isSidebarCollapsed"
+      @toggle="toggleSidebar"
+    />
 
-    <!-- Main Content Area: reduced spacing to sit snugly next to sidebar -->
-    <div class="flex-1 flex flex-col min-w-0 md:pl-[18.25rem]">
+    <!-- Main Content Area: reduced spacing to sit snugly next to sidebar, animates smoothly on collapse -->
+    <div
+      class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out"
+      :class="isSidebarCollapsed ? 'md:pl-[4.5rem]' : 'md:pl-[18.25rem]'"
+    >
       <AppNavbar />
 
       <main id="main-content" tabindex="-1" class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12">

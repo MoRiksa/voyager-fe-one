@@ -10,8 +10,23 @@ import {
   History, 
   Library, 
   Settings,
-  CalendarDays
+  CalendarDays,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight
 } from '@lucide/vue'
+
+const props = withDefaults(defineProps<{
+  collapsed?: boolean
+}>(), {
+  collapsed: false
+})
+
+const emit = defineEmits<{
+  (e: 'update:collapsed', val: boolean): void
+  (e: 'toggle'): void
+}>()
 
 const route = useRoute()
 const store = useResearchStore()
@@ -131,18 +146,35 @@ const watchlistItems = computed(() => {
 </script>
 
 <template>
-  <aside class="fixed left-3 top-3 bottom-3 z-30 flex w-72 select-none flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_40px_-12px_rgba(15,33,56,0.25)] ring-1 ring-slate-900/5">
+  <aside
+    class="fixed left-3 top-3 bottom-3 z-30 select-none flex-col overflow-visible rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_40px_-12px_rgba(15,33,56,0.25)] ring-1 ring-slate-900/5 transition-[width] duration-300 ease-in-out"
+    :class="collapsed ? 'w-16' : 'w-72'"
+  >
+    <!-- Floating collapse toggle icon placed right in between sidebar header and main content -->
+    <button
+      type="button"
+      class="absolute -right-3.5 top-6 z-40 flex size-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition-all hover:bg-slate-50 hover:text-[#1E4270] hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#244F87]"
+      :title="collapsed ? 'Perluas bilah navigasi samping' : 'Ciutkan bilah navigasi samping'"
+      :aria-label="collapsed ? 'Perluas bilah navigasi samping' : 'Ciutkan bilah navigasi samping'"
+      @click="emit('toggle')"
+    >
+      <ChevronRight v-if="collapsed" class="size-3.5 stroke-[2.5]" />
+      <ChevronLeft v-else class="size-3.5 stroke-[2.5]" />
+    </button>
+
     <!-- Top Brand & Header -->
-    <div class="min-h-0 flex-1 overflow-y-auto">
-      <div class="p-4">
+    <div class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+      <div class="p-3" :class="collapsed ? 'px-2 text-center' : 'p-4'">
         <router-link
           to="/"
-          class="group flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#1E4270] to-[#244F87] p-3 text-white shadow-sm transition-transform hover:scale-[1.01]"
+          class="group flex items-center rounded-xl bg-gradient-to-br from-[#1E4270] to-[#244F87] text-white shadow-sm transition-transform hover:scale-[1.01]"
+          :class="collapsed ? 'justify-center size-12 p-0 mx-auto' : 'gap-3 p-3'"
+          :title="collapsed ? 'Voyager.One - Beranda' : undefined"
         >
-          <div class="flex size-9 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25 transition-transform group-hover:rotate-6">
+          <div class="flex size-9 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25 transition-transform group-hover:rotate-6 shrink-0">
             <Compass class="size-5 stroke-[2.2]" />
           </div>
-          <div class="min-w-0">
+          <div v-if="!collapsed" class="min-w-0">
             <span class="block truncate text-sm font-extrabold tracking-tight">VOYAGER<span class="text-blue-200">.ONE</span></span>
             <p class="-mt-0.5 truncate text-[11px] font-medium text-blue-100/90">Workspace riset finansial</p>
           </div>
@@ -150,20 +182,29 @@ const watchlistItems = computed(() => {
       </div>
 
       <!-- Navigation Groups -->
-      <nav class="space-y-6 px-3 pb-2" aria-label="Navigasi utama">
+      <nav class="space-y-6 pb-2" :class="collapsed ? 'px-2' : 'px-3'" aria-label="Navigasi utama">
         <div v-for="group in navItems" :key="group.group">
-          <div class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+          <div
+            v-if="!collapsed"
+            class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+          >
             {{ group.group }}
           </div>
+          <div v-else class="my-2 border-t border-slate-100"></div>
+
           <div class="space-y-0.5">
             <router-link
               v-for="item in group.items"
               :key="item.path"
               :to="item.path"
-              class="group relative flex min-h-9 items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all duration-150"
-              :class="item.names.includes(currentRouteName)
-                ? 'bg-[#244F87]/10 text-[#1E4270]'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
+              class="group relative flex min-h-9 items-center rounded-lg text-[13px] font-semibold transition-all duration-150"
+              :class="[
+                collapsed ? 'justify-center size-11 mx-auto' : 'gap-3 px-3 py-2',
+                item.names.includes(currentRouteName)
+                  ? 'bg-[#244F87]/10 text-[#1E4270]'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              ]"
+              :title="collapsed ? item.label : undefined"
             >
               <span
                 v-if="item.names.includes(currentRouteName)"
@@ -175,7 +216,7 @@ const watchlistItems = computed(() => {
                 class="size-4 shrink-0 transition-colors"
                 :class="item.names.includes(currentRouteName) ? 'text-[#244F87]' : 'text-slate-400 group-hover:text-slate-600'"
               />
-              <span>{{ item.label }}</span>
+              <span v-if="!collapsed" class="truncate">{{ item.label }}</span>
             </router-link>
           </div>
         </div>
@@ -188,9 +229,9 @@ const watchlistItems = computed(() => {
     </div>
 
     <!-- Dedicated Sidebar Footer: Quick Watchlist (grouped in footer) + User Profile -->
-    <div class="shrink-0 space-y-2.5 border-t border-slate-100 bg-slate-50/60 p-3">
+    <div class="shrink-0 space-y-2 border-t border-slate-100 bg-slate-50/60" :class="collapsed ? 'p-2 text-center' : 'p-3 space-y-2.5'">
       <!-- Quick Watchlist Matrix (Clean Financial Workbench Layout) -->
-      <div class="space-y-2 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+      <div v-if="!collapsed" class="space-y-2 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
         <div class="flex items-center justify-between px-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
           <span>Pantauan Emiten</span>
           <span class="text-[10px] font-normal text-slate-400">
@@ -259,16 +300,22 @@ const watchlistItems = computed(() => {
       </div>
 
       <!-- Dedicated User Profile Card -->
-      <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs transition-colors hover:bg-slate-50">
-        <div class="flex min-w-0 items-center gap-2.5">
+      <div
+        class="flex items-center rounded-xl border border-slate-200/80 bg-white p-2 shadow-2xs transition-colors hover:bg-slate-50"
+        :class="collapsed ? 'justify-center p-1.5' : 'justify-between gap-3 p-2.5'"
+      >
+        <div class="flex min-w-0 items-center gap-2.5" :class="collapsed ? 'justify-center' : ''">
           <!-- Avatar with initials & active indicator -->
-          <div class="relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#244F87] font-mono text-xs font-bold text-white shadow-xs">
+          <div
+            class="relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#244F87] font-mono text-xs font-bold text-white shadow-xs"
+            :title="collapsed ? 'Analis Riset (PRO)' : undefined"
+          >
             <span>AN</span>
             <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-white bg-emerald-500" title="Online"></span>
           </div>
 
           <!-- User details -->
-          <div class="min-w-0 flex-1">
+          <div v-if="!collapsed" class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5">
               <span class="truncate text-xs font-bold text-slate-900">Analis Riset</span>
               <span class="rounded bg-blue-100/80 px-1.5 py-0.2 font-mono text-[9px] font-bold uppercase text-[#244F87]">PRO</span>
@@ -279,6 +326,7 @@ const watchlistItems = computed(() => {
 
         <!-- Quick settings / help action -->
         <router-link
+          v-if="!collapsed"
           to="/help"
           class="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-all hover:bg-slate-100 hover:text-slate-700"
           title="Bantuan & Pengaturan Akun"

@@ -203,114 +203,134 @@ const groupedTerms = computed(() => {
 </script>
 
 <template>
-  <div class="page-shell space-y-7">
-    <!-- Header -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="section-kicker">Referensi</span>
-        <span class="badge bg-slate-100 text-slate-700">{{ glossaryTerms.length }} istilah</span>
-      </div>
-      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-        Kamus Istilah Finansial
-      </h1>
-      <p class="text-sm text-slate-600 mt-1 max-w-3xl">
-        Pahami istilah-istilah keuangan yang digunakan dalam Voyager One dengan penjelasan sederhana, rumus, dan contoh praktis.
-      </p>
+  <div class="page-shell space-y-8">
+    <!-- Editorial Hero Header -->
+    <header class="relative overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-slate-50/70 to-blue-50/30 p-6 sm:p-8 md:p-10 shadow-xs">
+      <div class="relative z-10 max-w-3xl space-y-3">
+        <div class="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-blue-50/70 px-3 py-1 font-mono text-xs font-bold text-[#1E4270]">
+          <BookOpen class="size-3.5" />
+          <span>Kamus & Glosarium Riset</span>
+          <span class="text-slate-300">•</span>
+          <span>{{ glossaryTerms.length }} Istilah</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          Kamus Istilah Finansial & Indikator
+        </h1>
+        <p class="text-sm sm:text-base leading-relaxed text-slate-600 max-w-2xl">
+          Pahami istilah-istilah keuangan yang digunakan dalam Voyager One dengan penjelasan sederhana, rumus terverifikasi, dan contoh interpretasi praktis.
+        </p>
 
-      <!-- Search -->
-      <div class="mt-6 relative">
-        <label for="glossary-search" class="sr-only">Cari istilah finansial</label>
-        <Search class="absolute left-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
-        <input
-          id="glossary-search"
-          v-model="searchQuery"
-          type="text"
-          placeholder="Cari istilah, misalnya: ROE, P/E, CAGR..."
-          class="w-full min-h-11 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm focus:border-[#2F64A8]"
-        />
+        <!-- Search Input -->
+        <div class="pt-3 max-w-xl">
+          <label for="glossary-search" class="sr-only">Cari istilah finansial</label>
+          <div class="relative">
+            <Search class="absolute left-3.5 top-3.5 size-4 text-slate-400 pointer-events-none" />
+            <input
+              id="glossary-search"
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari istilah, misalnya: ROE, P/E, CAGR, Quality Score..."
+              class="w-full min-h-11 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm shadow-2xs transition-colors focus:border-[#1E4270] focus:ring-2 focus:ring-[#1E4270]/20"
+            />
+          </div>
+          <p class="mt-2 text-xs text-slate-500 font-mono" role="status" aria-live="polite">
+            {{ filteredTerms.length }} istilah ditemukan.
+          </p>
+        </div>
       </div>
-      <p class="mt-2 text-xs text-slate-500" role="status" aria-live="polite">{{ filteredTerms.length }} istilah ditemukan.</p>
-    </div>
 
-    <!-- Quick Navigation -->
+      <div class="pointer-events-none absolute -right-12 -top-12 size-72 rounded-full bg-blue-100/30 blur-3xl" aria-hidden="true"></div>
+    </header>
+
+    <!-- Quick Navigation Category Badges -->
     <div class="flex flex-wrap gap-2">
       <a
         v-for="category in categories"
         :key="category"
         :href="`#${category.toLowerCase().replace(/\s+/g, '-')}`"
-        class="badge bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+        class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all hover:border-[#1E4270] hover:bg-slate-50 hover:text-[#1E4270]"
       >
         {{ category }}
       </a>
     </div>
 
-    <!-- No Results -->
-    <div v-if="filteredTerms.length === 0" class="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-      <BookOpen class="mx-auto h-8 w-8 text-slate-400" />
-      <h2 class="mt-3 font-bold text-slate-900">Tidak ditemukan</h2>
-      <p class="mt-2 text-sm text-slate-600">Tidak ada istilah yang cocok dengan "{{ searchQuery }}".</p>
+    <!-- No Results State -->
+    <div v-if="filteredTerms.length === 0" class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
+      <BookOpen class="mx-auto size-8 text-slate-400" />
+      <h2 class="mt-3 text-base font-bold text-slate-900">Tidak ditemukan</h2>
+      <p class="mt-1 text-xs text-slate-500">Tidak ada istilah yang cocok dengan "{{ searchQuery }}".</p>
     </div>
 
     <!-- Terms by Category -->
     <div v-for="(terms, category) in groupedTerms" :key="category" class="space-y-4">
-      <h2 :id="category.toLowerCase().replace(/\s+/g, '-')" class="text-lg font-bold text-slate-900 scroll-mt-20">
-        {{ category }}
-      </h2>
+      <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <h2 :id="category.toLowerCase().replace(/\s+/g, '-')" class="text-base sm:text-lg font-bold text-slate-900 scroll-mt-24">
+          {{ category }}
+        </h2>
+        <span class="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-600">
+          {{ terms.length }}
+        </span>
+      </div>
       
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
         <article
           v-for="item in terms"
           :key="item.term"
-          class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm"
+          class="flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-slate-300 transition-colors"
           :data-testid="item.term === 'Bank Evidence' ? 'bank-evidence-glossary' : undefined"
         >
-          <!-- Header -->
-          <div class="flex items-start gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#407EC9]/10 text-[#2F64A8]">
-              <component :is="item.icon" class="h-5 w-5" />
+          <div>
+            <!-- Header -->
+            <div class="flex items-start gap-3.5 pb-3 border-b border-slate-100">
+              <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1E4270] ring-1 ring-blue-200/70">
+                <component :is="item.icon" class="size-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-mono text-base sm:text-lg font-extrabold text-[#1E4270] tracking-tight">{{ item.term }}</h3>
+                <p class="text-xs font-medium text-slate-500">{{ item.fullName }}</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <h3 class="font-mono text-lg font-bold text-[#2F64A8]">{{ item.term }}</h3>
-              <p class="text-xs text-slate-500">{{ item.fullName }}</p>
+
+            <!-- Definition -->
+            <p class="mt-3.5 text-xs sm:text-sm leading-relaxed text-slate-700">
+              {{ item.definition }}
+            </p>
+
+            <!-- Formula -->
+            <div v-if="item.term !== 'Bank Filter'" class="mt-3.5 rounded-xl bg-slate-50 border border-slate-200/70 p-3">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Rumus</p>
+              <p class="font-mono text-xs font-semibold text-slate-900">{{ item.formula }}</p>
+            </div>
+
+            <!-- Interpretation -->
+            <div class="mt-3 text-xs leading-relaxed text-slate-600">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Cara membaca</p>
+              <p>{{ item.interpretation }}</p>
             </div>
           </div>
 
-          <!-- Definition -->
-          <p class="mt-4 text-sm leading-6 text-slate-700">
-            {{ item.definition }}
-          </p>
+          <!-- Bottom Metric Insights -->
+          <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+            <!-- Example -->
+            <div class="rounded-xl bg-blue-50/80 border border-blue-100 p-2.5 text-xs leading-relaxed text-blue-900">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-0.5">Contoh</p>
+              <p class="text-[11px]">{{ item.example }}</p>
+            </div>
 
-          <!-- Formula -->
-          <div v-if="item.term !== 'Bank Filter'" class="mt-4 rounded-lg bg-slate-50 p-3">
-            <p class="text-xs font-semibold text-slate-500 mb-1">Rumus</p>
-            <p class="font-mono text-xs text-slate-800">{{ item.formula }}</p>
-          </div>
-
-          <!-- Interpretation -->
-          <div class="mt-3">
-            <p class="text-xs font-semibold text-slate-500 mb-1">Cara membaca</p>
-            <p class="text-xs leading-5 text-slate-600">{{ item.interpretation }}</p>
-          </div>
-
-          <!-- Example -->
-          <div class="mt-3 rounded-lg bg-blue-50 border border-blue-100 p-3">
-            <p class="text-xs font-semibold text-blue-800 mb-1">Contoh</p>
-            <p class="text-xs leading-5 text-blue-700">{{ item.example }}</p>
-          </div>
-
-          <!-- Caution -->
-          <div class="mt-3 rounded-lg bg-amber-50 border border-amber-100 p-3">
-            <p class="text-xs font-semibold text-amber-800 mb-1">Perhatian</p>
-            <p class="text-xs leading-5 text-amber-700">{{ item.caution }}</p>
+            <!-- Caution -->
+            <div class="rounded-xl bg-amber-50/80 border border-amber-200/80 p-2.5 text-xs leading-relaxed text-amber-950">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-amber-800 mb-0.5">Perhatian</p>
+              <p class="text-[11px]">{{ item.caution }}</p>
+            </div>
           </div>
         </article>
       </div>
     </div>
 
     <!-- Footer Note -->
-    <div class="rounded-2xl bg-slate-100 p-6 text-center">
-      <p class="text-xs leading-5 text-slate-600">
-        <strong class="text-slate-800">Catatan:</strong> Penjelasan di atas disederhanakan untuk memudahkan pemahaman. 
+    <div class="rounded-3xl border border-slate-200/80 bg-slate-50/60 p-6 text-center">
+      <p class="text-xs leading-relaxed text-slate-600 max-w-2xl mx-auto">
+        <strong class="font-bold text-slate-800">Catatan:</strong> Penjelasan di atas disederhanakan untuk memudahkan pemahaman. 
         Untuk analisis investasi yang serius, konsultasikan dengan profesional keuangan berlisensi.
       </p>
     </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   CalendarDays,
   Table as TableIcon,
@@ -10,7 +11,9 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
-  SlidersHorizontal
+  SlidersHorizontal,
+  X,
+  ExternalLink
 } from '@lucide/vue'
 import SearchableSelect from '../components/SearchableSelect.vue'
 import { getEconomicEvents, type EconomicEvent } from '../services/researchApi'
@@ -442,6 +445,7 @@ const MOCK_ECONOMIC_EVENTS: TradingEconomicEvent[] = [
   }
 ]
 
+const router = useRouter()
 const events = ref<TradingEconomicEvent[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -593,10 +597,14 @@ const calendarCurrentDate = ref(new Date())
 const selectedCalendarDateStr = ref<string>('')
 const hoveredColIdx = ref<number | null>(null)
 const hoveredCell = ref<CalendarCell | null>(null)
+const isFrozen = ref(false)
+const frozenCell = ref<CalendarCell | null>(null)
 const mousePos = ref<{ x: number; y: number }>({ x: 0, y: 0 })
 
 const handleCellMouseMove = (e: MouseEvent, cell: CalendarCell, cellIdx: number) => {
   hoveredColIdx.value = cellIdx % 7
+  if (isFrozen.value) return // If frozen by user click, keep current position & cell intact
+
   if (cell.events.length > 0) {
     hoveredCell.value = cell
     const count = cell.events.length
@@ -627,7 +635,25 @@ const handleCellMouseMove = (e: MouseEvent, cell: CalendarCell, cellIdx: number)
 
 const handleCellMouseLeave = () => {
   hoveredColIdx.value = null
+  if (!isFrozen.value) {
+    hoveredCell.value = null
+  }
+}
+
+const unfreezeHover = () => {
+  isFrozen.value = false
+  frozenCell.value = null
   hoveredCell.value = null
+}
+
+const navigateToDetail = (dateStr?: string) => {
+  const d = dateStr || selectedCalendarDateStr.value || hoveredCell.value?.dateStr || ''
+  unfreezeHover()
+  if (d) {
+    router.push({ path: '/economic-calendar/detail', query: { date: d } })
+  } else {
+    router.push('/economic-calendar/detail')
+  }
 }
 
 // Initialize selected date to today in YYYY-MM-DD
@@ -781,10 +807,45 @@ const calendarGridDays = computed<CalendarCell[]>(() => {
   return cells
 })
 
-const onSelectCalendarCell = (cell: CalendarCell) => {
+const onSelectCalendarCell = (cell: CalendarCell, event?: MouseEvent) => {
   selectedCalendarDateStr.value = cell.dateStr
   if (!cell.isCurrentMonth) {
     calendarCurrentDate.value = new Date(cell.date)
+  }
+
+  // Freeze hover tooltip when date column / cell is clicked so user can scroll and view details
+  if (cell.events.length > 0) {
+    if (isFrozen.value && frozenCell.value?.dateStr === cell.dateStr) {
+      // Toggle off if clicking the already frozen cell
+      unfreezeHover()
+    } else {
+      isFrozen.value = true
+      frozenCell.value = cell
+      hoveredCell.value = cell
+      if (event) {
+        const count = cell.events.length
+        let tooltipWidth = 300
+        if (count > 10) {
+          tooltipWidth = Math.min(window.innerWidth - 32, 980)
+        } else if (count > 5) {
+          tooltipWidth = Math.min(window.innerWidth - 32, 760)
+        } else if (count > 3) {
+          tooltipWidth = Math.min(window.innerWidth - 32, 540)
+        }
+        const tooltipHeight = 320
+        let x = event.clientX + 16
+        let y = event.clientY + 12
+        if (x + tooltipWidth > window.innerWidth) {
+          x = Math.max(12, event.clientX - tooltipWidth - 14)
+        }
+        if (y + tooltipHeight > window.innerHeight) {
+          y = Math.max(12, event.clientY - tooltipHeight - 12)
+        }
+        mousePos.value = { x, y }
+      }
+    }
+  } else {
+    unfreezeHover()
   }
 }
 
@@ -1175,11 +1236,12 @@ const formatDateShort = (isoString: string) => {
               cell.isCurrentMonth ? 'bg-white' : 'bg-slate-50/70 text-slate-400',
               cellIdx % 7 === hoveredColIdx ? 'bg-blue-50/40 shadow-xs' : '',
               cell.isSelected ? 'ring-2 ring-inset ring-[#244F87] bg-blue-50/20 z-10' : '',
+              isFrozen && frozenCell?.dateStr === cell.dateStr ? 'ring-2 ring-[#1E4270] shadow-md bg-blue-50/30' : '',
               'hover:z-20 hover:scale-[1.02] hover:shadow-lg hover:bg-white hover:ring-2 hover:ring-[#244F87] rounded-xl'
             ]"
             @mousemove="handleCellMouseMove($event, cell, cellIdx)"
             @mouseleave="handleCellMouseLeave"
-            @click="onSelectCalendarCell(cell)"
+            @click="onSelectCalendarCell(cell, $event)"
           >
             <!-- Standard Cell Content -->
             <div class="w-full">
@@ -1243,9 +1305,20 @@ const formatDateShort = (isoString: string) => {
                 Agenda Rilis: {{ selectedDateLabel }}
               </h3>
             </div>
-            <span class="rounded-full bg-slate-200/80 px-2.5 py-0.5 font-mono text-[11px] font-bold text-slate-700 w-fit">
-              {{ selectedDayEvents.length }} Agenda Terjadwal
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="rounded-full bg-slate-200/80 px-2.5 py-0.5 font-mono text-[11px] font-bold text-slate-700 w-fit">
+                {{ selectedDayEvents.length }} Agenda Terjadwal
+              </span>
+              <button
+                v-if="selectedDayEvents.length"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-[#1E4270] px-3 py-1 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#244F87]"
+                @click="navigateToDetail(selectedCalendarDateStr)"
+              >
+                <span>Lihat Rincian Penuh</span>
+                <ExternalLink class="size-3" />
+              </button>
+            </div>
           </div>
 
           <!-- Cards List for Selected Day (Dynamic Column Layout: > 3 -> 2 cols, > 5 -> 3 cols, > 10 -> 4 cols) -->
@@ -1337,12 +1410,13 @@ const formatDateShort = (isoString: string) => {
       </div>
     </div>
 
-    <!-- Floating Cursor-Following Preview Tooltip (Placed right after cursor, with dynamic columns >3, >5, >10) -->
+    <!-- Floating Cursor-Following Preview Tooltip (Placed right after cursor, with dynamic columns >3, >5, >10, and freeze capability on date click) -->
     <Teleport to="body">
       <div
         v-if="hoveredCell && hoveredCell.events.length"
-        class="fixed z-9999 pointer-events-none rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-3.5 shadow-2xl ring-1 ring-black/5 transition-all duration-75 ease-out animate-in fade-in-0 zoom-in-95"
+        class="fixed z-9999 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-3.5 shadow-2xl ring-1 ring-black/5 transition-all duration-75 ease-out animate-in fade-in-0 zoom-in-95"
         :class="[
+          isFrozen ? 'pointer-events-auto ring-2 ring-[#1E4270]/25 shadow-[0_20px_50px_rgba(0,0,0,0.2)]' : 'pointer-events-none',
           hoveredCell.events.length > 10
             ? 'w-[94vw] max-w-5xl'
             : hoveredCell.events.length > 5
@@ -1362,19 +1436,34 @@ const formatDateShort = (isoString: string) => {
             <span class="flex size-6 items-center justify-center rounded-full bg-[#244F87] text-xs font-bold text-white shadow-2xs">
               {{ hoveredCell.dayNumber }}
             </span>
-            <span class="font-bold text-xs text-slate-900">
-              {{ currentMonthLabel }}
-            </span>
+            <div>
+              <span class="font-bold text-xs text-slate-900 block leading-tight">
+                {{ currentMonthLabel }}
+              </span>
+            </div>
           </div>
-          <span class="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1E4270]">
-            {{ hoveredCell.events.length }} Agenda
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1E4270]">
+              {{ hoveredCell.events.length }} Agenda
+            </span>
+            <button
+              v-if="isFrozen"
+              type="button"
+              class="inline-flex size-5 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors pointer-events-auto cursor-pointer"
+              title="Tutup pratinjau beku"
+              aria-label="Tutup pratinjau beku"
+              @click.stop="unfreezeHover"
+            >
+              <X class="size-3" />
+            </button>
+          </div>
         </div>
 
-        <!-- Events List with Dynamic Columns: > 3 -> 2 cols, > 5 -> 3 cols, > 10 -> 4 cols -->
+        <!-- Events List with Dynamic Columns: > 3 -> 2 cols, > 5 -> 3 cols, > 10 -> 4 cols (Scrollable) -->
         <div
-          class="mt-2.5 max-h-72 overflow-y-auto pr-0.5"
+          class="mt-2.5 max-h-72 overflow-y-auto pr-1"
           :class="[
+            isFrozen ? 'pointer-events-auto select-text' : 'pointer-events-none',
             hoveredCell.events.length > 10
               ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2'
               : hoveredCell.events.length > 5
@@ -1415,8 +1504,19 @@ const formatDateShort = (isoString: string) => {
           </div>
         </div>
 
-        <div class="mt-2.5 pt-1.5 border-t border-slate-100 text-center text-[10px] font-bold text-[#244F87]">
-          Klik tanggal untuk melihat rincian penuh
+        <!-- Footer Action: More / Full details route to /economic-calendar/detail -->
+        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <span class="text-slate-400 text-[10px]">
+            {{ isFrozen ? 'Klik luar atau silang untuk menutup' : 'Klik tanggal untuk membekukan tampilan' }}
+          </span>
+          <button
+            type="button"
+            class="pointer-events-auto inline-flex items-center gap-1 font-bold text-[#1E4270] hover:text-[#244F87] hover:underline cursor-pointer transition-colors"
+            @click.stop="navigateToDetail(hoveredCell.dateStr)"
+          >
+            <span>Rincian Penuh</span>
+            <ExternalLink class="size-3" />
+          </button>
         </div>
       </div>
     </Teleport>
