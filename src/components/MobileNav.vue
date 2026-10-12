@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { Home, Menu, X, Filter, GitCompare, BookOpen, Search, History, Library, CircleHelp } from '@lucide/vue'
+import { Home, Menu, X, Filter, GitCompare, BookOpen, Search, History, Library, CircleHelp, CalendarDays } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
@@ -24,6 +24,7 @@ const moreItems = computed(() => [
     { label: 'Cara data dipilih', to: `/research/${store.report.sessionId}/screener`, icon: Filter },
     { label: 'Bandingkan data', to: `/research/${store.report.sessionId}/peers`, icon: GitCompare }
   ] : []),
+  { label: 'Kalender ekonomi', to: '/economic-calendar', icon: CalendarDays },
   { label: 'Cara penilaian', to: '/methodology', icon: BookOpen },
   { label: 'Kamus istilah', to: '/glossary', icon: Library },
   { label: 'Bantuan', to: '/help', icon: CircleHelp }

@@ -48,8 +48,8 @@ watch(() => route.fullPath, async () => {
     <!-- Persistent Left Sidebar Navigation -->
     <AppSidebar class="hidden md:flex" />
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <!-- Main Content Area: reduced spacing to sit snugly next to sidebar -->
+    <div class="flex-1 flex flex-col min-w-0 md:pl-[18.25rem]">
       <AppNavbar />
 
       <main id="main-content" tabindex="-1" class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12">

@@ -1,22 +1,117 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useResearchStore } from '../stores/researchStore'
-import { sessionStatusMeta } from '../utils/status'
-import { 
-  ChevronRight
+import { getEconomicEvents } from '../services/researchApi'
+import {
+  CalendarDays
 } from '@lucide/vue'
 
 const route = useRoute()
 const store = useResearchStore()
+
+const isScrolled = ref(false)
+const onScroll = () => { isScrolled.value = window.scrollY > 8 }
+onMounted(() => { onScroll(); window.addEventListener('scroll', onScroll, { passive: true }) })
+onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
+
+// Nearest economic forum / release count from backend; degrades to 0 (no dot) on failure.
+const economicCount = ref(0)
+onMounted(async () => {
+  try { economicCount.value = (await getEconomicEvents()).length }
+  catch { economicCount.value = 0 }
+})
+
 const isSessionRoute = computed(() => typeof route.params.id === 'string')
 const sessionTitle = computed(() => store.presets.find(preset => preset.id === store.activePresetId)?.title || 'Sesi riset')
-const journeySteps = computed(() => [
-  { label: 'Ringkasan', name: 'research-session', to: `/research/${store.report.sessionId}` },
-  { label: 'Seleksi', name: 'research-screener', to: `/research/${store.report.sessionId}/screener` },
-  { label: 'Perbandingan', name: 'research-peers', to: `/research/${store.report.sessionId}/peers` },
-  { label: 'Laporan', name: 'research-report', to: `/research/${store.report.sessionId}/report` }
-])
+
+interface BreadcrumbItem {
+  label: string
+  to?: string
+}
+
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+  const name = String(route.name || '')
+  const id = typeof route.params.id === 'string' ? route.params.id : ''
+  const symbol = typeof route.params.symbol === 'string' ? route.params.symbol.toUpperCase() : ''
+
+  const crumbs: BreadcrumbItem[] = [
+    { label: 'Beranda', to: '/' }
+  ]
+
+  // Session-scoped routes
+  if (isSessionRoute.value && id) {
+    crumbs.push({ label: 'Pustaka', to: '/research' })
+    crumbs.push({
+      label: sessionTitle.value,
+      to: name === 'research-session' ? undefined : `/research/${id}`
+    })
+
+    if (name === 'research-screener') {
+      crumbs.push({ label: 'Proses Penyaringan' })
+    } else if (name === 'research-peers') {
+      crumbs.push({ label: 'Perbandingan Kandidat' })
+    } else if (name === 'research-report') {
+      crumbs.push({ label: 'Laporan Riset' })
+    } else if (name === 'research-company') {
+      crumbs.push({ label: 'Laporan Riset', to: `/research/${id}/report` })
+      crumbs.push({ label: symbol || 'Analisis Emiten' })
+    }
+    return crumbs
+  }
+
+  // Non-session standalone routes
+  switch (name) {
+    case 'research-library':
+      crumbs.push({ label: 'Pustaka Riset' })
+      break
+    case 'research-new':
+      crumbs.push({ label: 'Pustaka', to: '/research' })
+      crumbs.push({ label: 'Riset Baru' })
+      break
+    case 'screener':
+      crumbs.push({ label: 'Proses Penyaringan' })
+      break
+    case 'peers':
+      crumbs.push({ label: 'Perbandingan Kandidat' })
+      break
+    case 'report':
+      crumbs.push({ label: 'Laporan Riset' })
+      break
+    case 'company-detail':
+      crumbs.push({ label: 'Pustaka', to: '/research' })
+      crumbs.push({ label: symbol || 'Analisis Emiten' })
+      break
+    case 'methodology':
+      crumbs.push({ label: 'Metodologi Penilaian' })
+      break
+    case 'glossary':
+      crumbs.push({ label: 'Kamus Istilah Finansial' })
+      break
+    case 'help':
+      crumbs.push({ label: 'Bantuan' })
+      break
+    case 'accessibility':
+      crumbs.push({ label: 'Status Aksesibilitas' })
+      break
+    case 'economic-calendar':
+    case 'economic-date':
+      crumbs.push({ label: 'Kalender Ekonomi' })
+      break
+    case 'economic-calendar-detail':
+      crumbs.push({ label: 'Kalender Ekonomi', to: '/economic-calendar' })
+      crumbs.push({ label: 'Rincian Penuh' })
+      break
+    case 'not-found':
+      crumbs.push({ label: 'Halaman Tidak Ditemukan' })
+      break
+    default:
+      // When at Home ('home')
+      break
+  }
+
+  return crumbs
+})
 
 const pageTitle = computed(() => {
   switch (route.name) {
@@ -37,67 +132,102 @@ const pageTitle = computed(() => {
     case 'research-activity': return 'Aktivitas Riset'
     case 'research-trace': return 'Audit Teknis'
     case 'research-report': return 'Laporan Riset'
-    case 'company-detail': return 'Analisis Perusahaan'
-    case 'research-company': return 'Analisis Perusahaan'
+    case 'company-detail': return route.params.symbol ? `Analisis ${String(route.params.symbol).toUpperCase()}` : 'Analisis Perusahaan'
+    case 'research-company': return route.params.symbol ? `Analisis ${String(route.params.symbol).toUpperCase()}` : 'Analisis Perusahaan'
+    case 'economic-calendar-detail': return 'Rincian Agenda Ekonomi'
     case 'not-found': return 'Halaman Tidak Ditemukan'
     default: return 'Workspace Riset'
   }
 })
 
-const statusBadge = computed(() => {
-  switch (store.status) {
-    case 'UNDERSTANDING': return { text: 'Memahami tujuan', active: true, failed: false }
-    case 'PLANNING': return { text: 'Menyusun rencana', active: true, failed: false }
-    case 'DISCOVERING': return { text: 'Meninjau perusahaan', active: true, failed: false }
-    case 'SCREENING': return { text: 'Menyaring kandidat', active: true, failed: false }
-    case 'RANKING': return { text: 'Menghitung skor', active: true, failed: false }
-    case 'RESEARCHING': return { text: 'Menganalisis kandidat', active: true, failed: false }
-    case 'COMPARING': return { text: 'Membandingkan kandidat', active: true, failed: false }
-    case 'VALIDATING': return { text: 'Memeriksa temuan', active: true, failed: false }
-    case 'REPORTING': return { text: 'Menyusun laporan', active: true, failed: false }
-    case 'COMPLETED': return { text: 'Riset selesai', active: false, failed: false }
-    case 'FAILED': return { text: 'Gagal', active: false, failed: true }
-    default: return { text: 'Sesi disiapkan', active: false, failed: false }
-  }
-})
-const statusMeta = computed(() => sessionStatusMeta(store.status, store.isExecuting))
+const journeySteps = computed(() => [
+  { label: 'Ringkasan', name: 'research-session', to: `/research/${store.report.sessionId}` },
+  { label: 'Seleksi', name: 'research-screener', to: `/research/${store.report.sessionId}/screener` },
+  { label: 'Perbandingan', name: 'research-peers', to: `/research/${store.report.sessionId}/peers` },
+  { label: 'Laporan', name: 'research-report', to: `/research/${store.report.sessionId}/report` }
+])
 </script>
 
 <template>
-  <header class="min-h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3 sticky top-0 z-20 print:hidden">
-    <!-- Left: Context & Breadcrumb -->
-    <div class="flex min-w-0 items-center gap-3">
-      <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
-        <span v-if="route.name === 'research-session'" class="hidden max-w-52 truncate text-slate-500 lg:inline">{{ sessionTitle }}</span>
-        <router-link v-else-if="isSessionRoute" :to="`/research/${store.report.sessionId}`" class="hidden max-w-52 truncate text-slate-500 hover:text-slate-900 lg:inline">{{ sessionTitle }}</router-link>
-        <span v-else class="hidden lg:inline text-slate-400">Voyager One</span>
-        <ChevronRight class="hidden lg:block w-3.5 h-3.5 text-slate-300" />
-        <span class="truncate text-slate-900 font-bold text-sm">{{ pageTitle }}</span>
-      </div>
-    </div>
+  <header class="sticky top-2 z-20 pt-1 print:hidden">
+    <div class="mx-auto max-w-[84rem] px-2 sm:px-3 lg:px-4">
+      <div
+        class="flex min-h-14 items-center justify-between gap-3 rounded-xl border px-3.5 py-2 ring-1 transition-all duration-300 sm:min-h-16 sm:px-4"
+        :class="isScrolled
+          ? 'border-white/50 bg-white/75 ring-slate-900/5 shadow-[0_12px_36px_-12px_rgba(15,33,56,0.35)] backdrop-blur-xl backdrop-saturate-150'
+          : 'border-slate-200/80 bg-white/95 ring-slate-900/5 shadow-[0_8px_24px_-12px_rgba(15,33,56,0.25)] backdrop-blur-md'"
+      >
+        <!-- Left: Semantic Text-Only Horizontal Breadcrumbs with Page Title -->
+        <div class="min-w-0 flex-1 pr-2">
+          <!-- Breadcrumb Trail Navigation: Clean horizontal text-only trail -->
+          <nav aria-label="Navigasi rekam jejak" class="flex items-center text-xs overflow-x-auto no-scrollbar py-0.5">
+            <ol class="flex items-center whitespace-nowrap gap-1.5 text-[11px] font-medium leading-none text-slate-500">
+              <li
+                v-for="(crumb, idx) in breadcrumbs"
+                :key="`${crumb.label}-${idx}`"
+                class="inline-flex items-center gap-1.5 shrink-0"
+              >
+                <span v-if="idx > 0" class="text-slate-300 font-normal select-none" aria-hidden="true">/</span>
 
-    <nav v-if="isSessionRoute" class="hidden items-center gap-1 xl:flex" aria-label="Tahap riset">
-      <template v-for="(step, index) in journeySteps" :key="step.name">
-        <router-link
-          :to="step.to"
-          class="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
-          :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'bg-[#2F64A8] text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'"
-          :aria-current="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'step' : undefined"
+                <!-- Linked parent breadcrumb -->
+                <router-link
+                  v-if="crumb.to && idx < breadcrumbs.length - 1"
+                  :to="crumb.to"
+                  class="text-slate-500 transition-colors hover:text-[#244F87] hover:underline"
+                >
+                  <span>{{ crumb.label }}</span>
+                </router-link>
+
+                <!-- Current page leaf breadcrumb -->
+                <span
+                  v-else
+                  class="font-semibold text-slate-800"
+                  aria-current="page"
+                >
+                  {{ crumb.label }}
+                </span>
+              </li>
+            </ol>
+          </nav>
+
+          <!-- Main Page Title Header -->
+          <h1 class="mt-0.5 truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base lg:text-lg">
+            {{ pageTitle }}
+          </h1>
+        </div>
+
+        <!-- Center: Session journey stepper (only on session routes) -->
+        <nav
+          v-if="isSessionRoute"
+          class="hidden items-center gap-1 rounded-xl border border-slate-200/70 bg-slate-50/80 p-1 xl:flex shrink-0"
+          aria-label="Tahap riset"
         >
-          <span class="mr-1 font-mono text-[10px] opacity-70">0{{ index + 1 }}</span>{{ step.label }}
-        </router-link>
-        <ChevronRight v-if="index < journeySteps.length - 1" class="h-3 w-3 text-slate-300" />
-      </template>
-    </nav>
+          <router-link
+            v-for="(step, index) in journeySteps"
+            :key="step.name"
+            :to="step.to"
+            class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
+            :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'bg-white text-[#1E4270] shadow-2xs ring-1 ring-slate-900/5' : 'text-slate-500 hover:text-slate-900'"
+            :aria-current="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'step' : undefined"
+          >
+            <span class="font-mono text-[10px] tabular-nums opacity-60">0{{ index + 1 }}</span>{{ step.label }}
+          </router-link>
+        </nav>
 
-    <!-- Right: plain-language session status -->
-    <div class="flex shrink-0 items-center gap-2">
-      <div v-if="isSessionRoute" role="status" aria-live="polite" class="status-badge" :class="statusMeta.className">
-        <span 
-          class="h-2 w-2 rounded-full bg-current"
-          :class="statusBadge.active ? 'animate-pulse' : ''"
-        ></span>
-        <span class="font-bold"><span class="min-[390px]:hidden">{{ statusMeta.shortLabel }}</span><span class="hidden min-[390px]:inline">{{ statusBadge.text }}</span></span>
+        <!-- Right: utilities -->
+        <div class="flex shrink-0 items-center gap-2">
+          <router-link
+            to="/economic-calendar"
+            class="relative inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-[#2F64A8]/40 hover:text-[#2F64A8] active:scale-[0.97] sm:size-10"
+            :aria-label="economicCount > 0 ? `Kalender ekonomi, ${economicCount} agenda terdekat` : 'Kalender ekonomi'"
+          >
+            <CalendarDays class="size-4 sm:size-5 shrink-0" aria-hidden="true" />
+            <span
+              v-if="economicCount > 0"
+              class="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white"
+            >{{ economicCount > 9 ? '9+' : economicCount }}</span>
+          </router-link>
+        </div>
       </div>
     </div>
   </header>

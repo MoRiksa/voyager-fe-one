@@ -8,7 +8,7 @@ try {
   await r.text('Belum ada sesi yang sedang dibuka')
   assert.equal(await r.evaluate(`Boolean(document.querySelector('[data-testid="sidebar-no-active-session"]'))`), true)
   await r.navigate('/research/new')
-  await r.text('Pilih tujuan secara eksplisit')
+  await r.text('Tujuan yang diperiksa')
   assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-consumer-growth"]').disabled`), true)
   await r.text('Pricing power, margin kotor, dan filter consumer belum didukung.')
   assert.equal(await r.evaluate(`document.querySelector('[data-testid="preset-obj-three-factor-screening"]').disabled`), false)
@@ -29,7 +29,8 @@ try {
   assert.equal(await r.evaluate(`document.querySelector('button[type="submit"]').disabled`), true)
   await r.evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
   await waitFor(() => r.evaluate(`!document.querySelector('button[type="submit"]').disabled`), 'Bank template did not unlock submit')
-  assert.equal(await r.evaluate(`document.querySelector('[data-testid="research-objective"]').readOnly`), true)
+  // Objective is now a user-editable AI-fillable description; submit gating (not read-only) enforces supported objectives.
+  assert.equal(await r.evaluate(`document.querySelector('[data-testid="research-objective"]').readOnly`), false)
   const previewText = await r.evaluate(`document.querySelector('[data-testid="actual-universe"]').innerText`)
   assert.ok(previewText.includes('tidak mengenakan kredit'))
   assert.ok(previewText.includes('bergantung respons penyedia data'))
@@ -102,7 +103,7 @@ try {
   await r.send('Fetch.disable')
   // Bank preset renders all available top-eight evidence and never renders score or generic metrics.
   await r.navigate('/research/new')
-  await r.text('Pilih tujuan secara eksplisit')
+  await r.text('Tujuan yang diperiksa')
   await r.evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
   await waitFor(() => r.evaluate(`!document.querySelector('button[type="submit"]').disabled`), 'Bank preset did not unlock submit')
   await r.evaluate(`document.querySelector('button[type="submit"]').click()`)
@@ -168,7 +169,7 @@ try {
   // Start refusal retains the created session and releases busy; retry does not duplicate.
   const countBefore = (await r.request('/research-sessions')).data.sessions.length
   await r.navigate('/research/new')
-  await r.text('Pilih tujuan secara eksplisit')
+  await r.text('Tujuan yang diperiksa')
   await r.evaluate(`document.querySelector('[data-testid="preset-obj-banking-moat"]').click()`)
   await waitFor(() => r.evaluate(`!document.querySelector('button[type="submit"]').disabled`), 'Start-error form not ready')
   let startRequests = 0

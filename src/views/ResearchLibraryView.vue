@@ -67,7 +67,7 @@ const removeSession = async (id: string) => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-7 px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+  <div class="mx-auto max-w-[84rem] space-y-7 px-3 py-7 sm:px-4 sm:py-10 lg:px-4">
     <header class="grid gap-6 rounded-3xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
       <div class="max-w-3xl">
         <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Pustaka riset</p>

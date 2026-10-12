@@ -6,7 +6,7 @@ try {
   const checks = [
     ['/', 'Tinjau data bank berkapitalisasi pasar terbesar'],
     ['/research', 'Temukan dan lanjutkan riset Anda'],
-    ['/research/new', 'Pilih tujuan secara eksplisit'],
+    ['/research/new', 'Tujuan yang diperiksa'],
     [`/research/${created.id}`, 'Cakupan dan aturan yang diperiksa'],
     [`/research/${created.id}/screener`, 'Proses penyaringan'],
     [`/research/${created.id}/peers`, 'Benchmark peer sektor belum didukung'],

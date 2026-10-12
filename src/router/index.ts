@@ -131,6 +131,24 @@ const router = createRouter({
       meta: { title: 'Riset Terjadwal' }
     },
     {
+      path: '/economic-calendar',
+      name: 'economic-calendar',
+      component: () => import('../views/EconomicDateView.vue'),
+      meta: { title: 'Kalender Ekonomi' }
+    },
+    {
+      path: '/economic-calendar/detail',
+      name: 'economic-calendar-detail',
+      component: () => import('../views/EconomicDetailView.vue'),
+      meta: { title: 'Rincian Agenda Ekonomi' }
+    },
+    {
+      path: '/economic-date',
+      name: 'economic-date',
+      redirect: '/economic-calendar',
+      meta: { title: 'Kalender Ekonomi' }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),

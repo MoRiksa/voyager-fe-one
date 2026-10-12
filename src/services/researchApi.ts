@@ -463,3 +463,22 @@ export const runResearchScheduleNow = async (id: string): Promise<any> => {
   if (!response.ok) throw new Error('Gagal memicu eksekusi jadwal riset.')
   return response.json()
 }
+
+export interface EconomicEvent {
+  id: string
+  title: string
+  category?: string
+  importance?: 'low' | 'medium' | 'high'
+  startsAt: string
+  source?: string
+  sourceRef?: string
+}
+
+// Assumed backend contract: GET /api/v1/economic-calendar -> { events: EconomicEvent[] }.
+// Endpoint is not yet confirmed; callers must degrade gracefully (empty list, no dot) on failure.
+export const getEconomicEvents = async (): Promise<EconomicEvent[]> => {
+  const response = await fetch(`${backendUrl}/api/v1/economic-calendar`, { headers: getHeaders() })
+  if (!response.ok) throw await responseError(response, 'Gagal memuat kalender ekonomi')
+  const payload: any = await response.json()
+  return Array.isArray(payload?.events) ? payload.events : []
+}
