@@ -19,7 +19,6 @@ import {
 import {
   getCompanyCandles,
   INTERVALS,
-  RANGES,
   type OhlcvBar,
   type ChartInterval,
   type RangeKey
@@ -50,7 +49,10 @@ import {
   X,
   Check,
   TrendingUp,
-  Sliders
+  Sliders,
+  Type,
+  ArrowDownToLine,
+  Layers
 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -81,7 +83,9 @@ const isIndicatorModalOpen = ref(false)
 const isLoading = ref(false)
 
 // Indicators visibility & parameters
-const showOrderBlocks = ref(true)
+const showOrderBlocks = ref(false)
+const showCandleObText = ref(false)
+const showBearishTopGuide = ref(false)
 const showMovingAverages = ref(true)
 const showVolume = ref(true)
 const obLength = ref(5)
@@ -125,12 +129,89 @@ const formatVolume = (val: number) => {
   return `${val}`
 }
 
-const formatBarTime = (time: string | number) => {
+const MONTH_NAMES_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+const parseChartTimeToDate = (time: any): Date => {
   if (typeof time === 'number') {
-    const d = new Date(time * 1000)
-    return `${d.toLocaleDateString('id-ID')} ${d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+    return new Date(time * 1000)
   }
-  return String(time)
+  if (typeof time === 'string') {
+    const parts = time.split('-')
+    if (parts.length === 3) {
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+    }
+    return new Date(time)
+  }
+  if (time && typeof time === 'object' && 'year' in time) {
+    return new Date(time.year, time.month - 1, time.day)
+  }
+  return new Date()
+}
+
+const isIntradayInterval = (interval: ChartInterval): boolean => {
+  return ['1m', '5m', '15m', '30m', '1h', '4h'].includes(interval)
+}
+
+const formatTimeScaleTick = (time: any, tickMarkType: number, interval: ChartInterval): string => {
+  const d = parseChartTimeToDate(time)
+  const monthName = MONTH_NAMES_ID[d.getMonth()]
+  const day = d.getDate()
+  const year = d.getFullYear()
+
+  // 1. Weekly interval: dynamically show week (W1, W2, etc.)
+  if (interval === '1W') {
+    const weekNum = Math.ceil(day / 7)
+    if (weekNum === 1 || tickMarkType === 0 || tickMarkType === 1) {
+      return `W1 ${monthName}`
+    }
+    return `W${weekNum} ${monthName}`
+  }
+
+  // 2. Daily interval: dynamically show day number and month (e.g. 10 Mar, 11 Mar)
+  if (interval === '1D') {
+    if (tickMarkType === 0) {
+      return `${monthName} '${String(year).slice(-2)}`
+    }
+    return `${day} ${monthName}`
+  }
+
+  // 3. Monthly interval: show Month and Year
+  if (interval === '1M') {
+    if (tickMarkType === 0) {
+      return `${year}`
+    }
+    return `${monthName} '${String(year).slice(-2)}`
+  }
+
+  // 4. Intraday intervals (1m, 5m, 15m, 30m, 1h, 4h):
+  if (tickMarkType === 0 || tickMarkType === 1 || tickMarkType === 2) {
+    return `${day} ${monthName}`
+  }
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
+}
+
+const formatActiveCandleDate = (time: any, interval: ChartInterval): string => {
+  if (!time) return ''
+  const d = parseChartTimeToDate(time)
+  const monthName = MONTH_NAMES_ID[d.getMonth()]
+  const day = d.getDate()
+  const year = d.getFullYear()
+
+  if (interval === '1W') {
+    const weekNum = Math.ceil(day / 7)
+    return `W${weekNum} ${monthName} ${year}`
+  }
+  if (interval === '1M') {
+    return `${monthName} ${year}`
+  }
+  if (isIntradayInterval(interval)) {
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${day} ${monthName} ${year} ${hh}:${mm}`
+  }
+  return `${day} ${monthName} ${year}`
 }
 
 const activeCandle = computed(() => {
@@ -179,80 +260,99 @@ const clearPriceLines = () => {
 // Render Order Block levels
 const renderOrderBlocks = () => {
   clearPriceLines()
-  if (!mainSeries || !showOrderBlocks.value || !obAnalysis.value) return
+  if (!mainSeries) return
+
+  // If none of the order block features are active, clear all markers and return immediately (clean chart)
+  if ((!showOrderBlocks.value && !showBearishTopGuide.value && !showCandleObText.value) || !obAnalysis.value) {
+    try { createSeriesMarkers(mainSeries, []) } catch {}
+    return
+  }
 
   const { activeBullish, activeBearish, pivotMarkers } = obAnalysis.value
 
-  // Bullish OBs (Demand Zones)
-  activeBullish.forEach(ob => {
-    if (!mainSeries) return
-    const topLine = mainSeries.createPriceLine({
-      price: ob.top,
-      color: '#10B981',
-      lineWidth: 1,
-      lineStyle: LineStyle.Dashed,
-      axisLabelVisible: true,
-      title: 'Bullish OB Top'
+  // Bullish OBs (Demand Zones) - only if showOrderBlocks is explicitly enabled
+  if (showOrderBlocks.value) {
+    activeBullish.forEach(ob => {
+      if (!mainSeries) return
+      const topLine = mainSeries.createPriceLine({
+        price: ob.top,
+        color: '#10B981',
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: 'Bullish OB Top'
+      })
+      const btmLine = mainSeries.createPriceLine({
+        price: ob.bottom,
+        color: '#10B981',
+        lineWidth: 1,
+        lineStyle: LineStyle.Solid,
+        axisLabelVisible: true,
+        title: 'Bullish OB Btm'
+      })
+      const midLine = mainSeries.createPriceLine({
+        price: ob.avg,
+        color: '#059669',
+        lineWidth: 1,
+        lineStyle: LineStyle.Dotted,
+        axisLabelVisible: false,
+        title: 'Mid'
+      })
+      priceLines.push(topLine, btmLine, midLine)
     })
-    const btmLine = mainSeries.createPriceLine({
-      price: ob.bottom,
-      color: '#10B981',
-      lineWidth: 1,
-      lineStyle: LineStyle.Solid,
-      axisLabelVisible: true,
-      title: 'Bullish OB Btm'
-    })
-    const midLine = mainSeries.createPriceLine({
-      price: ob.avg,
-      color: '#059669',
-      lineWidth: 1,
-      lineStyle: LineStyle.Dotted,
-      axisLabelVisible: false,
-      title: 'Mid'
-    })
-    priceLines.push(topLine, btmLine, midLine)
-  })
+  }
 
   // Bearish OBs (Supply Zones)
   activeBearish.forEach(ob => {
     if (!mainSeries) return
-    const topLine = mainSeries.createPriceLine({
-      price: ob.top,
-      color: '#F43F5E',
-      lineWidth: 1,
-      lineStyle: LineStyle.Solid,
-      axisLabelVisible: true,
-      title: 'Bearish OB Top'
-    })
-    const btmLine = mainSeries.createPriceLine({
-      price: ob.bottom,
-      color: '#F43F5E',
-      lineWidth: 1,
-      lineStyle: LineStyle.Dashed,
-      axisLabelVisible: true,
-      title: 'Bearish OB Btm'
-    })
-    const midLine = mainSeries.createPriceLine({
-      price: ob.avg,
-      color: '#E11D48',
-      lineWidth: 1,
-      lineStyle: LineStyle.Dotted,
-      axisLabelVisible: false,
-      title: 'Mid'
-    })
-    priceLines.push(topLine, btmLine, midLine)
+    // Bearish Top Guide: controlled by showBearishTopGuide toggle
+    if (showBearishTopGuide.value) {
+      const topLine = mainSeries.createPriceLine({
+        price: ob.top,
+        color: '#F43F5E',
+        lineWidth: 1,
+        lineStyle: LineStyle.Solid,
+        axisLabelVisible: true,
+        title: 'Bearish OB Top'
+      })
+      priceLines.push(topLine)
+    }
+    // Bearish Bottom and Mid: only if showOrderBlocks is explicitly enabled
+    if (showOrderBlocks.value) {
+      const btmLine = mainSeries.createPriceLine({
+        price: ob.bottom,
+        color: '#F43F5E',
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: 'Bearish OB Btm'
+      })
+      const midLine = mainSeries.createPriceLine({
+        price: ob.avg,
+        color: '#E11D48',
+        lineWidth: 1,
+        lineStyle: LineStyle.Dotted,
+        axisLabelVisible: false,
+        title: 'Mid'
+      })
+      priceLines.push(btmLine, midLine)
+    }
   })
 
-  // Pivot markers
+  // Pivot markers on candles (hidden by default to avoid visual clutter)
   try {
-    const markers = pivotMarkers.map(m => ({
-      time: m.time as any,
-      position: m.type === 'bullish_ob' ? ('belowBar' as const) : ('aboveBar' as const),
-      color: m.type === 'bullish_ob' ? '#10B981' : '#F43F5E',
-      shape: m.type === 'bullish_ob' ? ('arrowUp' as const) : ('arrowDown' as const),
-      text: m.type === 'bullish_ob' ? 'Bullish OB' : 'Bearish OB'
-    }))
-    createSeriesMarkers(mainSeries, markers)
+    if (showCandleObText.value) {
+      const markers = pivotMarkers.map(m => ({
+        time: m.time as any,
+        position: m.type === 'bullish_ob' ? ('belowBar' as const) : ('aboveBar' as const),
+        color: m.type === 'bullish_ob' ? '#10B981' : '#F43F5E',
+        shape: m.type === 'bullish_ob' ? ('arrowUp' as const) : ('arrowDown' as const),
+        text: m.type === 'bullish_ob' ? 'Bullish OB' : 'Bearish OB'
+      }))
+      createSeriesMarkers(mainSeries, markers)
+    } else {
+      createSeriesMarkers(mainSeries, [])
+    }
   } catch {
     // markers non-critical
   }
@@ -540,7 +640,7 @@ watch(chartType, () => {
   setupMainSeries()
 })
 
-watch(showOrderBlocks, () => {
+watch([showOrderBlocks, showCandleObText, showBearishTopGuide], () => {
   renderOrderBlocks()
 })
 
@@ -553,7 +653,16 @@ watch(showVolume, val => {
   volumeSeries?.applyOptions({ visible: val })
 })
 
-watch(selectedInterval, () => {
+watch(selectedInterval, newInterval => {
+  if (chart) {
+    ;(chart.timeScale() as any).applyOptions({
+      timeVisible: isIntradayInterval(newInterval),
+      secondsVisible: false,
+      tickMarkFormatter: (time: any, tickMarkType: any) => {
+        return formatTimeScaleTick(time, tickMarkType as number, newInterval)
+      }
+    })
+  }
   void loadData()
 })
 
@@ -601,12 +710,20 @@ onMounted(async () => {
     },
     timeScale: {
       borderColor: '#E2E8F0',
-      timeVisible: true,
+      timeVisible: isIntradayInterval(selectedInterval.value),
+      secondsVisible: false,
       fixLeftEdge: false,
       fixRightEdge: false,
       rightOffset: 10,
       barSpacing: 9,
-      minBarSpacing: 0.5
+      minBarSpacing: 0.5,
+      tickMarkFormatter: (time: any, tickMarkType: any) => {
+        return formatTimeScaleTick(time, tickMarkType as number, selectedInterval.value)
+      }
+    },
+    localization: {
+      locale: 'id-ID',
+      dateFormat: 'dd MMM yyyy'
     },
     handleScroll: {
       mouseWheel: true,
@@ -937,6 +1054,56 @@ onBeforeUnmount(() => {
 
         <div class="my-1 h-px w-5 bg-slate-200"></div>
 
+        <!-- Saklar On/Off Garis Panduan OB (Guide Line) -->
+        <button
+          type="button"
+          class="relative flex size-8 items-center justify-center rounded-lg transition-colors"
+          :class="showOrderBlocks ? 'bg-[#244F87] text-white shadow-2xs' : 'hover:bg-slate-100 text-slate-400 hover:text-slate-700'"
+          :title="showOrderBlocks ? 'Garis Panduan OB (Guide Line): Aktif (Klik untuk sembunyikan garis panduan)' : 'Garis Panduan OB (Guide Line): Nonaktif (Klik untuk tampilkan garis panduan OB)'"
+          aria-label="Saklar Garis Panduan OB"
+          @click="showOrderBlocks = !showOrderBlocks"
+        >
+          <Layers class="size-4" />
+          <span
+            v-if="showOrderBlocks"
+            class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-emerald-400 ring-1 ring-white"
+          ></span>
+        </button>
+
+        <!-- Opsi Tampilan Teks Label Order Block di Candle (Text Guide) -->
+        <button
+          type="button"
+          class="relative flex size-8 items-center justify-center rounded-lg transition-colors"
+          :class="showCandleObText ? 'bg-[#244F87] text-white shadow-2xs' : 'hover:bg-slate-100 text-slate-400 hover:text-slate-700'"
+          :title="showCandleObText ? 'Teks OB di Candle: Aktif (Klik untuk sembunyikan label teks OB)' : 'Teks OB di Candle: Nonaktif (Klik untuk tampilkan label teks OB)'"
+          aria-label="Pilihan tampilan teks Order Block di candle"
+          @click="showCandleObText = !showCandleObText"
+        >
+          <Type class="size-4" />
+          <span
+            v-if="showCandleObText"
+            class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-emerald-400 ring-1 ring-white"
+          ></span>
+        </button>
+
+        <!-- Saklar On/Off Panduan Bearish Top di Sisi Kanan -->
+        <button
+          type="button"
+          class="relative flex size-8 items-center justify-center rounded-lg transition-colors"
+          :class="showBearishTopGuide ? 'bg-rose-50 text-rose-600 border border-rose-200/90 shadow-2xs' : 'hover:bg-slate-100 text-slate-400 hover:text-slate-700'"
+          :title="showBearishTopGuide ? 'Panduan Bearish Top Kanan: Aktif (Klik untuk matikan panduan kanan)' : 'Panduan Bearish Top Kanan: Nonaktif (Klik untuk nyalakan panduan kanan)'"
+          aria-label="Saklar panduan Bearish Top di sisi kanan"
+          @click="showBearishTopGuide = !showBearishTopGuide"
+        >
+          <ArrowDownToLine class="size-4" />
+          <span
+            v-if="showBearishTopGuide"
+            class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-rose-500 ring-1 ring-white"
+          ></span>
+        </button>
+
+        <div class="my-1 h-px w-5 bg-slate-200"></div>
+
         <button
           type="button"
           class="flex size-8 items-center justify-center rounded-lg transition-colors"
@@ -969,6 +1136,9 @@ onBeforeUnmount(() => {
           <!-- Main Candle OHLCV row -->
           <div class="flex flex-wrap items-center gap-x-2 font-mono text-[11px] bg-white/85 px-2 py-1 rounded-lg backdrop-blur-xs border border-slate-100 shadow-2xs">
             <strong class="font-sans font-bold text-slate-900">{{ symbol }} · {{ selectedInterval }} · IDX</strong>
+            <span v-if="activeCandle?.time" class="text-slate-600 font-semibold border-r border-slate-200 pr-1.5">
+              {{ formatActiveCandleDate(activeCandle.time, selectedInterval) }}
+            </span>
             <span class="text-slate-400">O: <strong class="text-slate-800">{{ formatPrice(activeCandle?.open || 0) }}</strong></span>
             <span class="text-slate-400">H: <strong class="text-emerald-600">{{ formatPrice(activeCandle?.high || 0) }}</strong></span>
             <span class="text-slate-400">L: <strong class="text-rose-600">{{ formatPrice(activeCandle?.low || 0) }}</strong></span>
@@ -1171,23 +1341,8 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- 3. TRADINGVIEW BOTTOM RANGE BAR & SCALE MODES -->
-    <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/90 pt-3 text-xs select-none">
-      <!-- Left: Quick Date Ranges -->
-      <div class="flex items-center gap-1">
-        <button
-          v-for="rng in RANGES"
-          :key="rng.key"
-          type="button"
-          class="rounded px-2 py-1 font-mono text-[11px] font-bold transition-colors"
-          :class="selectedRange === rng.key ? 'bg-[#244F87] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
-          @click="selectedRange = rng.key"
-        >
-          {{ rng.label }}
-        </button>
-      </div>
-
-      <!-- Right: Timezone & Scale Modes -->
+    <!-- 3. TRADINGVIEW BOTTOM SCALE MODES & TIMEZONE -->
+    <footer class="flex items-center justify-end gap-2 border-t border-slate-200/90 pt-3 text-xs select-none">
       <div class="flex items-center gap-2">
         <span class="font-mono text-[11px] text-slate-500">WIB (UTC+7)</span>
 
@@ -1291,6 +1446,18 @@ onBeforeUnmount(() => {
                   class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 font-mono text-xs"
                 />
               </div>
+            </div>
+
+            <!-- Toggles for Candle text and Bearish Top Guide -->
+            <div v-if="showOrderBlocks" class="space-y-2 pt-2 border-t border-slate-100">
+              <label class="flex items-center gap-2 cursor-pointer text-slate-700 font-medium">
+                <input type="checkbox" v-model="showCandleObText" class="size-4 text-[#244F87] rounded" />
+                <span>Tampilkan teks label OB di candle (Bullish / Bearish OB)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-slate-700 font-medium">
+                <input type="checkbox" v-model="showBearishTopGuide" class="size-4 text-[#244F87] rounded" />
+                <span>Tampilkan garis panduan Bearish Top di sisi kanan</span>
+              </label>
             </div>
           </div>
 

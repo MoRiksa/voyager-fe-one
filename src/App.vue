@@ -16,7 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useResearchStore()
 
-const isLandingPage = computed(() => route.name === 'landing-page')
+const isLandingPage = computed(() => route.path === '/landing-page' || route.name === 'landing-page')
 
 const isSidebarCollapsed = ref(false)
 const toggleSidebar = () => {
@@ -51,39 +51,59 @@ watch(() => route.fullPath, async () => {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-[#F8FAFC] flex text-slate-900 selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
+  <div class="min-h-dvh bg-[#F8FAFC] text-slate-900 selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
-    <!-- Persistent Left Sidebar Navigation with Collapsible State (Hidden on landing page) -->
-    <AppSidebar
-      v-if="!isLandingPage"
-      class="hidden md:flex"
-      :collapsed="isSidebarCollapsed"
-      @toggle="toggleSidebar"
-    />
 
-    <!-- Main Content Area: reduced spacing to sit snugly next to sidebar, animates smoothly on collapse -->
-    <div
-      class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out"
-      :class="isLandingPage ? 'p-0' : (isSidebarCollapsed ? 'md:pl-[5.25rem]' : 'md:pl-[19.25rem]')"
-    >
-      <AppNavbar v-if="!isLandingPage" />
-
-      <main
-        id="main-content"
-        tabindex="-1"
-        class="flex-1"
-        :class="isLandingPage ? 'pb-0' : 'pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12'"
-      >
-        <p v-if="loadingSession" role="status" class="page-shell">Memuat sesi dari layanan riset…</p>
-        <section v-else-if="sessionError" class="page-shell"><h1 class="text-2xl font-bold">Sesi belum dapat dimuat</h1><p role="alert" class="mt-3 text-rose-700">{{ sessionError }}</p><button type="button" class="button-primary mt-4" @click="loadRouteSession">Coba lagi</button></section>
-        <router-view v-else />
+    <!-- ===================================================================
+         1. DEDICATED LANDING PAGE LAYOUT (Completely isolated, middle-aligned)
+         =================================================================== -->
+    <div v-if="isLandingPage" class="w-full min-h-dvh flex flex-col items-stretch overflow-x-hidden">
+      <main id="main-content" tabindex="-1" class="flex-1 w-full">
+        <router-view />
       </main>
-
-      <!-- Institutional Reusable Footer (Always shown, including on landing page) -->
       <AppFooter />
     </div>
 
-    <MobileNav v-if="!isLandingPage" />
+    <!-- ===================================================================
+         2. WORKSPACE / INTERNAL APP LAYOUT (With sidebar, floating topbar & 1-bar footer)
+         =================================================================== -->
+    <div v-else class="min-h-dvh w-full flex flex-col relative">
+      <!-- Persistent Floating Left Sidebar Navigation -->
+      <AppSidebar
+        class="hidden md:flex"
+        :collapsed="isSidebarCollapsed"
+        @toggle="toggleSidebar"
+      />
+
+      <!-- Main Content Area: padded for sidebar, animates smoothly on collapse -->
+      <div
+        class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out"
+        :class="isSidebarCollapsed ? 'md:pl-[5.25rem]' : 'md:pl-[19.25rem]'"
+      >
+        <AppNavbar />
+
+        <main
+          id="main-content"
+          tabindex="-1"
+          class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12"
+        >
+          <p v-if="loadingSession" role="status" class="page-shell">Memuat sesi dari layanan riset…</p>
+          <section v-else-if="sessionError" class="page-shell">
+            <h1 class="text-2xl font-bold">Sesi belum dapat dimuat</h1>
+            <p role="alert" class="mt-3 text-rose-700">{{ sessionError }}</p>
+            <button type="button" class="button-primary mt-4" @click="loadRouteSession">Coba lagi</button>
+          </section>
+          <router-view v-else />
+        </main>
+      </div>
+
+      <!-- Institutional Compact 1-Bar Footer: Extends full width across the bottom, passing under sidebar -->
+      <div class="w-full z-20">
+        <AppFooter />
+      </div>
+
+      <MobileNav />
+    </div>
     <CandidateDetailModal />
     <MethodologyModal />
     <div v-if="store.toast" class="fixed inset-x-4 z-[60] flex justify-center bottom-[calc(var(--mobile-nav-height)+1rem)] md:bottom-6" :role="store.toast.tone === 'error' ? 'alert' : 'status'" :aria-live="store.toast.tone === 'error' ? 'assertive' : 'polite'">

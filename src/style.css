@@ -197,6 +197,7 @@
   .button-compact:active { transform: scale(0.97); }
 
   .page-shell {
+    margin-inline: auto;
     width: 100%;
     max-width: 96rem;
     padding: 1.5rem 1rem 2.5rem;

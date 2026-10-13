@@ -155,7 +155,7 @@ const journeySteps = computed(() => [
 <template>
   <header class="w-full pt-3 px-4 sm:px-6 lg:px-8 print:hidden">
     <div
-      class="w-full max-w-[96rem] flex h-16 items-center justify-between gap-4 px-4 sm:px-6 rounded-2xl border transition-all duration-200"
+      class="w-full max-w-[96rem] mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6 rounded-2xl border transition-all duration-200"
       :class="isScrolled
         ? 'border-slate-200/90 bg-white/95 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.12)] backdrop-blur-md backdrop-saturate-150 ring-1 ring-slate-900/5'
         : 'border-slate-200/80 bg-white shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/5'"

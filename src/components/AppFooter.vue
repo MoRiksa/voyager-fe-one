@@ -26,7 +26,7 @@ const docLinks = [
     <!-- =======================================================================
          LANDING PAGE FOOTER: Full-depth architectural layout with brand bento & columns
          ======================================================================= -->
-    <div v-if="isLandingPage" class="w-full max-w-[96rem] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+    <div v-if="isLandingPage" class="mx-auto w-full max-w-[84rem] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       
       <!-- Upper Section: Bento Grid Brand Info + Nav Columns -->
       <div class="grid grid-cols-1 gap-10 md:grid-cols-12 lg:gap-12">
@@ -112,7 +112,7 @@ const docLinks = [
     <!-- =======================================================================
          APP WORKSPACE COMPACT 1-BAR FOOTER: Single-line utility bar flush-aligned
          ======================================================================= -->
-    <div v-else class="w-full max-w-[96rem] px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8">
+    <div v-else class="w-full max-w-[96rem] mx-auto px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-slate-500">
         <!-- Left: Brand mark + Copyright & Disclaimer in 1 line -->
         <div class="flex flex-wrap items-center gap-2 text-center sm:text-left">

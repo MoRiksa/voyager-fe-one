@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ArrowUpRight
 } from '@lucide/vue'
+import LandingNavbar from '../../components/LandingNavbar.vue'
 
 // FAQ accordion state
 const openFaqIndex = ref<number | null>(0)
@@ -154,107 +155,21 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="landing-page-root relative min-h-[100dvh] text-[#102138] selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
+  <div class="landing-page-root relative w-full min-h-[100dvh] overflow-x-hidden text-[#102138] selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
     
-    <!-- Ambient Background Texture: Light blue to white gradient + subtle ambient blurred light glows -->
-    <div
-      class="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-[#EBF3FC] via-[#F5F9FD] to-[#FFFFFF] print:hidden"
-      aria-hidden="true"
-    ></div>
+    <!-- Ambient Background Texture: Contained to prevent horizontal scrolling or shift -->
+    <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden print:hidden" aria-hidden="true">
+      <div class="absolute inset-0 bg-gradient-to-b from-[#EBF3FC] via-[#F5F9FD] to-[#FFFFFF]"></div>
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(36,79,135,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(36,79,135,0.04)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_35%,#000_30%,transparent_85%)]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(rgba(36,79,135,0.08)_1px,transparent_1px)] bg-[size:40px_40px] bg-[position:20px_20px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,#000_20%,transparent_80%)]"></div>
+      <div class="absolute -top-40 -left-20 size-[36rem] rounded-full bg-[#C9E0F6]/45 blur-3xl"></div>
+      <div class="absolute top-1/3 -right-20 size-[32rem] rounded-full bg-[#E0EEFA]/55 blur-3xl"></div>
+    </div>
 
-    <!-- Architectural Financial Grid & Coordinate Matrix Pattern with Radial Mask -->
-    <div
-      class="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(to_right,rgba(36,79,135,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(36,79,135,0.04)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_35%,#000_30%,transparent_85%)] print:hidden"
-      aria-hidden="true"
-    ></div>
+    <!-- Dedicated Separate Landing Topbar Component -->
+    <LandingNavbar :active-section="activeSection" />
 
-    <!-- Secondary Micro-Point Dot Matrix for tactile precision -->
-    <div
-      class="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(rgba(36,79,135,0.08)_1px,transparent_1px)] bg-[size:40px_40px] bg-[position:20px_20px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,#000_20%,transparent_80%)] print:hidden"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class="pointer-events-none fixed -top-40 -left-20 z-0 size-[36rem] rounded-full bg-[#C9E0F6]/45 blur-3xl print:hidden"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class="pointer-events-none fixed top-1/3 -right-20 z-0 size-[32rem] rounded-full bg-[#E0EEFA]/55 blur-3xl print:hidden"
-      aria-hidden="true"
-    ></div>
-
-    <!-- =========================================================================
-         LANDING PAGE FLOATING TOP BAR (Fixed Glass Island that always follows screen)
-         ========================================================================= -->
-    <header class="fixed top-3 inset-x-0 z-50 px-4 transition-all duration-300 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-[84rem]">
-        <div
-          class="flex h-16 items-center justify-between rounded-2xl border px-4 transition-all duration-300 sm:px-6"
-          :class="isScrolled
-            ? 'border-white/50 bg-white/60 shadow-[0_16px_40px_-12px_rgba(36,79,135,0.22)] backdrop-blur-2xl backdrop-saturate-200 ring-1 ring-[#244F87]/15'
-            : 'border-white/80 bg-white/85 shadow-[0_8px_24px_-8px_rgba(36,79,135,0.06)] backdrop-blur-md ring-1 ring-slate-900/5'"
-        >
-          
-          <!-- Left: Brand Mark -->
-          <router-link to="/landing-page" class="group flex items-center gap-3 text-[#102138] transition-transform hover:scale-[1.01]">
-            <div class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1E4270] to-[#244F87] text-white shadow-sm ring-1 ring-slate-900/10">
-              <Compass class="size-5 stroke-[2.2]" />
-            </div>
-            <div class="leading-tight">
-              <span class="block font-mono text-sm font-extrabold tracking-tight">VOYAGER<span class="text-[#407EC9]">.ONE</span></span>
-              <span class="block text-[10px] font-semibold text-slate-500">Riset Finansial Terbuka</span>
-            </div>
-          </router-link>
-
-          <!-- Center: Editorial Section Anchors -->
-          <nav class="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-600" aria-label="Navigasi halaman pengenalan">
-            <a
-              href="#hero"
-              class="transition-colors hover:text-[#1E4270]"
-              :class="activeSection === 'hero' ? 'text-[#1E4270] font-bold underline underline-offset-4 decoration-2 decoration-[#407EC9]' : ''"
-            >
-              Ringkasan
-            </a>
-            <a
-              href="#features"
-              class="transition-colors hover:text-[#1E4270]"
-              :class="activeSection === 'features' ? 'text-[#1E4270] font-bold underline underline-offset-4 decoration-2 decoration-[#407EC9]' : ''"
-            >
-              Kapabilitas
-            </a>
-            <a
-              href="#faq"
-              class="transition-colors hover:text-[#1E4270]"
-              :class="activeSection === 'faq' ? 'text-[#1E4270] font-bold underline underline-offset-4 decoration-2 decoration-[#407EC9]' : ''"
-            >
-              Tanya Jawab
-            </a>
-            <router-link to="/economic-calendar" class="transition-colors hover:text-[#1E4270]">
-              Kalender Ekonomi
-            </router-link>
-            <router-link to="/methodology" class="transition-colors hover:text-[#1E4270]">
-              Metodologi
-            </router-link>
-          </nav>
-
-          <!-- Right: Minimalized Action Button -->
-          <div class="flex items-center gap-3">
-            <router-link
-              to="/workspace"
-              class="group inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-[#1E4270] shadow-2xs backdrop-blur-xs transition-all duration-200 hover:border-[#244F87]/30 hover:bg-[#1E4270] hover:text-white hover:shadow-xs active:scale-[0.97]"
-              title="Masuk ke Workspace Riset"
-            >
-              <span>Workspace</span>
-              <ArrowUpRight class="size-3.5 stroke-[2] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </router-link>
-          </div>
-
-        </div>
-      </div>
-    </header>
-
-    <div class="relative z-10 mx-auto max-w-[84rem] px-4 pt-20 sm:px-6 sm:pt-24 lg:px-8">
+    <div class="relative z-10 mx-auto w-full max-w-[84rem] px-4 pt-20 sm:px-6 sm:pt-24 lg:px-8">
       
       <!-- =========================================================================
            SECTION 1: HERO (LEFT LABEL/CONTENT + RIGHT CANDLESTICK ILLUSTRATION)

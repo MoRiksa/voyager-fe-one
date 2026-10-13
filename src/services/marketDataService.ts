@@ -164,8 +164,106 @@ export const generateDeterministicCandles = (
     return bars
   }
 
-  // Daily / Weekly / Monthly generation
-  // Pre-generate raw price walk in reverse
+  // Weekly candles generation (1 candle = 1 week starting on Monday)
+  if (interval === '1W') {
+    const totalWeeks = Math.max(30, Math.ceil(daysBack / 7))
+    const weeklyVolatility = dailyVolatility * 2.2
+
+    const prices: number[] = [basePrice]
+    for (let i = 1; i < totalWeeks; i++) {
+      const prev = prices[i - 1]
+      const shock = (prng() - 0.49) * 2
+      const change = prev * weeklyVolatility * shock
+      const next = Math.max(basePrice * 0.45, Math.min(basePrice * 1.8, prev - change))
+      prices.push(Math.round(next / 25) * 25)
+    }
+    prices.reverse()
+
+    const startDate = new Date(asOfDate)
+    const currentDay = startDate.getDay()
+    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay
+    startDate.setDate(startDate.getDate() + diffToMonday)
+    startDate.setDate(startDate.getDate() - (totalWeeks - 1) * 7)
+
+    const weekDate = new Date(startDate)
+    for (let i = 0; i < totalWeeks; i++) {
+      const close = prices[i]
+      const prevClose = i > 0 ? prices[i - 1] : close
+      const open = prevClose
+      const spread = Math.abs(close - open) + (close * 0.015 * prng())
+      const high = Math.round(Math.max(open, close) + spread * prng())
+      const low = Math.round(Math.max(25, Math.min(open, close) - spread * prng()))
+
+      const baseVol = 80_000_000 + Math.floor(prng() * 120_000_000)
+      const volume = baseVol
+
+      const yyyy = weekDate.getFullYear()
+      const mm = String(weekDate.getMonth() + 1).padStart(2, '0')
+      const dd = String(weekDate.getDate()).padStart(2, '0')
+      const dateStr = `${yyyy}-${mm}-${dd}`
+
+      bars.push({
+        time: dateStr,
+        open,
+        high,
+        low,
+        close,
+        volume
+      })
+      weekDate.setDate(weekDate.getDate() + 7)
+    }
+    return bars
+  }
+
+  // Monthly candles generation (1 candle = 1 month)
+  if (interval === '1M') {
+    const totalMonths = Math.max(18, Math.ceil(daysBack / 30))
+    const monthlyVolatility = dailyVolatility * 3.8
+
+    const prices: number[] = [basePrice]
+    for (let i = 1; i < totalMonths; i++) {
+      const prev = prices[i - 1]
+      const shock = (prng() - 0.49) * 2
+      const change = prev * monthlyVolatility * shock
+      const next = Math.max(basePrice * 0.4, Math.min(basePrice * 2.0, prev - change))
+      prices.push(Math.round(next / 25) * 25)
+    }
+    prices.reverse()
+
+    const startDate = new Date(asOfDate)
+    startDate.setDate(1)
+    startDate.setMonth(startDate.getMonth() - (totalMonths - 1))
+
+    const monthDate = new Date(startDate)
+    for (let i = 0; i < totalMonths; i++) {
+      const close = prices[i]
+      const prevClose = i > 0 ? prices[i - 1] : close
+      const open = prevClose
+      const spread = Math.abs(close - open) + (close * 0.025 * prng())
+      const high = Math.round(Math.max(open, close) + spread * prng())
+      const low = Math.round(Math.max(25, Math.min(open, close) - spread * prng()))
+
+      const baseVol = 350_000_000 + Math.floor(prng() * 400_000_000)
+      const volume = baseVol
+
+      const yyyy = monthDate.getFullYear()
+      const mm = String(monthDate.getMonth() + 1).padStart(2, '0')
+      const dateStr = `${yyyy}-${mm}-01`
+
+      bars.push({
+        time: dateStr,
+        open,
+        high,
+        low,
+        close,
+        volume
+      })
+      monthDate.setMonth(monthDate.getMonth() + 1)
+    }
+    return bars
+  }
+
+  // Daily generation (trading days: Mon - Fri)
   const prices: number[] = [basePrice]
   for (let i = 1; i < daysBack; i++) {
     const prev = prices[i - 1]
