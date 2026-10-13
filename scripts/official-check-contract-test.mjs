@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const api = readFileSync(`${root}/src/services/researchApi.ts`, 'utf8')
-const view = readFileSync(`${root}/src/views/CompanyView.vue`, 'utf8')
+const view = readFileSync(`${root}/src/views/PGS_Company/CompanyView.vue`, 'utf8')
 
 assert.match(api, /export const requestOfficialCheck/)
 assert.match(api, /official-check`[\s\S]*method: 'POST', headers: getHeaders\(\)/)

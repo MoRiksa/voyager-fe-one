@@ -197,9 +197,9 @@
   .button-compact:active { transform: scale(0.97); }
 
   .page-shell {
-    margin-inline: auto;
-    max-width: 84rem;
-    padding: 1.75rem 0.75rem;
+    width: 100%;
+    max-width: 96rem;
+    padding: 1.5rem 1rem 2.5rem;
   }
 
   .page-header {
@@ -325,10 +325,10 @@ dialog[open] {
 }
 
 @media (min-width: 640px) {
-  .page-shell { padding: 2.5rem 1rem; }
+  .page-shell { padding: 1.75rem 1.5rem 3rem; }
   .page-header { padding: 2rem; }
 }
 
 @media (min-width: 1024px) {
-  .page-shell { padding-inline: 1rem; }
+  .page-shell { padding: 2rem 2rem 3.5rem; }
 }

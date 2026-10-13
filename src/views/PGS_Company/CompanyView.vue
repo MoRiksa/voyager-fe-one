@@ -2,14 +2,14 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Database, FileText, Plus, X, CheckCircle2, Gauge, TrendingUp, BarChart3 } from '@lucide/vue'
-import { useResearchStore } from '../stores/researchStore'
-import { getCompany, requestOfficialCheck } from '../services/researchApi'
-import type { OfficialCheck, OfficialCheckMetric } from '../types'
-import { evidenceStatusLabel, formatDateTime, sourceHref, sourceOriginLabel } from '../utils/presentation'
-import { handleDialogBackdropClick } from '../utils/dialog'
-import ReportCandidateAnalysis from '../components/ReportCandidateAnalysis.vue'
-import CompanySupplementalAnalysis from '../components/CompanySupplementalAnalysis.vue'
-import TechnicalAnalysisChart from '../components/TechnicalAnalysisChart.vue'
+import { useResearchStore } from '../../stores/researchStore'
+import { getCompany, requestOfficialCheck } from '../../services/researchApi'
+import type { OfficialCheck, OfficialCheckMetric } from '../../types'
+import { evidenceStatusLabel, formatDateTime, sourceHref, sourceOriginLabel } from '../../utils/presentation'
+import { handleDialogBackdropClick } from '../../utils/dialog'
+import ReportCandidateAnalysis from '../../components/ReportCandidateAnalysis.vue'
+import CompanySupplementalAnalysis from '../../components/CompanySupplementalAnalysis.vue'
+import TechnicalAnalysisChart from '../../components/TechnicalAnalysisChart.vue'
 
 const route = useRoute()
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { isRestrictedSession, useResearchStore } from '../stores/researchStore'
-import { sessionStatusMeta } from '../utils/status'
-import { formatDateTime } from '../utils/presentation'
+import { isRestrictedSession, useResearchStore } from '../../stores/researchStore'
+import { sessionStatusMeta } from '../../utils/status'
+import { formatDateTime } from '../../utils/presentation'
 const store = useResearchStore()
 const loading = ref(true)
 const error = ref(false)

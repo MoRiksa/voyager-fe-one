@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
-import { exportReportFile } from '../services/researchApi'
-import ReportCandidateAnalysis from '../components/ReportCandidateAnalysis.vue'
-import CandidateCard from '../components/CandidateCard.vue'
-import { formatDateTime, objectiveStatusLabel, sourceOriginLabel } from '../utils/presentation'
-import { sessionStatusMeta } from '../utils/status'
+import { useResearchStore } from '../../stores/researchStore'
+import { exportReportFile } from '../../services/researchApi'
+import ReportCandidateAnalysis from '../../components/ReportCandidateAnalysis.vue'
+import CandidateCard from '../../components/CandidateCard.vue'
+import { formatDateTime, objectiveStatusLabel, sourceOriginLabel } from '../../utils/presentation'
+import { sessionStatusMeta } from '../../utils/status'
 
 const store = useResearchStore()
 const activeSection = ref('summary')

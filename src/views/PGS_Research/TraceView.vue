@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
+import { useResearchStore } from '../../stores/researchStore'
 import { 
   ChevronDown,
   ChevronUp

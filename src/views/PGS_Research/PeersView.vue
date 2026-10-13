@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
-import PeerComparisonWorkbench from '../components/PeerComparisonWorkbench.vue'
+import { useResearchStore } from '../../stores/researchStore'
+import PeerComparisonWorkbench from '../../components/PeerComparisonWorkbench.vue'
 import { 
   ArrowRight
 } from '@lucide/vue'

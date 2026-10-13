@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomeView from '../views/PGS_Research/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/landing-page',
       name: 'landing-page',
-      component: () => import('../views/LandingPageView.vue'),
+      component: () => import('../views/PGS_Marketing/LandingPageView.vue'),
       meta: { title: 'Selamat Datang di Voyager One' }
     },
     {
@@ -23,31 +23,31 @@ const router = createRouter({
     {
       path: '/research',
       name: 'research-library',
-      component: () => import('../views/ResearchLibraryView.vue'),
+      component: () => import('../views/PGS_Research/ResearchLibraryView.vue'),
       meta: { title: 'Pustaka Riset' }
     },
     {
       path: '/research/new',
       name: 'research-new',
-      component: () => import('../views/NewResearchView.vue'),
+      component: () => import('../views/PGS_Research/NewResearchView.vue'),
       meta: { title: 'Riset Baru' }
     },
     {
       path: '/research/:id',
       name: 'research-session',
-      component: () => import('../views/ResearchSessionView.vue'),
+      component: () => import('../views/PGS_Research/ResearchSessionView.vue'),
       meta: { title: 'Sesi Riset' }
     },
     {
       path: '/research/:id/screener',
       name: 'research-screener',
-      component: () => import('../views/ScreenerView.vue'),
+      component: () => import('../views/PGS_Research/ScreenerView.vue'),
       meta: { title: 'Proses Penyaringan' }
     },
     {
       path: '/research/:id/peers',
       name: 'research-peers',
-      component: () => import('../views/PeersView.vue'),
+      component: () => import('../views/PGS_Research/PeersView.vue'),
       meta: { title: 'Perbandingan Kandidat' }
     },
     {
@@ -65,31 +65,31 @@ const router = createRouter({
     {
       path: '/research/:id/report',
       name: 'research-report',
-      component: () => import('../views/ReportView.vue'),
+      component: () => import('../views/PGS_Research/ReportView.vue'),
       meta: { title: 'Laporan Riset' }
     },
     {
       path: '/research/:id/company/:symbol',
       name: 'research-company',
-      component: () => import('../views/CompanyView.vue'),
+      component: () => import('../views/PGS_Company/CompanyView.vue'),
       meta: { title: 'Analisis Perusahaan' }
     },
     {
       path: '/company/:symbol',
       name: 'company-detail',
-      component: () => import('../views/CompanyView.vue'),
+      component: () => import('../views/PGS_Company/CompanyView.vue'),
       meta: { title: 'Analisis Perusahaan' }
     },
     {
       path: '/screener',
       name: 'screener',
-      component: () => import('../views/ScreenerView.vue'),
+      component: () => import('../views/PGS_Research/ScreenerView.vue'),
       meta: { title: 'Proses Penyaringan' }
     },
     {
       path: '/peers',
       name: 'peers',
-      component: () => import('../views/PeersView.vue'),
+      component: () => import('../views/PGS_Research/PeersView.vue'),
       meta: { title: 'Perbandingan Kandidat' }
     },
     {
@@ -107,31 +107,31 @@ const router = createRouter({
     {
       path: '/methodology',
       name: 'methodology',
-      component: () => import('../views/MethodologyView.vue'),
+      component: () => import('../views/PGS_Docs/MethodologyView.vue'),
       meta: { title: 'Metodologi Penilaian' }
     },
     {
       path: '/glossary',
       name: 'glossary',
-      component: () => import('../views/GlossaryView.vue'),
+      component: () => import('../views/PGS_Docs/GlossaryView.vue'),
       meta: { title: 'Kamus Istilah Finansial' }
     },
     {
       path: '/help',
       name: 'help',
-      component: () => import('../views/HelpView.vue'),
+      component: () => import('../views/PGS_Docs/HelpView.vue'),
       meta: { title: 'Bantuan' }
     },
     {
       path: '/accessibility',
       name: 'accessibility',
-      component: () => import('../views/AccessibilityView.vue'),
+      component: () => import('../views/PGS_Docs/AccessibilityView.vue'),
       meta: { title: 'Status Aksesibilitas' }
     },
     {
       path: '/report',
       name: 'report',
-      component: () => import('../views/ReportView.vue'),
+      component: () => import('../views/PGS_Research/ReportView.vue'),
       meta: { title: 'Laporan Riset' }
     },
     {
@@ -143,13 +143,13 @@ const router = createRouter({
     {
       path: '/economic-calendar',
       name: 'economic-calendar',
-      component: () => import('../views/EconomicDateView.vue'),
+      component: () => import('../views/PGS_Economic/EconomicDateView.vue'),
       meta: { title: 'Kalender Ekonomi' }
     },
     {
       path: '/economic-calendar/detail',
       name: 'economic-calendar-detail',
-      component: () => import('../views/EconomicDetailView.vue'),
+      component: () => import('../views/PGS_Economic/EconomicDetailView.vue'),
       meta: { title: 'Rincian Agenda Ekonomi' }
     },
     {
@@ -161,7 +161,7 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: () => import('../views/NotFoundView.vue'),
+      component: () => import('../views/common/NotFoundView.vue'),
       meta: { title: 'Halaman Tidak Ditemukan' }
     }
   ],

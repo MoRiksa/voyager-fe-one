@@ -18,10 +18,10 @@ const features = [
   {
     step: '01',
     category: 'Kriteria Penyaringan',
-    title: 'Saring Bank Berdasarkan Kinerja Nyata',
-    description: 'Pilih emiten perbankan berdasarkan ROE, rasio valuasi P/BV, kualitas aset, dan kecukupan modal dari laporan resmi.',
-    statLabel: 'Cakupan Awal',
-    statValue: '8 Bank Terbesar IDX'
+    title: 'Saring Saham Berdasarkan Kinerja Nyata',
+    description: 'Pilih emiten saham berdasarkan profitabilitas (ROE), rasio valuasi (P/E & P/BV), kesehatan neraca, dan pertumbuhan laba dari laporan resmi.',
+    statLabel: 'Cakupan Pasar',
+    statValue: 'Lintas Sektor'
   },
   {
     step: '02',
@@ -35,7 +35,7 @@ const features = [
     step: '03',
     category: 'Jadwal Rilis',
     title: 'Pantau Kalender Rilis Data Makro',
-    description: 'Cek jadwal keputusan BI-Rate, angka inflasi BPS, neraca dagang, dan rapat The Fed lengkap dengan angka konsensus serta riwayat sebelumnya.',
+    description: 'Cek jadwal keputusan suku bunga bank sentral, angka inflasi, neraca dagang, dan rapat The Fed lengkap dengan angka konsensus serta riwayat sebelumnya.',
     statLabel: 'Frekuensi Data',
     statValue: 'Pembaruan Harian'
   },
@@ -43,9 +43,9 @@ const features = [
     step: '04',
     category: 'Bandingkan Emiten',
     title: 'Bandingkan Saham Pilihan Berdampingan',
-    description: 'Sandingkan rasio profitabilitas, valuasi, imbal hasil dividen, dan margin perbankan dalam satu tampilan matriks yang ringkas.',
-    statLabel: 'Fokus Analisis',
-    statValue: 'Sektor Finansial'
+    description: 'Sandingkan rasio profitabilitas, valuasi pasar, imbal hasil dividen, dan margin arus kas antar-saham dalam satu tampilan matriks yang ringkas.',
+    statLabel: 'Model Komparasi',
+    statValue: 'Multi-Emiten'
   }
 ]
 
@@ -53,11 +53,11 @@ const features = [
 const faqs = [
   {
     question: 'Untuk apa Voyager.One digunakan?',
-    answer: 'Voyager.One membantu analis dan investor memeriksa data keuangan emiten bank berkapitalisasi terbesar di BEI (IDX). Anda bisa menyaring saham, menyandingkan rasio, dan menelusuri sumber angka resmi tanpa rekomendasi tersembunyi.'
+    answer: 'Voyager.One membantu analis dan investor memeriksa data keuangan emiten saham publik. Anda bisa menyaring saham, menyandingkan rasio valuasi, dan menelusuri sumber angka resmi tanpa rekomendasi tersembunyi.'
   },
   {
-    question: 'Bagaimana cara skor dan urutan bank ditentukan?',
-    answer: 'Urutan dihitung memakai rumus terbuka (seperti bank-evidence-v1). Parameter utamanya mencakup ROE trailing twelve months, P/BV, pertumbuhan laba, dan bantalan modal. Kami tidak memberi bobot spekulatif atau opini beli/jual.'
+    question: 'Bagaimana cara skor dan peringkat saham dihitung?',
+    answer: 'Peringkat dihitung memakai formula terbuka. Parameter utamanya mencakup ROE trailing twelve months, valuasi P/E & P/BV, pertumbuhan laba bersih, dan kesehatan neraca keuangan. Kami tidak memberi bobot spekulatif atau opini beli/jual.'
   },
   {
     question: 'Apakah platform ini memberikan rekomendasi investasi?',
@@ -65,11 +65,11 @@ const faqs = [
   },
   {
     question: 'Bagaimana cara melihat jadwal data di Kalender Ekonomi?',
-    answer: 'Klik menu Kalender Ekonomi di bilah samping atau navigasi atas. Anda dapat memilih tanggal untuk melihat jadwal rilis angka makro, angka perkiraan konsensus, dan hasil sebelumnya.'
+    answer: 'Klik menu Kalender Ekonomi di bilah navigasi. Anda dapat memilih tanggal untuk melihat jadwal rilis data makroekonomi, angka perkiraan konsensus, dan hasil sebelumnya.'
   },
   {
     question: 'Dari mana data keuangan dan makro diambil?',
-    answer: 'Data dihimpun dari laporan keuangan terbitan IDX, publikasi Bank Indonesia (BI), data BPS, dan penyedia data pasar berlisensi. Tanggal dan waktu snapshot tercantum di tiap sesi riset.'
+    answer: 'Data dihimpun dari laporan keuangan emiten resmi, bursa efek, bank sentral, badan statistik, dan penyedia data pasar modal berlisensi. Tanggal dan waktu snapshot tercantum di tiap sesi riset.'
   }
 ]
 
@@ -267,7 +267,7 @@ onBeforeUnmount(() => {
             <!-- Label with accent bar -->
             <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#244F87]">
               <span class="h-1.5 w-6 rounded-full bg-[#407EC9]" aria-hidden="true"></span>
-              <span>Workspace Riset Finansial</span>
+              <span>Workspace Riset Saham</span>
             </div>
 
             <!-- Display Headline -->
@@ -275,11 +275,11 @@ onBeforeUnmount(() => {
               id="hero-heading"
               class="mt-6 text-4xl font-extrabold tracking-tight text-[#102138] sm:text-5xl md:text-6xl lg:text-[3.75rem] leading-[1.08] text-balance"
             >
-              Riset saham bank besar dengan data sumber yang jelas.
+              Riset saham emiten publik dengan rujukan data yang jelas.
             </h1>
 
             <p class="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-              Periksa data keuangan delapan bank terbesar di Bursa Efek Indonesia. Lihat rumus penilaian, jadwal rilis data makroekonomi, dan dokumen rujukan resmi di satu tempat.
+              Periksa laporan keuangan, rasio valuasi, dan kinerja saham lintas sektor. Lihat rumus perhitungan, kalender data makro, dan dokumen rujukan resmi di satu tempat.
             </p>
 
             <!-- Nested Double-Bezel CTA & Secondary Explore Action -->
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
                 to="/methodology"
                 class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-700 shadow-2xs backdrop-blur-xs transition-colors hover:border-slate-400 hover:bg-white hover:text-slate-950"
               >
-                <span>Pelajari cara penilaian</span>
+                <span>Pelajari metodologi analisis</span>
               </router-link>
             </div>
           </div>

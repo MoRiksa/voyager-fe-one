@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { Compass, ShieldCheck, ArrowUpRight } from '@lucide/vue'
 
+const route = useRoute()
+const isLandingPage = computed(() => route.name === 'landing-page')
 const currentYear = new Date().getFullYear()
 
 const productLinks = [
@@ -19,7 +23,10 @@ const docLinks = [
 
 <template>
   <footer class="border-t border-slate-200/80 bg-white/95 text-slate-600 print:hidden backdrop-blur-md">
-    <div class="mx-auto max-w-[84rem] px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+    <!-- =======================================================================
+         LANDING PAGE FOOTER: Full-depth architectural layout with brand bento & columns
+         ======================================================================= -->
+    <div v-if="isLandingPage" class="w-full max-w-[96rem] px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       
       <!-- Upper Section: Bento Grid Brand Info + Nav Columns -->
       <div class="grid grid-cols-1 gap-10 md:grid-cols-12 lg:gap-12">
@@ -35,18 +42,18 @@ const docLinks = [
                 VOYAGER<span class="text-[#407EC9]">.ONE</span>
               </span>
               <span class="block text-[11px] font-medium text-slate-500">
-                Workspace Riset Perbankan IDX
+                Workspace Riset Saham & Pasar Modal
               </span>
             </div>
           </router-link>
 
           <p class="max-w-md text-xs leading-relaxed text-slate-500">
-            Bandingkan metrik fundamental dan laporan keuangan bank-bank terbesar di IDX. Dilengkapi sumber data resmi dan formula terbuka.
+            Bandingkan metrik fundamental dan laporan keuangan emiten saham lintas sektor. Dilengkapi sumber data resmi dan formula terbuka.
           </p>
 
           <div class="inline-flex items-center gap-2 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-1.5 text-[11px] font-medium text-slate-600">
             <ShieldCheck class="size-4 text-emerald-600 shrink-0" />
-            <span>Audit data publik IDX & Bank Indonesia</span>
+            <span>Audit data laporan keuangan resmi & rujukan terbuka</span>
           </div>
         </div>
 
@@ -100,6 +107,43 @@ const docLinks = [
         </div>
       </div>
 
+    </div>
+
+    <!-- =======================================================================
+         APP WORKSPACE COMPACT 1-BAR FOOTER: Single-line utility bar flush-aligned
+         ======================================================================= -->
+    <div v-else class="w-full max-w-[96rem] px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-slate-500">
+        <!-- Left: Brand mark + Copyright & Disclaimer in 1 line -->
+        <div class="flex flex-wrap items-center gap-2 text-center sm:text-left">
+          <span class="font-mono font-bold tracking-tight text-[#102138]">
+            VOYAGER<span class="text-[#407EC9]">.ONE</span>
+          </span>
+          <span class="text-slate-300" aria-hidden="true">•</span>
+          <span>&copy; {{ currentYear }}</span>
+          <span class="hidden md:inline text-slate-300" aria-hidden="true">•</span>
+          <span class="hidden md:inline text-slate-400">Data untuk riset, bukan rekomendasi jual-beli efek.</span>
+        </div>
+
+        <!-- Right: Essential inline links in 1 bar -->
+        <nav class="flex flex-wrap items-center gap-3.5 text-xs font-medium" aria-label="Tautan navigasi footer ringkas">
+          <router-link to="/methodology" class="transition-colors hover:text-[#1E4270] hover:underline underline-offset-2">
+            Metodologi
+          </router-link>
+          <span class="text-slate-300" aria-hidden="true">•</span>
+          <router-link to="/glossary" class="transition-colors hover:text-[#1E4270] hover:underline underline-offset-2">
+            Kamus
+          </router-link>
+          <span class="text-slate-300" aria-hidden="true">•</span>
+          <router-link to="/help" class="transition-colors hover:text-[#1E4270] hover:underline underline-offset-2">
+            Bantuan
+          </router-link>
+          <span class="text-slate-300" aria-hidden="true">•</span>
+          <router-link to="/accessibility" class="transition-colors hover:text-[#1E4270] hover:underline underline-offset-2">
+            Aksesibilitas
+          </router-link>
+        </nav>
+      </div>
     </div>
   </footer>
 </template>

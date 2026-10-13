@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
-import type { CandidateCompany } from '../types'
-import DataProvenance from '../components/DataProvenance.vue'
+import { useResearchStore } from '../../stores/researchStore'
+import type { CandidateCompany } from '../../types'
+import DataProvenance from '../../components/DataProvenance.vue'
 import { 
   ArrowRight,
   CheckCircle2,

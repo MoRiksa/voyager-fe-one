@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { isRestrictedSession, useResearchStore } from '../stores/researchStore'
-import type { ResearchSession } from '../types'
-import { sessionStatusMeta } from '../utils/status'
+import { isRestrictedSession, useResearchStore } from '../../stores/researchStore'
+import type { ResearchSession } from '../../types'
+import { sessionStatusMeta } from '../../utils/status'
 import { ArrowRight, Copy, FileText, Search, Trash2 } from '@lucide/vue'
-import { formatDateTime } from '../utils/presentation'
+import { formatDateTime } from '../../utils/presentation'
 
 const store = useResearchStore()
 const router = useRouter()
@@ -67,7 +67,7 @@ const removeSession = async (id: string) => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[84rem] space-y-7 px-3 py-7 sm:px-4 sm:py-10 lg:px-4">
+  <div class="w-full max-w-[96rem] space-y-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <header class="grid gap-6 rounded-3xl bg-[#102138] p-6 text-white shadow-xl sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
       <div class="max-w-3xl">
         <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Pustaka riset</p>

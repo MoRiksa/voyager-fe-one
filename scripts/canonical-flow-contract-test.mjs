@@ -146,10 +146,10 @@ try {
   }
   assert.doesNotMatch(api, /\/steps\/|\/execute\b|executeResearchSession|runResearchStep/)
   assert.doesNotMatch(store, /ALL_COMPANIES_DATABASE|deriveSessionResults|runAutonomousResearch|confidenceLevel:|localStorage/)
-  const sessionView = readFileSync(new URL('../src/views/ResearchSessionView.vue', import.meta.url), 'utf8')
+  const sessionView = readFileSync(new URL('../src/views/PGS_Research/ResearchSessionView.vue', import.meta.url), 'utf8')
   assert.match(sessionView, /Lima tahap screening/)
   assert.match(sessionView, /Data dummy, salinan kedaluwarsa, dan sumber pengganti tidak digunakan/)
-  const frontendSource = readFileSync(new URL('../src/views/ScreenerView.vue', import.meta.url), 'utf8') + readFileSync(new URL('../src/stores/researchStore.ts', import.meta.url), 'utf8')
+  const frontendSource = readFileSync(new URL('../src/views/PGS_Research/ScreenerView.vue', import.meta.url), 'utf8') + readFileSync(new URL('../src/stores/researchStore.ts', import.meta.url), 'utf8')
   assert.doesNotMatch(frontendSource, /\b(?:BBCA|BBRI|BBNI|BMRI)\b/, 'frontend must not hardcode bank membership')
   console.log('LOCAL contract: generic compatibility and bank-evidence-v1 exact contract, dynamic top-8 membership, low ROE/nonpositive P/BV retention, cannot_assess completeness, provider order, unsupported objectives, outage and export refusal passed.')
 } finally { await runtime.close() }

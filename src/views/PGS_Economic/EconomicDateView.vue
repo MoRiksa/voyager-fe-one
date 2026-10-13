@@ -15,8 +15,8 @@ import {
   X,
   ExternalLink
 } from '@lucide/vue'
-import SearchableSelect from '../components/SearchableSelect.vue'
-import { getEconomicEvents, type EconomicEvent } from '../services/researchApi'
+import SearchableSelect from '../../components/SearchableSelect.vue'
+import { getEconomicEvents, type EconomicEvent } from '../../services/researchApi'
 
 /**
  * =========================================================================================

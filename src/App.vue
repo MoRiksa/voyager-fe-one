@@ -64,7 +64,7 @@ watch(() => route.fullPath, async () => {
     <!-- Main Content Area: reduced spacing to sit snugly next to sidebar, animates smoothly on collapse -->
     <div
       class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out"
-      :class="isLandingPage ? 'p-0' : (isSidebarCollapsed ? 'md:pl-[4.5rem]' : 'md:pl-[18.25rem]')"
+      :class="isLandingPage ? 'p-0' : (isSidebarCollapsed ? 'md:pl-[5.25rem]' : 'md:pl-[19.25rem]')"
     >
       <AppNavbar v-if="!isLandingPage" />
 

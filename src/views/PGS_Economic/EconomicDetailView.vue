@@ -14,7 +14,7 @@ import {
   Clock,
   Sparkles
 } from '@lucide/vue'
-import { getEconomicEvents, type EconomicEvent } from '../services/researchApi'
+import { getEconomicEvents, type EconomicEvent } from '../../services/researchApi'
 
 interface TradingEconomicEvent extends EconomicEvent {
   country?: string

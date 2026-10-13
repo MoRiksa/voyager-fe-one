@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
-import { getResearchSessionFull, startResearchSession } from '../services/researchApi'
-import { sessionStatusMeta } from '../utils/status'
-import CandidateCard from '../components/CandidateCard.vue'
-import DataProvenance from '../components/DataProvenance.vue'
+import { useResearchStore } from '../../stores/researchStore'
+import { getResearchSessionFull, startResearchSession } from '../../services/researchApi'
+import { sessionStatusMeta } from '../../utils/status'
+import CandidateCard from '../../components/CandidateCard.vue'
+import DataProvenance from '../../components/DataProvenance.vue'
 import { 
   ArrowRight, 
   CheckCircle2, 

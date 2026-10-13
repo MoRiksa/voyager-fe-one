@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useResearchStore } from '../stores/researchStore'
-import type { ResearchObjectivePreset } from '../types'
-import { createResearchSession, startResearchSession, getResearchSessionFull, getResearchCapabilities, getResearchPresets, getResearchPreview } from '../services/researchApi'
+import { useResearchStore } from '../../stores/researchStore'
+import type { ResearchObjectivePreset } from '../../types'
+import { createResearchSession, startResearchSession, getResearchSessionFull, getResearchCapabilities, getResearchPresets, getResearchPreview } from '../../services/researchApi'
 import { AlertCircle, Check, CheckCircle2 } from '@lucide/vue'
 
 const store = useResearchStore()
@@ -78,7 +78,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[84rem] px-3 py-7 sm:px-4 sm:py-10 lg:px-4">
+  <div class="w-full max-w-[96rem] space-y-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <header class="max-w-2xl">
       <p class="section-kicker">Riset baru</p>
       <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Tinjauan data bank IDX</h1>

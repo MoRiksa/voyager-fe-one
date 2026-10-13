@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useResearchStore } from '../stores/researchStore'
+import { useResearchStore } from '../../stores/researchStore'
 import {
   Clock,
   Calendar,
@@ -87,7 +87,7 @@ const handleCreateSubmit = async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+  <div class="w-full max-w-6xl space-y-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <!-- Header matching NewResearchView.vue -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div class="max-w-3xl">

@@ -4,7 +4,7 @@ import { useResearchStore } from '../stores/researchStore'
 import { X, BookOpen } from '@lucide/vue'
 import { handleDialogBackdropClick } from '../utils/dialog'
 
-const MethodologyView = defineAsyncComponent(() => import('../views/MethodologyView.vue'))
+const MethodologyView = defineAsyncComponent(() => import('../views/PGS_Docs/MethodologyView.vue'))
 const store = useResearchStore()
 const dialog = ref<HTMLDialogElement>()
 let previousFocus: HTMLElement | null = null

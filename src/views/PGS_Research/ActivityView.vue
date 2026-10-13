@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useResearchStore } from '../stores/researchStore'
+import { useResearchStore } from '../../stores/researchStore'
 import { ArrowRight, CheckCircle2, FileText, Filter } from '@lucide/vue'
 
 const store = useResearchStore()
@@ -9,7 +9,7 @@ const iconFor = (category: string) => category === 'Derived Intelligence' ? Filt
 </script>
 
 <template>
-  <div class="mx-auto max-w-5xl space-y-7 px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+  <div class="w-full max-w-5xl space-y-7 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <header class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <p class="section-kicker">Aktivitas sesi</p>
       <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Langkah yang telah dijalankan</h1>
