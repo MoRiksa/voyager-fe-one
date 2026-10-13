@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import AppNavbar from './components/AppNavbar.vue'
+import AppFooter from './components/AppFooter.vue'
 import MobileNav from './components/MobileNav.vue'
 import CandidateDetailModal from './components/CandidateDetailModal.vue'
 import MethodologyModal from './components/MethodologyModal.vue'
@@ -14,6 +15,8 @@ import { getResearchSessionFull, ResearchApiError } from './services/researchApi
 const route = useRoute()
 const router = useRouter()
 const store = useResearchStore()
+
+const isLandingPage = computed(() => route.name === 'landing-page')
 
 const isSidebarCollapsed = ref(false)
 const toggleSidebar = () => {
@@ -50,8 +53,9 @@ watch(() => route.fullPath, async () => {
 <template>
   <div class="min-h-dvh bg-[#F8FAFC] flex text-slate-900 selection:bg-[#407EC9]/20 selection:text-[#1E4270]">
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
-    <!-- Persistent Left Sidebar Navigation with Collapsible State -->
+    <!-- Persistent Left Sidebar Navigation with Collapsible State (Hidden on landing page) -->
     <AppSidebar
+      v-if="!isLandingPage"
       class="hidden md:flex"
       :collapsed="isSidebarCollapsed"
       @toggle="toggleSidebar"
@@ -60,31 +64,26 @@ watch(() => route.fullPath, async () => {
     <!-- Main Content Area: reduced spacing to sit snugly next to sidebar, animates smoothly on collapse -->
     <div
       class="flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-in-out"
-      :class="isSidebarCollapsed ? 'md:pl-[4.5rem]' : 'md:pl-[18.25rem]'"
+      :class="isLandingPage ? 'p-0' : (isSidebarCollapsed ? 'md:pl-[4.5rem]' : 'md:pl-[18.25rem]')"
     >
-      <AppNavbar />
+      <AppNavbar v-if="!isLandingPage" />
 
-      <main id="main-content" tabindex="-1" class="flex-1 pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12">
+      <main
+        id="main-content"
+        tabindex="-1"
+        class="flex-1"
+        :class="isLandingPage ? 'pb-0' : 'pb-[calc(var(--mobile-nav-height)+1.5rem)] md:pb-12'"
+      >
         <p v-if="loadingSession" role="status" class="page-shell">Memuat sesi dari layanan riset…</p>
         <section v-else-if="sessionError" class="page-shell"><h1 class="text-2xl font-bold">Sesi belum dapat dimuat</h1><p role="alert" class="mt-3 text-rose-700">{{ sessionError }}</p><button type="button" class="button-primary mt-4" @click="loadRouteSession">Coba lagi</button></section>
         <router-view v-else />
       </main>
 
-      <!-- Institutional Footer -->
-      <footer class="border-t border-slate-200 bg-white py-6 px-6 lg:px-8 print:hidden">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-slate-800 font-mono">VOYAGER.ONE</span>
-            <span class="text-slate-300">•</span>
-            <span>Workspace riset finansial</span>
-          </div>
-
-          <nav aria-label="Informasi produk" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-slate-500 text-xs"><router-link to="/help" class="underline">Bantuan</router-link><router-link to="/methodology" class="underline">Cara kerja</router-link><router-link to="/glossary" class="underline">Kamus</router-link><router-link to="/accessibility" class="underline">Status aksesibilitas</router-link></nav>
-        </div>
-      </footer>
+      <!-- Institutional Reusable Footer (Always shown, including on landing page) -->
+      <AppFooter />
     </div>
 
-    <MobileNav />
+    <MobileNav v-if="!isLandingPage" />
     <CandidateDetailModal />
     <MethodologyModal />
     <div v-if="store.toast" class="fixed inset-x-4 z-[60] flex justify-center bottom-[calc(var(--mobile-nav-height)+1rem)] md:bottom-6" :role="store.toast.tone === 'error' ? 'alert' : 'status'" :aria-live="store.toast.tone === 'error' ? 'assertive' : 'polite'">

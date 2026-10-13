@@ -38,7 +38,8 @@ const navItems = computed(() => [
   {
     group: 'Riset',
     items: [
-      { names: ['home'], label: 'Beranda', path: '/', icon: Home },
+      { names: ['landing-page'], label: 'Pengenalan', path: '/landing-page', icon: Compass },
+      { names: ['home'], label: 'Workspace', path: '/workspace', icon: Home },
       { names: ['research-library'], label: 'Pustaka riset', path: '/research', icon: History },
       { names: ['research-new'], label: 'Riset baru', path: '/research/new', icon: Search },
       { names: ['economic-calendar', 'economic-date'], label: 'Kalender ekonomi', path: '/economic-calendar', icon: CalendarDays }

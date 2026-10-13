@@ -105,6 +105,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
     case 'not-found':
       crumbs.push({ label: 'Halaman Tidak Ditemukan' })
       break
+    case 'landing-page':
+      crumbs.push({ label: 'Selamat Datang' })
+      break
     default:
       // When at Home ('home')
       break
@@ -115,6 +118,7 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 
 const pageTitle = computed(() => {
   switch (route.name) {
+    case 'landing-page': return 'Selamat Datang di Voyager.One'
     case 'screener': return 'Proses Penyaringan'
     case 'peers': return 'Perbandingan Kandidat'
     case 'trace': return 'Audit Teknis'
@@ -152,16 +156,16 @@ const journeySteps = computed(() => [
   <header class="sticky top-2 z-20 pt-1 print:hidden">
     <div class="mx-auto max-w-[84rem] px-2 sm:px-3 lg:px-4">
       <div
-        class="flex min-h-14 items-center justify-between gap-3 rounded-xl border px-3.5 py-2 ring-1 transition-all duration-300 sm:min-h-16 sm:px-4"
+        class="flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-3.5 py-2 ring-1 transition-all duration-300 sm:min-h-16 sm:px-4"
         :class="isScrolled
-          ? 'border-white/50 bg-white/75 ring-slate-900/5 shadow-[0_12px_36px_-12px_rgba(15,33,56,0.35)] backdrop-blur-xl backdrop-saturate-150'
-          : 'border-slate-200/80 bg-white/95 ring-slate-900/5 shadow-[0_8px_24px_-12px_rgba(15,33,56,0.25)] backdrop-blur-md'"
+          ? 'border-slate-200/90 bg-white/85 ring-slate-900/5 shadow-[0_12px_36px_-12px_rgba(15,33,56,0.18)] backdrop-blur-xl backdrop-saturate-150'
+          : 'border-slate-200/80 bg-white/95 ring-slate-900/5 shadow-[0_4px_20px_-8px_rgba(15,33,56,0.12)] backdrop-blur-md'"
       >
         <!-- Left: Semantic Text-Only Horizontal Breadcrumbs with Page Title -->
         <div class="min-w-0 flex-1 pr-2">
           <!-- Breadcrumb Trail Navigation: Clean horizontal text-only trail -->
           <nav aria-label="Navigasi rekam jejak" class="flex items-center text-xs overflow-x-auto no-scrollbar py-0.5">
-            <ol class="flex items-center whitespace-nowrap gap-1.5 text-[11px] font-medium leading-none text-slate-500">
+            <ol class="flex items-center whitespace-nowrap gap-1.5 text-[11px] font-medium leading-none text-slate-400">
               <li
                 v-for="(crumb, idx) in breadcrumbs"
                 :key="`${crumb.label}-${idx}`"
@@ -173,7 +177,7 @@ const journeySteps = computed(() => [
                 <router-link
                   v-if="crumb.to && idx < breadcrumbs.length - 1"
                   :to="crumb.to"
-                  class="text-slate-500 transition-colors hover:text-[#244F87] hover:underline"
+                  class="text-slate-500 transition-colors duration-150 hover:text-[#1E4270] hover:underline underline-offset-2"
                 >
                   <span>{{ crumb.label }}</span>
                 </router-link>
@@ -181,7 +185,7 @@ const journeySteps = computed(() => [
                 <!-- Current page leaf breadcrumb -->
                 <span
                   v-else
-                  class="font-semibold text-slate-800"
+                  class="font-semibold text-slate-700 tracking-tight"
                   aria-current="page"
                 >
                   {{ crumb.label }}
@@ -191,7 +195,7 @@ const journeySteps = computed(() => [
           </nav>
 
           <!-- Main Page Title Header -->
-          <h1 class="mt-0.5 truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base lg:text-lg">
+          <h1 class="mt-0.5 truncate text-sm font-extrabold tracking-tight text-slate-900 sm:text-base lg:text-lg">
             {{ pageTitle }}
           </h1>
         </div>
@@ -199,33 +203,46 @@ const journeySteps = computed(() => [
         <!-- Center: Session journey stepper (only on session routes) -->
         <nav
           v-if="isSessionRoute"
-          class="hidden items-center gap-1 rounded-xl border border-slate-200/70 bg-slate-50/80 p-1 xl:flex shrink-0"
+          class="hidden items-center gap-0.5 rounded-xl border border-slate-200/80 bg-slate-50/90 p-1 xl:flex shrink-0 shadow-2xs"
           aria-label="Tahap riset"
         >
           <router-link
             v-for="(step, index) in journeySteps"
             :key="step.name"
             :to="step.to"
-            class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors"
-            :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'bg-white text-[#1E4270] shadow-2xs ring-1 ring-slate-900/5' : 'text-slate-500 hover:text-slate-900'"
+            class="group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150"
+            :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company')
+              ? 'bg-white text-[#1E4270] shadow-xs ring-1 ring-slate-900/5 font-bold'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'"
             :aria-current="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'step' : undefined"
           >
-            <span class="font-mono text-[10px] tabular-nums opacity-60">0{{ index + 1 }}</span>{{ step.label }}
+            <span
+              class="font-mono text-[10px] tabular-nums font-bold transition-opacity"
+              :class="route.name === step.name || (step.name === 'research-screener' && route.name === 'research-company') ? 'text-[#244F87]' : 'text-slate-400 group-hover:text-slate-600'"
+            >0{{ index + 1 }}</span>
+            <span class="tracking-tight">{{ step.label }}</span>
           </router-link>
         </nav>
 
-        <!-- Right: utilities -->
+        <!-- Right: Utilities -->
         <div class="flex shrink-0 items-center gap-2">
+          <!-- Quick Economic Calendar Navigation Button (Clean, tabular count without garish AI slop badge) -->
           <router-link
             to="/economic-calendar"
-            class="relative inline-flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-[#2F64A8]/40 hover:text-[#2F64A8] active:scale-[0.97] sm:size-10"
+            class="group relative inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-2.5 sm:px-3 text-slate-600 shadow-2xs transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 hover:text-[#1E4270] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#244F87] sm:h-10"
             :aria-label="economicCount > 0 ? `Kalender ekonomi, ${economicCount} agenda terdekat` : 'Kalender ekonomi'"
+            title="Buka Kalender Ekonomi"
           >
-            <CalendarDays class="size-4 sm:size-5 shrink-0" aria-hidden="true" />
+            <CalendarDays class="size-4 shrink-0 text-slate-500 transition-colors group-hover:text-[#244F87]" aria-hidden="true" />
+            <span class="hidden md:inline text-xs font-semibold tracking-tight text-slate-700 group-hover:text-slate-900">
+              Kalender
+            </span>
             <span
               v-if="economicCount > 0"
-              class="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white"
-            >{{ economicCount > 9 ? '9+' : economicCount }}</span>
+              class="inline-flex items-center justify-center font-mono text-[11px] font-bold tabular-nums text-slate-600 bg-slate-100 rounded-md px-1.5 py-0.5 group-hover:bg-blue-50 group-hover:text-[#1E4270] transition-colors"
+            >
+              {{ economicCount > 99 ? '99+' : economicCount }}
+            </span>
           </router-link>
         </div>
       </div>

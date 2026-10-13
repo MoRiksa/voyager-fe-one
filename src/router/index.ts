@@ -6,6 +6,16 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/landing-page'
+    },
+    {
+      path: '/landing-page',
+      name: 'landing-page',
+      component: () => import('../views/LandingPageView.vue'),
+      meta: { title: 'Selamat Datang di Voyager One' }
+    },
+    {
+      path: '/workspace',
       name: 'home',
       component: HomeView,
       meta: { title: 'Riset saham' }
